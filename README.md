@@ -1,6 +1,3 @@
-Sure! Here's your project description formatted properly in **GitHub Markdown** for a `README.md` file:
-
-```markdown
 # 🚀 Projectron – AI-Powered Project Planner
 
 **Projectron** is an intelligent project planning tool that uses AI to help you create, organize, and manage projects with ease.  
@@ -10,11 +7,11 @@ The system takes your project description and automatically generates comprehens
 
 ## 🌟 Features
 
-- **AI-Generated Project Plans**: Describe your project, and let our AI create a detailed breakdown.
-- **Interactive Timeline**: Visualize your project with an intuitive, scrollable timeline.
-- **Hierarchical Organization**: Clearly structured milestones, tasks, and subtasks.
-- **Real-time AI Assistance**: Get help refining and adjusting your project plan.
-- **Collaborative Editing**: Modify the AI-generated plan to suit your needs.
+- **AI-Generated Project Plans** – Describe your project, and let our AI create a detailed breakdown  
+- **Interactive Timeline** – Visualize your project with an intuitive, scrollable timeline  
+- **Hierarchical Organization** – Clearly structured milestones, tasks, and subtasks  
+- **Real-time AI Assistance** – Get help refining and adjusting your project plan  
+- **Collaborative Editing** – Modify the AI-generated plan to suit your needs  
 
 ---
 
@@ -36,6 +33,7 @@ The system takes your project description and automatically generates comprehens
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Docker and Docker Compose  
 - Node.js (v16+)  
 - Python 3.9+  
@@ -56,24 +54,28 @@ docker-compose up -d
 ```
 
 Access the application:
+
 - Frontend: [http://localhost:3000](http://localhost:3000)  
-- API: [http://localhost:8000/docs](http://localhost:8000/docs)
+- API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)  
 
 ---
 
 ## 📋 Usage
 
-### Create a New Project:
-- Click **"New Project"** on the dashboard  
-- Enter a description of your project  
-- Answer the AI's clarifying questions  
+### ➕ Create a New Project
 
-### View Your Project Plan:
+1. Click **"New Project"** on the dashboard  
+2. Enter a description of your project  
+3. Answer the AI's clarifying questions  
+
+### 📊 View Your Project Plan
+
 - Explore the **interactive timeline**  
 - Expand milestones to see tasks and subtasks  
 - Track progress and deadlines  
 
-### Modify Your Plan:
+### ✏️ Modify Your Plan
+
 - Edit any element by clicking on it  
 - Ask the AI to refine specific parts of the plan  
 - Add custom milestones, tasks, or subtasks  
@@ -111,7 +113,4 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 - This project uses language models from **OpenAI**  
 - UI components inspired by **Shadcn UI**  
 - Project management methodologies from **industry best practices**  
-- Built with ❤️ by **[Your Name]**
-```
-
-Let me know if you want it personalized with your real GitHub link or contributor name!
+- Built with ❤️ by **Eden Cohen**
