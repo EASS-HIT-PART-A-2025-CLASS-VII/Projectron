@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - MONGODB_URI=mongodb+srv://edencohendev:l7pYtAy14Zsqjnnh@projectron.42amkpo.mongodb.net/?retryWrites=true&w=majority&appName=projectron
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+# No mongo service needed since we're using Atlas
