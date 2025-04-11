@@ -1,0 +1,10 @@
+{
+    "python.analysis.extraPaths": [
+        "/mnt/c/Users/eden7/Projectron",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend"
+    ]
+}
+
