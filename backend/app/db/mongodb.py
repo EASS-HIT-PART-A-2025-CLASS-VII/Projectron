@@ -11,7 +11,7 @@ def connect_to_mongo():
             db=settings.MONGODB_DB_NAME,
             alias='default'
         )
-        print(f"Connected to MongoDB at {settings.MONGODB_URI}")
+        print(f"Connected to MongoDB")
         return True
     except Exception as e:
         print(f"Failed to connect to MongoDB: {e}")

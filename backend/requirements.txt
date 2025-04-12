@@ -57,3 +57,6 @@ typing-inspection
 urllib3
 uvicorn
 zstandard
+graphviz
+selenium
+webdriver-manager

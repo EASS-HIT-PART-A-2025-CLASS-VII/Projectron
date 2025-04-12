@@ -3,8 +3,7 @@ from typing import List, Dict, Union
 import json
 import logging
 
-from app.api.endpoints.ai import ProjectInput
-from app.pydantic_models.project_payload import PlanGenerationInput
+from app.pydantic_models.project_payload import PlanGenerationInput, ProjectInput
 from ...core.config import get_settings
 from .llm_utils import create_chain, extract_json_from_text
 from .data_processor import validate_with_model
@@ -30,7 +29,7 @@ responses are unexpected.
 """
 
 class ProjectAIService:
-    """Service for AI-assisted project planning using LangChain and GPT-4o-mini."""
+    """Service for AI-assisted project planning using LangChain"""
     
     def __init__(self):
         """Initialize the service with settings and logging."""

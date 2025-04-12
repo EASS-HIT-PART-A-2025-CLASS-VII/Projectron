@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, projects, milestones, tasks, subtasks, ai
+from app.api.endpoints import auth, projects, milestones, tasks, subtasks, ai, diagrams
 
 api_router = APIRouter()
 
@@ -21,3 +21,6 @@ api_router.include_router(subtasks.router, prefix="/projects", tags=["subtasks"]
 
 # AI routes
 api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
+
+# Diagram routes
+api_router.include_router(diagrams.router, prefix="/diagrams", tags=["diagrams"])

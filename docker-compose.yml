@@ -7,8 +7,21 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+    depends_on:
+      - selenium
     environment:
       - MONGODB_URI=mongodb+srv://edencohendev:l7pYtAy14Zsqjnnh@projectron.42amkpo.mongodb.net/?retryWrites=true&w=majority&appName=projectron
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SELENIUM_URL=http://selenium:4444
+
+  selenium:
+    image: selenium/standalone-chrome:4.19.1-20240402
+    ports:
+      - "4444:4444"
+    environment:
+      - SE_START_XVFB=false
+      - SE_NODE_MAX_SESSIONS=2
+      - SE_NODE_SESSION_TIMEOUT=30
+    shm_size: 2g
 
 # No mongo service needed since we're using Atlas

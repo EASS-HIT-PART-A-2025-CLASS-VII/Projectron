@@ -34,10 +34,21 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "rmcx lfdo olyb dhdm")
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
-    # OPENAO SERVICE
+    # OPENAI SERVICE
+    AI_MODEL_NAME: str = "gpt-4o-mini"
+    DIAGRAM_TEMPERATURE: float = 0.2
     openai_api_key: str = ""
 
+    # SELENIUM
+    # Settings related to the Sequence Diagram Generator
+    SELENIUM_URL: str = "http://localhost:4444"  # URL of the Selenium standalone Chrome instance
+    SEQUENCE_DIAGRAM_SITE_URL: str = "https://sequencediagram.org"  # URL of sequencediagram.org 
+    SELENIUM_TIMEOUT: int = 30  # Timeout in seconds for Selenium operations
+    MAX_DIAGRAM_ITERATIONS: int = 3  # Maximum number of iterations for diagram generation
     
+    ENVIRONMENT: str = "development"  # "development", "staging", "production"
+    ENABLE_MERMAID_CLI_VALIDATION: bool = True
+
     model_config = {
         "env_file": ".env",
         "extra": "ignore"  # Allow extra fields in environment variables
