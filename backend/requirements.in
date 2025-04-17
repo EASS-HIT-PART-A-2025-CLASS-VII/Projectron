@@ -1,9 +1,0 @@
-fastapi
-uvicorn
-pydantic
-mongoengine
-langchain
-langchain-openai
-python-jose
-python-multipart
-passlib

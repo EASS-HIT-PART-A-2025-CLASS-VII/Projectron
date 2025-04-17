@@ -5,7 +5,6 @@ from typing import Optional
 
 from app.core.config import get_settings
 from app.db.models.auth import User
-from app.db.repositories import user_repo
 
 settings = get_settings()
 # OAuth2 scheme for token extraction
@@ -47,7 +46,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
         raise credentials_exception
         
     # Get the user from the database
-    user = user_repo.get(user_id)
+    # user = user_repo.get(id=user_id)
+    user = User.objects(id=user_id).first()
     if user is None:
         raise credentials_exception
         

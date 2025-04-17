@@ -13,8 +13,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Projectron"
     API_V1_STR: str = "/api/endpoints"
 
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
-        "http://localhost:3000",  # Frontend URL
+        "http://localhost:3000",  # Frontend DEV URL
+        FRONTEND_URL,  # Frontend URL from environment variable
         "http://localhost:8000",  # Backend URL
     ]
 
@@ -32,12 +35,15 @@ class Settings(BaseSettings):
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
     SMTP_USER: str = os.getenv("SMTP_USER", "travel7450@gmail.com")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "rmcx lfdo olyb dhdm")
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
     # OPENAI SERVICE
-    AI_MODEL_NAME: str = "gpt-4o-mini"
+    AI_MODEL_NAME: str = "gpt-4.1-mini"
     DIAGRAM_TEMPERATURE: float = 0.2
     openai_api_key: str = ""
+
+    # ANTHROPIC SERVICE
+    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "your-anthropic-api-key")
+    # AI_MODEL_NAME: str = "claude-3-opus-20240229"
 
     # SELENIUM
     # Settings related to the Sequence Diagram Generator

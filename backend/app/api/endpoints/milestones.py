@@ -1,48 +1,16 @@
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 from app.api.deps import get_current_user
 from app.db.models.auth import User
 from app.db.models.project import Project, Milestone, Task, Subtask
-from app.utils import serialize_mongodb_doc
-
-class MilestoneCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
-    order: Optional[int] = 0
-    status: Optional[str] = "not_started"
-    metadata: Optional[dict] = {}
-
-class MilestoneUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
-    order: Optional[int] = None
-    status: Optional[str] = "not_started"
-    metadata: Optional[dict] = {}
-
-class MilestoneResponse(BaseModel):
-    id: str
-    project_id: str
-    name: str
-    description: Optional[str] = None
-    due_date: Optional[datetime] = None
-    order: int
-    status: str
-    task_count: int = 0
-    completed_task_count: int = 0
-    completion_percentage: float = 0.0
-
-    class Config:
-        orm_mode = True
-
-
-
+from app.pydantic_models.project_http_models import MilestoneUpdate
+from app.utils.mongo_encoder import serialize_mongodb_doc
 
 router = APIRouter()
+
 
 @router.get("/{project_id}/milestones", response_description="List all milestones for a project")
 async def list_milestones(project_id: str, current_user: User = Depends(get_current_user)):
@@ -50,8 +18,7 @@ async def list_milestones(project_id: str, current_user: User = Depends(get_curr
     Retrieve all milestones for the specified project.
     """
     try:
-        object_id = ObjectId(project_id)
-        project = Project.objects.get(id=object_id)
+        project = Project.objects(id=ObjectId(project_id)).first()
     except:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -79,14 +46,13 @@ async def list_milestones(project_id: str, current_user: User = Depends(get_curr
     return serialize_mongodb_doc(result)
 
 @router.post("/{project_id}/milestones", response_description="Create a new milestone", status_code=status.HTTP_201_CREATED)
-async def create_milestone(project_id: str, milestone_data: dict, current_user: User = Depends(get_current_user)):
+async def create_milestone(project_id: str, milestone_data: MilestoneUpdate, current_user: User = Depends(get_current_user)):
     """
     Create a new milestone for a project.
     No nested tasks are created here.
     """
     try:
-        object_id = ObjectId(project_id)
-        project = Project.objects.get(id=object_id)
+        project = Project.objects(id=ObjectId(project_id)).first()
     except:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -130,8 +96,7 @@ async def update_milestone(project_id: str, milestone_id: str, milestone_data: d
     Does not affect tasks or subtasks.
     """
     try:
-        object_id = ObjectId(project_id)
-        project = Project.objects.get(id=object_id)
+        project = Project.objects(id=ObjectId(project_id)).first()
     except:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -154,16 +119,15 @@ async def update_milestone(project_id: str, milestone_id: str, milestone_data: d
         )
     
     # Update milestone fields
+
     for key, value in milestone_data.items():
         if key != 'id' and key != 'project_id':
             setattr(milestone, key, value)
     
     milestone.save()
     
-    # Update project's updated_at field
     project.updated_at = datetime.now()
     project.save()
-    
     # Return the updated milestone
     milestone_dict = milestone.to_mongo().to_dict()
     
@@ -175,8 +139,7 @@ async def delete_milestone(project_id: str, milestone_id: str, current_user: Use
     Delete a milestone and all its nested tasks and subtasks.
     """
     try:
-        object_id = ObjectId(project_id)
-        project = Project.objects.get(id=object_id)
+        project = Project.objects(id=ObjectId(project_id)).first()
     except:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -212,8 +175,7 @@ async def delete_milestone(project_id: str, milestone_id: str, current_user: Use
     # Delete the milestone
     milestone.delete()
     
-    # Update project's updated_at field
     project.updated_at = datetime.now()
     project.save()
-    
+
     return {"message": "Milestone deleted successfully"}

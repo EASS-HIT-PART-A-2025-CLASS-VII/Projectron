@@ -4,7 +4,7 @@ from datetime import datetime
 from app.api.deps import get_current_user
 from app.db.models.auth import User
 from app.db.models.project import Project, Milestone, Task, Subtask
-from app.utils import serialize_mongodb_doc
+from app.utils.mongo_encoder import serialize_mongodb_doc
 
 router = APIRouter()
 

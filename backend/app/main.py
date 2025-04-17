@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.api_router import api_router
 from app.core.config import get_settings
 from app.db.mongodb import connect_to_mongo, close_mongo_connection
-from app.utils import MongoJSONEncoder
+from app.utils.mongo_encoder import MongoJSONEncoder
 
 settings = get_settings()
 

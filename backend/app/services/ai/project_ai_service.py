@@ -1,361 +1,418 @@
-# app/services/project_ai_service.py
-from typing import List, Dict, Union
+from typing import Dict, List, Any
+from langchain.chains import LLMChain
+from langchain.output_parsers.json import SimpleJsonOutputParser
 import json
-import logging
-
-from app.pydantic_models.project_payload import PlanGenerationInput, ProjectInput
-from ...core.config import get_settings
-from .llm_utils import create_chain, extract_json_from_text
-from .data_processor import validate_with_model
-from ...pydantic_models.ai_models import ProjectPlanModel
-from .prompt_templates import (
-    CLARIFICATION_QUESTIONS_TEMPLATE,
-    DETAILED_PLAN_TEXT_TEMPLATE,
-    TEXT_TO_STRUCTURED_TEMPLATE,
-    REFINE_PLAN_TEMPLATE,
+from langchain.prompts import ChatPromptTemplate
+from app.pydantic_models.project_http_models import PlanGenerationInput
+from app.core.config import get_settings
+from app.services.ai.ai_utils import create_llm
+from app.services.ai.validations import validate_and_repair_json
+from app.pydantic_models.ai_plan_models import (
+    HighLevelPlan,
+    TechnicalArchitecture,
+    APIEndpoints,
+    DataModels,
+    UIComponents,
+    DetailedImplementationPlan,
+    ComprehensiveProjectPlan
 )
+from app.services.ai.plan_prompts import (
+    CLARIFICATION_QUESTIONS_PROMPT,
+    HIGH_LEVEL_PLAN_PROMPT,
+    TECHNICAL_ARCHITECTURE_PROMPT,
+    API_ENDPOINTS_PROMPT,
+    DATA_MODELS_PROMPT,
+    UI_COMPONENTS_PROMPT,
+    DETAILED_IMPLEMENTATION_PLAN_PROMPT,
+    TEXT_PLAN_PROMPT,
+    REFINE_PROJECT_PLAN_PROMPT
+)
+import logging
+from ...core.config import get_settings
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
 
-"""
-This is the core service class that handles AI-assisted project planning.
-It orchestrates the interaction between the API, the language models,
-and the data processing utilities to provide a robust project planning service.
-
-The class implements the business logic for all project planning operations
-while handling edge cases and ensuring reliable output even when LLM
-responses are unexpected.
-"""
-
 class ProjectAIService:
-    """Service for AI-assisted project planning using LangChain"""
+    """Service for AI-powered project planning features with logical progression"""
     
     def __init__(self):
-        """Initialize the service with settings and logging."""
-        logger.info("Initializing ProjectAIService")
+        self.llm = create_llm()
+        self.llm_repair_mode = create_llm(temperature=0.4)
 
-    async def generate_clarification_questions(
-    self, 
-    project_info: Union[str, ProjectInput], 
-    existing_questions: List[str] = None
-    ) -> List[str]:
+
+
+    def create_chain(self, prompt_template: str, output_parser=None, repair_mode=False, temperature=0.2):
         """
-        Generate clarification questions for a project description.
-        
-        This helps project stakeholders identify missing information and
-        refine the project scope before detailed planning begins.
+        Creates a LangChain chain with the given prompt template and configuration.
         
         Args:
-            project_description: Text describing the project
-            existing_questions: Previously asked questions to avoid duplication
-            
+            prompt_template: The template text with variables for the prompt
+            output_parser: Optional parser to structure the LLM output
+            repair_mode: If True, uses the repair LLM with higher temperature
+        
         Returns:
-            List of clarification questions
+            A configured LangChain Chain ready to be invoked
         """
-        # Prepare context for existing questions if provided
-        existing_questions_context = ""
-        if existing_questions and len(existing_questions) > 0:
-            existing_questions_text = "\n".join([f"- {q}" for q in existing_questions])
-            existing_questions_context = f"""
-            Previously asked questions (avoid repeating these):
-            {existing_questions_text}
-            """
-        if isinstance(project_info, ProjectInput):
-            project_description = project_info.model_dump()
-        else:
-            project_description = project_info
+        # Create the template
+        prompt = ChatPromptTemplate.from_template(prompt_template)
+        llm = self.llm_repair_mode if repair_mode else self.llm
+        # Create the LLM        
+        # Debug info
+        logger.debug(f"Creating chain with prompt template: {prompt_template[:50]}...")
+        
+        # Create and return the chain
+        if output_parser:
+            return LLMChain(llm=llm, prompt=prompt, output_parser=output_parser)
+        return LLMChain(llm=llm, prompt=prompt)
     
-        # Create and run the LLM chain
-        chain = create_chain(CLARIFICATION_QUESTIONS_TEMPLATE)
-        result = await chain.ainvoke({
-            "project_description": project_description,
-            "existing_questions_context": existing_questions_context
-        })
+    async def generate_clarification_questions(self, project_info: PlanGenerationInput) -> List[str]:
+        """Generate clarification questions for a project description"""
         
-        response_text = result.get("text", "").strip()
-        
-        # Extract and parse the response
-        questions, success = await extract_json_from_text(
-            response_text, 
-            expected_start_char="[", 
-            expected_end_char="]"
+        chain = self.create_chain(
+            prompt_template=CLARIFICATION_QUESTIONS_PROMPT,
+            output_parser=SimpleJsonOutputParser()
         )
         
-        if success and isinstance(questions, list):
-            return questions
-        
-        # If parsing fails, create a fallback list
-        logger.warning("Failed to generate proper clarification questions, using fallback questions")
-        return [
-            "What architecture pattern will this project follow (microservices, monolith, serverless)?",
-            "What are the primary APIs or external services this application will interact with?",
-            "What are the database requirements and expected data models?",
-            "What are the specific deployment and hosting requirements?",
-            "What are the most complex technical challenges anticipated in this project?"
-        ]
-    
-    async def generate_detailed_plan_text(self, project:PlanGenerationInput) -> str:
-        """
-        Generate a detailed project plan in text format.
-        
-        This is the first step in the two-step plan generation process,
-        creating a comprehensive text description that will later be
-        converted to structured data.
-        
-        Args:
-            project_description: Text describing the project
-            project_requirements: List of project requirements
-            clarification_answers: Optional dict of Q&A from clarification phase
-            
-        Returns:
-            Detailed project plan in text format
-        """
-        # Prepare clarification context if provided
-        clarification_context = ""
-        if project.clarifying_QA and len(project.clarifying_QA) > 0:
-            clarification_text = "\n".join([f"Q: {q}\nA: {a}" for q, a in project.clarifying_QA.items()])
-            clarification_context = f"""
-            Additional Information from Clarification Questions:
-            {clarification_text}
-            """
-        
-        # Format requirements as bullet points
-        
-        # Create and run the LLM chain
-        chain = create_chain(DETAILED_PLAN_TEXT_TEMPLATE)
         result = await chain.ainvoke({
-            "project_description": project.model_dump(),
-            "clarification_context": clarification_context
+            "project_description": json.dumps(project_info),
+            "total_hours": project_info.total_hours,
         })
         
         return result.get("text", "")
     
-    async def convert_text_plan_to_structured_data(self, text_plan: str, project_name: str = None) -> Dict:
-        """
-        Convert a text-based project plan to structured data.
+    async def generate_project_plan(self, project_info: PlanGenerationInput, clarification_qa: Dict[str, str] = {}) -> Dict[str, Any]:
+        """Generate a comprehensive project plan based on description and clarification answers"""
         
-        This is the second step in the plan generation process, transforming
-        the free-form text plan into a structured JSON format that matches
-        our data models.
+        # Step 1: Generate high-level project vision and scope
+        high_level_plan = await self._generate_high_level_plan(project_info, clarification_qa)
         
-        Args:
-            text_plan: The detailed text plan from previous step
-            project_name: Optional project name to use
-            
-        Returns:
-            Structured project plan data
-        """
-        max_retries = 3
+        # Step 2: Generate technical architecture based on high-level plan
+        technical_architecture = await self._generate_technical_architecture(project_info, high_level_plan)
         
-        # Prepare context for project name
-        if project_name:
-            project_name_context = f"The project name is: {project_name}"
-        else:
-            project_name_context = "Extract the project name from the text plan."
+        # Step 3: Generate API endpoints based on architecture and high-level plan
+        api_endpoints = await self._generate_api_endpoints(project_info, high_level_plan, technical_architecture)
         
-        # Use the template for structured conversion
-        prompt_template = TEXT_TO_STRUCTURED_TEMPLATE
+        # Step 4: Generate data models based on architecture, APIs, and high-level plan
+        data_models = await self._generate_data_models(project_info, high_level_plan, technical_architecture, api_endpoints)
         
-        for attempt in range(max_retries):
-            print("Attempt - ", attempt)
-            try:
-                # Create a chain with lower temperature for structured output
-                chain = create_chain(prompt_template, temperature=0.1)
-                
-                result = await chain.ainvoke({
-                    "text_plan": text_plan,
-                    "project_name_context": project_name_context
-                })
-                
-                response_text = result.get("text", "").strip()
-                
-                # Extract the JSON
-                structured_plan, success = await extract_json_from_text(
-                    response_text, 
-                    expected_start_char="{", 
-                    expected_end_char="}"
-                )
-                
-                if success and isinstance(structured_plan, dict):
-                    # Validate with the Pydantic model
-                    validated_plan, is_valid, error_message = await validate_with_model(
-                        structured_plan, 
-                        ProjectPlanModel
-                    )
-                    
-                    if is_valid:
-                        return validated_plan
-                    else:
-                        # If it's the last attempt, return the best-effort plan with a warning flag
-                        if attempt == max_retries - 1:
-                            return {
-                                **validated_plan,
-                                "_validation_warning": error_message
-                            }
-                        # Otherwise, try again with a modified prompt
-                        prompt_template += f"\n\nPrevious attempt had these validation errors: {error_message}\nFix these issues specifically."
-                
-                # If we reach here, either JSON extraction or validation failed
-                logger.warning(f"Attempt {attempt+1}/{max_retries} failed to produce valid structured data")
-                
-                # For subsequent attempts, refine the prompt
-                if attempt < max_retries - 1:
-                    prompt_template += "\n\nYOUR PREVIOUS RESPONSE HAD FORMATTING OR STRUCTURAL ISSUES. ENSURE YOU RETURN A VALID JSON OBJECT WITH THE EXACT STRUCTURE REQUESTED."
-            
-            except Exception as e:
-                logger.error(f"Error in structured data conversion (attempt {attempt+1}): {str(e)}")
-                
-                if attempt == max_retries - 1:
-                    # Create a minimal valid plan as a fallback
-                    fallback_plan = {
-                        "name": project_name or "Untitled Project",
-                        "description": "Project plan conversion encountered errors. Please review and update.",
-                        "status": "draft",
-                        "milestones": [{
-                            "name": "Project Setup",
-                            "description": "Initial project setup and planning",
-                            "status": "not_started",
-                            "tasks": [{
-                                "name": "Project Initialization",
-                                "description": "Create project structure and setup environment",
-                                "status": "not_started",
-                                "priority": "medium",
-                                "estimated_hours": 8,
-                                "dependencies": [],
-                                "subtasks": []
-                            }]
-                        }],
-                        "_conversion_error": str(e)
-                    }
-                    return fallback_plan
+        # Step 5: Generate UI components based on high-level plan, APIs, and data models
+        ui_components = await self._generate_ui_components(project_info, high_level_plan, api_endpoints, data_models)
         
-        # If all attempts fail, create a fallback plan
-        fallback_plan = {
-            "name": project_name or "Untitled Project",
-            "description": "Project plan conversion failed. Please create a plan manually.",
-            "status": "draft",
-            "milestones": [{
-                "name": "Project Setup",
-                "description": "Initial project setup and planning",
-                "status": "not_started",
-                "tasks": [{
-                    "name": "Project Initialization",
-                    "description": "Create project structure and setup environment",
-                    "status": "not_started",
-                    "priority": "medium",
-                    "estimated_hours": 8,
-                    "dependencies": [],
-                    "subtasks": []
-                }]
-            }],
-            "_conversion_error": "Failed to convert text plan to structured data after multiple attempts"
-        }
+        # Step 6: Generate detailed milestones, tasks, and subtasks based on all previous information
+        detailed_plan = await self._generate_detailed_implementation_plan(
+            project_info,
+            high_level_plan,
+            technical_architecture,
+            api_endpoints,
+            data_models,
+            ui_components
+        )
         
-        return fallback_plan
-    
-    async def generate_project_plan(self, project_info: Union[str, PlanGenerationInput]) -> Dict:
-        """
-        Generate a complete project plan using a two-step process.
+        # Step 7: Compile everything into a comprehensive project plan
+        comprehensive_plan = await self._compile_comprehensive_plan(
+            high_level_plan,
+            technical_architecture,
+            api_endpoints,
+            data_models,
+            ui_components,
+            detailed_plan
+        )
         
-        This is the main entry point for plan generation, orchestrating the
-        text plan generation followed by conversion to structured data.
+        # Additional step: Generate a textual overview of the plan
+        # text_plan = await self._generate_text_plan(comprehensive_plan)
         
-        Args:
-            project_description: Text describing the project
-            project_requirements: List of project requirements
-            project_name: Optional project name
-            clarification_answers: Optional dict of Q&A from clarification phase
-            
-        Returns:
-            Dict containing both structured plan and text plan
-        """
-        # Step 1: Generate detailed text plan
-        text_plan = await self.generate_detailed_plan_text(project_info)
-        
-        # Step 2: Convert text plan to structured data
-        structured_plan = await self.convert_text_plan_to_structured_data(text_plan, project_info.title)
-        
-        # Return both for debugging/reference
         return {
-            "structured_plan": structured_plan,
-            "text_plan": text_plan
+            "structured_plan": comprehensive_plan
         }
     
-    async def refine_project_plan(self, current_plan: Dict, feedback: str) -> Dict:
-        """
-        Refine an existing project plan based on feedback.
+    async def _generate_high_level_plan(self, project_info: PlanGenerationInput, clarification_qa: Dict[str,str]={}) -> Dict[str, Any]:
+        """Generate a high-level project plan with vision, objectives, and scope"""
         
-        This allows iterative improvement of project plans by incorporating
-        stakeholder feedback and additional information.
+        # Format clarification Q&A as a list for better prompt readability
+        print("generating high level plan...")
+        clarification_qa_str = "\n".join([
+            f"Q: {q}\nA: {a}" for q, a in clarification_qa.items()
+            ])
         
-        Args:
-            current_plan: The existing project plan
-            feedback: Textual feedback to incorporate
+        chain = self.create_chain(
+            prompt_template=HIGH_LEVEL_PLAN_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"project_title": project_info.title,
+            "project_description": project_info.description,
+            "total_hours": project_info.total_hours,
+            "tech_stack": project_info.tech_stack,
+            "experience_level": project_info.experience_level,
+            "team_size": project_info.team_size,
+            "clarification_qa": clarification_qa_str}
+        )
+        
+        print(type(result))
+        print(str(result)[:40])
+        # Validate and repair the response if needed
+        validated_result = await validate_and_repair_json(
+            response=result.get("text", ""),
+            model=HighLevelPlan,
+            llm_chain_creator=self.create_chain
+        )
+        print("finished generating high level plan")
+        
+        return validated_result
+    
+    async def _generate_technical_architecture(self, project_info: PlanGenerationInput, high_level_plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate detailed technical architecture based on the high-level plan"""
+        
+        print("generating technical architecture...")
+
+        chain = self.create_chain(
+            prompt_template=TECHNICAL_ARCHITECTURE_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"high_level_plan_json":json.dumps(high_level_plan),
+             "total_hours": project_info.total_hours,
+            "project_description":project_info.description,}
+        )
+        
+        print(type(result))
+        print(str(result)[:40])
+        # Validate and repair the response if needed
+        validated_result = await validate_and_repair_json(
+            response=result.get("text", ""),
+            model=TechnicalArchitecture,
+            llm_chain_creator=self.create_chain
+        )
+        
+        print("finished generating technical architecture")
+        return validated_result
+    
+    async def _generate_api_endpoints(
+        self, 
+        project_info: PlanGenerationInput, 
+        high_level_plan: Dict[str, Any],
+        technical_architecture: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate API endpoints documentation based on high-level plan and technical architecture"""
+        
+        print("generating api endpoints...")
+
+        chain = self.create_chain(
+            prompt_template=API_ENDPOINTS_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"high_level_plan_json":json.dumps(high_level_plan),
+             "total_hours": project_info.total_hours,
+            "technical_architecture_json":json.dumps(technical_architecture)}
+        )
+        
+        print(type(result))
+        print(str(result)[:40])
+        # Validate and repair the response if needed
+        validated_result = await validate_and_repair_json(
+            response=result.get("text", ""),
+            model=APIEndpoints,
+            llm_chain_creator=self.create_chain
+        )
+        
+        print("finished generating api endpoints")
+
+        return validated_result
+    
+    async def _generate_data_models(
+        self, 
+        project_info: PlanGenerationInput, 
+        high_level_plan: Dict[str, Any],
+        technical_architecture: Dict[str, Any],
+        api_endpoints: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate database schema and data models based on all previous planning"""
+        
+        print("generating data models...")
+
+        chain = self.create_chain(
+            prompt_template=DATA_MODELS_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"high_level_plan_json":json.dumps(high_level_plan),
+            "technical_architecture_json":json.dumps(technical_architecture),
+            "total_hours": project_info.total_hours,
+            "api_endpoints_json":json.dumps(api_endpoints)}
+        )
+        
+        print(type(result))
+        print(str(result)[:40])
+        # Validate and repair the response if needed
+        validated_result = await validate_and_repair_json(
+            response=result.get("text", ""),
+            model=DataModels,
+            llm_chain_creator=self.create_chain
+        )
+        
+        print("finished generating data models")
+
+        return validated_result
+    
+    async def _generate_ui_components(
+        self, 
+        project_info: PlanGenerationInput, 
+        high_level_plan: Dict[str, Any],
+        api_endpoints: Dict[str, Any],
+        data_models: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate UI components breakdown based on all previous planning"""
+        
+        print("generating ui components...")
+
+        chain = self.create_chain(
+            prompt_template=UI_COMPONENTS_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"high_level_plan_json":json.dumps(high_level_plan),
+            "api_endpoints_json":json.dumps(api_endpoints),
+            "total_hours": project_info.total_hours,
+            "data_models_json":json.dumps(data_models)}
+        )
+        
+        print(type(result))
+        print(str(result)[:40])
+        # Validate and repair the response if needed
+        validated_result = await validate_and_repair_json(
+            response=result.get("text", ""),
+            model=UIComponents,
+            llm_chain_creator=self.create_chain
+        )
+        
+        print("finished generating ui components")
+
+        return validated_result
+    
+    async def _generate_detailed_implementation_plan(
+        self,
+        project_info: PlanGenerationInput,
+        high_level_plan: Dict[str, Any],
+        technical_architecture: Dict[str, Any],
+        api_endpoints: Dict[str, Any],
+        data_models: Dict[str, Any],
+        ui_components: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate detailed milestones, tasks, and subtasks based on all previous planning"""
+        
+        print("generating detailed implementation plan...")
+
+        chain = self.create_chain(
+            prompt_template=DETAILED_IMPLEMENTATION_PLAN_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"high_level_plan_json":json.dumps(high_level_plan),
+            "technical_architecture_json":json.dumps(technical_architecture),
+            "api_endpoints_json":json.dumps(api_endpoints),
+            "data_models_json":json.dumps(data_models),
+            "total_hours": project_info.total_hours,
+            "ui_components_json":json.dumps(ui_components)}
+        )
+        
+        print(type(result))
+        print(str(result)[:40])
+        # Validate and repair the response if needed
+        validated_result = await validate_and_repair_json(
+            response=result.get("text", ""),
+            model=DetailedImplementationPlan,
+            llm_chain_creator=self.create_chain
+        )
+        
+        print("finished generating detailed implementation plan")
+
+        return validated_result
+    
+    async def _compile_comprehensive_plan(
+        self,
+        high_level_plan: Dict[str, Any],
+        technical_architecture: Dict[str, Any],
+        api_endpoints: Dict[str, Any],
+        data_models: Dict[str, Any],
+        ui_components: Dict[str, Any],
+        detailed_plan: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Compile all components into a comprehensive project plan"""
+        
+        # Start with the high-level plan info
+        comprehensive_plan = {
+            "name": high_level_plan.get("name", "Untitled Project"),
+            "description": high_level_plan.get("description", ""),
+            "status": high_level_plan.get("status", "draft"),
+            "tech_stack": high_level_plan.get("tech_stack", []),
+            "experience_level": high_level_plan.get("experience_level", "mid"),
+            "high_level_plan": {
+                "vision": high_level_plan.get("vision", ""),
+                "business_objectives": high_level_plan.get("business_objectives", []),
+                "target_users": high_level_plan.get("target_users", []),
+                "core_features": high_level_plan.get("core_features", []),
+                "scope": high_level_plan.get("scope", {}),
+                "success_criteria": high_level_plan.get("success_criteria", []),
+                "constraints": high_level_plan.get("constraints", []),
+                "assumptions": high_level_plan.get("assumptions", []),
+                "risks": high_level_plan.get("risks", []),
+            },
+            "technical_architecture": technical_architecture,
+            "api_endpoints": api_endpoints,
+            "data_models": data_models,
+            "ui_components": ui_components,
+            "implementation_plan": detailed_plan.get("milestones", [])
+        }
+        
+        # Validate the comprehensive plan (optional)
+        # This is just to ensure the structure is valid, not to repair it
+        try:
+            ComprehensiveProjectPlan(**comprehensive_plan)
+            print("Comprehensive plan validated successfully.✅")
+        except Exception as e:
+            print(f"Warning: Comprehensive plan validation failed: {str(e)}")
             
-        Returns:
-            Updated project plan
-        """
-        max_retries = 3
-        
-        # Convert the current plan to a string for the prompt
-        current_plan_str = json.dumps(current_plan, indent=2)
-        
-        # Use the refine plan template
-        prompt_template = REFINE_PLAN_TEMPLATE
-        
-        for attempt in range(max_retries):
-            try:
-                chain = create_chain(prompt_template)
-                result = await chain.ainvoke({
-                    "current_plan": current_plan_str,
-                    "feedback": feedback
-                })
-                
-                response_text = result.get("text", "")
-                
-                # Extract the JSON
-                refined_plan, success = await extract_json_from_text(
-                    response_text, 
-                    expected_start_char="{", 
-                    expected_end_char="}"
-                )
-                
-                if success and isinstance(refined_plan, dict):
-                    # Validate with Pydantic model
-                    validated_plan, is_valid, error_message = await validate_with_model(
-                        refined_plan, 
-                        ProjectPlanModel
-                    )
-                    
-                    if is_valid:
-                        return validated_plan
-                    elif attempt == max_retries - 1:
-                        # If it's the last attempt, return the best-effort plan with a warning flag
-                        return {
-                            **validated_plan,
-                            "_validation_warning": error_message
-                        }
-                    else:
-                        # Update the prompt to address specific validation issues
-                        prompt_template += f"\n\nThe previous response had these validation errors: {error_message}\nPlease fix these specific issues."
-                else:
-                    logger.warning(f"Failed to extract valid JSON from response (attempt {attempt+1})")
-            except Exception as e:
-                logger.error(f"Error in plan refinement (attempt {attempt+1}): {str(e)}")
-                
-                if attempt == max_retries - 1:
-                    # If all attempts fail, try to keep as much of the original plan as possible
-                    return {
-                        **current_plan,
-                        "_refinement_error": str(e),
-                        "feedback_applied": feedback
-                    }
-        
-        # This should only be reached if all attempts fail
-        return {
-            **current_plan,
-            "_refinement_error": "Failed to refine plan after multiple attempts",
-            "feedback_applied": feedback
-        }
+        return comprehensive_plan
     
+    async def _generate_text_plan(self, comprehensive_plan: Dict[str, Any]) -> str:
+        """Generate a textual overview of the project plan"""
+        print("generating text plan...")
+
+        chain = self.create_chain(
+            prompt_template=TEXT_PLAN_PROMPT
+        )
+        
+        result = await chain.ainvoke(
+            {"project_json": json.dumps(comprehensive_plan)}
+        )
+        
+        print("finished generating text plan")
+
+        return result.get("text", "")
+    
+    async def refine_project_plan(self, current_plan: Dict[str, Any], feedback: str) -> Dict[str, Any]:
+        """Refine an existing project plan based on feedback"""
+        
+        chain = self.create_chain(
+            prompt_template=REFINE_PROJECT_PLAN_PROMPT,
+            output_parser=SimpleJsonOutputParser()
+        )
+        
+        result = await chain.ainvoke(
+            {"current_plan_json":json.dumps(current_plan),
+             "total_hours": current_plan.get("total_hours", 100),
+            "feedback":feedback}
+        )
+        
+        # No validation here as we don't know the exact structure of the refined plan
+        # It should maintain the same structure as the current plan
+        
+        return result

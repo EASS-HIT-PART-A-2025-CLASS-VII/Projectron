@@ -8,7 +8,6 @@ from pydantic import BaseModel, EmailStr, field_validator
 from app.core.config import get_settings
 from app.core.jwt import create_access_token
 from app.db.models.auth import User
-from app.db.repositories import user_repo
 from app.api.deps import get_current_user
 from app.services.email_service import EmailService
 

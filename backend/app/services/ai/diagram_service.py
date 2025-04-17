@@ -9,8 +9,8 @@ import os
 from langchain.schema import HumanMessage
 
 from app.core.config import get_settings
-from app.services.ai.llm_utils import create_llm
-from app.services.ai.prompt_templates import (
+from app.services.ai.ai_utils import create_llm
+from app.services.ai.diagram_prompts import (
     CLASS_DIAGRAM_JSON_TEMPLATE,
     ACTIVITY_DIAGRAM_JSON_TEMPLATE
 )
@@ -18,6 +18,7 @@ from app.services.ai.prompt_templates import (
 logger = logging.getLogger(__name__)
 settings = get_settings()
 DiagramType = Literal["class", "activity"]
+
 
 async def generate_or_update_diagram(
     project_plan: str,
@@ -59,7 +60,11 @@ async def generate_or_update_diagram(
             # Format the JSON for readability in the prompt
             parsed_json = json.loads(existing_json)
             pretty_json = json.dumps(parsed_json, indent=2)
-            existing_context = f"Current {diagram_type} Diagram in JSON format:\n{pretty_json}\n"
+            existing_context = (f"Your task is to **update** the current diagram JSON to reflect the requested changes. You must:"
+                                f"- Carefully study the existing diagram and maintain its core structure."
+                                f"- Implement user-requested changes accurately without unnecessary modifications."
+                                f"- Ensure the resulting diagram remains valid and logically consistent."
+                                f"- Current {diagram_type} Diagram in JSON format:\n{pretty_json}\n")
         except json.JSONDecodeError:
             # If the existing JSON is invalid, use it as is with a warning
             logger.warning("Existing diagram JSON is not valid JSON, using as raw text")

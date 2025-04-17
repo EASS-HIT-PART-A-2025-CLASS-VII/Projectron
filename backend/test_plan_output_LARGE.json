@@ -1,0 +1,4143 @@
+{
+  "structured_plan": {
+    "name": "Projectron",
+    "description": "Projectron is a comprehensive AI-assisted project planning platform designed to help software teams and product managers quickly generate, customize, and manage detailed project plans from high-level ideas. It streamlines the transition from concept to execution by combining traditional project management tools with intelligent automation for architecture design, API specification, data modeling, and timeline generation.",
+    "status": "draft",
+    "tech_stack": [
+      "Frontend: React 18 with TypeScript",
+      "Backend: Node.js 18 with Express",
+      "Database: PostgreSQL 14",
+      "AI Integration: OpenAI GPT-4 API (or equivalent) for plan generation",
+      "Real-time Collaboration: WebSocket (Socket.IO)",
+      "Authentication: OAuth 2.0 / JWT",
+      "Infrastructure: AWS or Azure cloud hosting",
+      "Documentation Export: PDF generation with Puppeteer or PDFKit",
+      "Version Control: Git with GitHub"
+    ],
+    "experience_level": "mid",
+    "high_level_plan": {
+      "vision": "To empower software teams and product leaders to efficiently create consistent, detailed, and actionable project plans using AI assistance, reducing planning time and improving project clarity and collaboration.",
+      "business_objectives": [
+        "Enable users to generate detailed project plans from high-level ideas within 5 minutes",
+        "Achieve at least 80% user satisfaction on plan customization and AI assistance features",
+        "Support collaboration with real-time updates for teams of up to 10 members",
+        "Reduce manual project documentation time by 50% compared to traditional methods"
+      ],
+      "target_users": [
+        {
+          "type": "Software Development Teams",
+          "needs": [
+            "Quickly generate detailed technical plans",
+            "Maintain consistency across architecture, APIs, and data models",
+            "Collaborate effectively on project planning"
+          ],
+          "pain_points": [
+            "Time-consuming manual documentation",
+            "Difficulty maintaining alignment between different project components",
+            "Lack of intelligent assistance in planning"
+          ]
+        },
+        {
+          "type": "Product Managers",
+          "needs": [
+            "Translate high-level ideas into actionable plans",
+            "Track progress and refine plans iteratively",
+            "Facilitate team collaboration and communication"
+          ],
+          "pain_points": [
+            "Bridging gap between concept and technical details",
+            "Managing evolving project requirements",
+            "Ensuring team alignment"
+          ]
+        },
+        {
+          "type": "Entrepreneurs / Startup Founders",
+          "needs": [
+            "Rapidly prototype project plans without deep technical expertise",
+            "Visualize project scope and timelines",
+            "Iterate plans with AI assistance"
+          ],
+          "pain_points": [
+            "Limited technical resources for detailed planning",
+            "Uncertainty about project feasibility and scope",
+            "Time constraints in early-stage planning"
+          ]
+        }
+      ],
+      "core_features": [
+        "Input interface for high-level project ideas",
+        "AI-powered generation of detailed project plans including architecture diagrams, API endpoints, data models, and timelines",
+        "Editable project plan components with direct editing and AI-assisted refinement",
+        "Collaboration tools with user roles, comments, and real-time updates",
+        "Progress tracking dashboard with milestones and task status",
+        "Export options for project documentation (PDF, Markdown)"
+      ],
+      "scope": {
+        "in_scope": [
+          "Core AI-assisted plan generation for software projects",
+          "Basic architecture design visualization (e.g., component diagrams)",
+          "API endpoint and data model generation with editable schemas",
+          "Implementation timeline generation with milestones",
+          "User authentication and team collaboration features",
+          "Progress tracking and status updates",
+          "Exporting project plans in common formats"
+        ],
+        "out_of_scope": [
+          "Full-fledged project management features like sprint planning, issue tracking, or resource allocation",
+          "Advanced AI features such as natural language conversation or voice input",
+          "Integration with external project management tools (e.g., Jira, Trello)",
+          "Mobile app versions (focus on web platform)",
+          "Complex real-time collaborative editing beyond basic updates"
+        ]
+      },
+      "success_criteria": [
+        "Users can generate a detailed project plan from a high-level idea within 5 minutes",
+        "At least 80% of users report satisfaction with AI-generated plans and customization options",
+        "Collaboration features support teams of up to 10 users without performance degradation",
+        "Project plans can be exported successfully in PDF and Markdown formats",
+        "The platform remains stable and responsive under typical usage scenarios"
+      ],
+      "constraints": [
+        "Total development time limited to 300 hours",
+        "Must deliver a web-based platform with responsive UI",
+        "AI assistance limited to predefined templates and rule-based generation due to time constraints",
+        "Collaboration limited to basic real-time updates without complex conflict resolution",
+        "Use of open-source or existing AI APIs to reduce development effort"
+      ],
+      "assumptions": [
+        "Users have basic familiarity with project management concepts",
+        "AI generation can be implemented using existing NLP and template-based approaches",
+        "The platform will initially support English language only",
+        "Team collaboration will be limited to small teams (up to 10 members)",
+        "Hosting and infrastructure will be handled separately or use cloud services"
+      ],
+      "risks": [
+        {
+          "description": "AI-generated plans may lack accuracy or relevance for complex projects",
+          "impact": "high",
+          "mitigation": "Limit AI generation scope to common project types and provide easy manual editing options"
+        },
+        {
+          "description": "Collaboration features may introduce synchronization issues or performance bottlenecks",
+          "impact": "medium",
+          "mitigation": "Implement simple real-time update mechanisms and limit team size; perform thorough testing"
+        },
+        {
+          "description": "Time constraints may force reduction in feature completeness or polish",
+          "impact": "high",
+          "mitigation": "Prioritize core features and adopt an MVP approach; plan phased enhancements post-launch"
+        },
+        {
+          "description": "Dependency on third-party AI APIs may cause cost or availability issues",
+          "impact": "medium",
+          "mitigation": "Evaluate multiple providers and implement fallback mechanisms or caching"
+        }
+      ]
+    },
+    "technical_architecture": {
+      "architecture_overview": "Projectron is a web-based AI-assisted project planning platform built with a modular, layered architecture. The system consists of a React/TypeScript frontend, a Node.js/Express backend API server, a PostgreSQL relational database, and integration with external AI services (OpenAI GPT-4 API) for plan generation. Real-time collaboration is enabled via WebSocket (Socket.IO) connections. The architecture emphasizes simplicity and maintainability to fit within the 300-hour development budget, focusing on core features with extensibility for future enhancements. Authentication uses OAuth 2.0/JWT tokens. The backend handles business logic, AI orchestration, data persistence, and collaboration synchronization. The frontend provides a responsive UI for input, plan visualization/editing, collaboration, and export functionality.",
+      "architecture_diagram_description": "Users interact with the React frontend via HTTPS. The frontend communicates synchronously with the backend REST API for user actions, project plan CRUD, authentication, and progress tracking. For AI-assisted plan generation, the backend calls the OpenAI GPT-4 API asynchronously. Real-time collaboration updates are exchanged bidirectionally between frontend clients and the backend via WebSocket (Socket.IO). The backend persists data in PostgreSQL. Export requests trigger backend PDF/Markdown generation using Puppeteer or PDFKit. The entire system is hosted on a cloud provider (AWS or Azure) with CI/CD pipelines automating build, test, and deployment. Authentication is handled via OAuth 2.0 flows issuing JWT tokens for API and WebSocket access.",
+      "system_components": [
+        {
+          "name": "Frontend Web Client",
+          "type": "frontend",
+          "description": "Single-page application providing the user interface for project idea input, AI-assisted plan generation, plan editing, collaboration, progress tracking, and export features.",
+          "technologies": [
+            "React 18",
+            "TypeScript",
+            "Socket.IO-client",
+            "OAuth 2.0 client libraries"
+          ],
+          "responsibilities": [
+            "Render responsive UI for all core features",
+            "Manage user sessions and authentication tokens",
+            "Send REST API requests to backend for CRUD operations",
+            "Establish and maintain WebSocket connection for real-time collaboration",
+            "Display AI-generated plans and allow manual edits",
+            "Handle export requests and download generated documents"
+          ]
+        },
+        {
+          "name": "Backend API Server",
+          "type": "backend",
+          "description": "Node.js Express server providing RESTful APIs for user management, project plan management, AI plan generation orchestration, collaboration synchronization, and export generation.",
+          "technologies": [
+            "Node.js 18",
+            "Express",
+            "Socket.IO",
+            "OpenAI GPT-4 API",
+            "OAuth 2.0 / JWT"
+          ],
+          "responsibilities": [
+            "Authenticate and authorize users",
+            "Manage project plans, components, and user roles",
+            "Coordinate AI plan generation requests and process responses",
+            "Handle real-time collaboration events and broadcast updates",
+            "Generate export documents (PDF, Markdown) on demand",
+            "Persist all data in PostgreSQL"
+          ]
+        },
+        {
+          "name": "PostgreSQL Database",
+          "type": "database",
+          "description": "Relational database storing user data, project plans, architecture diagrams metadata, API schemas, data models, timelines, collaboration state, and audit logs.",
+          "technologies": [
+            "PostgreSQL 14"
+          ],
+          "responsibilities": [
+            "Store and manage all persistent application data",
+            "Support transactional consistency for collaboration updates",
+            "Enable efficient querying for project plan components and user info"
+          ]
+        },
+        {
+          "name": "AI Integration Service",
+          "type": "external service",
+          "description": "Third-party AI API (OpenAI GPT-4) used to generate detailed project plans from high-level ideas based on predefined templates and rule-based prompts.",
+          "technologies": [
+            "OpenAI GPT-4 API"
+          ],
+          "responsibilities": [
+            "Receive structured prompts from backend",
+            "Return generated architecture designs, API specs, data models, and timelines",
+            "Enable fallback or caching mechanisms to mitigate cost and availability risks"
+          ]
+        },
+        {
+          "name": "Real-time Collaboration Module",
+          "type": "service/module",
+          "description": "WebSocket-based subsystem within the backend and frontend enabling real-time updates, comments, and presence awareness for teams up to 10 members.",
+          "technologies": [
+            "Socket.IO"
+          ],
+          "responsibilities": [
+            "Maintain WebSocket connections with clients",
+            "Broadcast plan edits, comments, and status changes in near real-time",
+            "Handle basic conflict avoidance by last-write-wins or simple locking",
+            "Limit team size and message frequency to ensure performance"
+          ]
+        },
+        {
+          "name": "Export Generation Module",
+          "type": "service/module",
+          "description": "Backend component responsible for generating project documentation exports in PDF and Markdown formats using headless browser or PDF libraries.",
+          "technologies": [
+            "Puppeteer",
+            "PDFKit"
+          ],
+          "responsibilities": [
+            "Convert project plan data and visualizations into formatted documents",
+            "Support export requests from frontend",
+            "Ensure exports are consistent and downloadable"
+          ]
+        },
+        {
+          "name": "Authentication Service",
+          "type": "service/module",
+          "description": "Handles user authentication and authorization using OAuth 2.0 flows and JWT tokens for secure access to APIs and WebSocket endpoints.",
+          "technologies": [
+            "OAuth 2.0",
+            "JWT"
+          ],
+          "responsibilities": [
+            "Authenticate users via OAuth providers or internal credentials",
+            "Issue and validate JWT tokens",
+            "Enforce role-based access control for project plans and collaboration"
+          ]
+        }
+      ],
+      "communication_patterns": [
+        {
+          "source": "Frontend Web Client",
+          "target": "Backend API Server",
+          "protocol": "HTTPS/REST",
+          "pattern": "sync",
+          "description": "Frontend sends synchronous REST API requests for user actions, project plan CRUD, authentication, progress tracking, and export initiation."
+        },
+        {
+          "source": "Backend API Server",
+          "target": "AI Integration Service",
+          "protocol": "HTTPS/REST",
+          "pattern": "async",
+          "description": "Backend asynchronously sends structured prompts to the AI API and receives generated project plan components."
+        },
+        {
+          "source": "Frontend Web Client",
+          "target": "Backend API Server",
+          "protocol": "WebSocket (Socket.IO)",
+          "pattern": "sync/async",
+          "description": "Bidirectional real-time communication for collaboration updates, comments, presence, and notifications."
+        },
+        {
+          "source": "Backend API Server",
+          "target": "PostgreSQL Database",
+          "protocol": "SQL over TCP",
+          "pattern": "sync",
+          "description": "Backend performs synchronous database queries and transactions for data persistence and retrieval."
+        },
+        {
+          "source": "Backend API Server",
+          "target": "Export Generation Module",
+          "protocol": "Internal function calls",
+          "pattern": "sync",
+          "description": "Backend invokes export generation synchronously upon user request, returning downloadable documents."
+        },
+        {
+          "source": "Frontend Web Client",
+          "target": "Authentication Service",
+          "protocol": "HTTPS/REST",
+          "pattern": "sync",
+          "description": "Frontend performs OAuth 2.0 authentication flows and token validation."
+        }
+      ],
+      "architecture_patterns": [
+        {
+          "name": "Layered Architecture",
+          "description": "The system is organized into layers: presentation (frontend), application/business logic (backend API), data (database), and external services (AI API). This separation simplifies development, testing, and maintenance."
+        },
+        {
+          "name": "Client-Server",
+          "description": "The frontend acts as a client consuming REST APIs and WebSocket services provided by the backend server, enabling clear separation of concerns and scalability."
+        },
+        {
+          "name": "Event-Driven (Real-time Collaboration)",
+          "description": "Real-time collaboration uses event-driven WebSocket communication to propagate updates instantly between clients via the backend."
+        },
+        {
+          "name": "Microservice-lite / Modular Monolith",
+          "description": "Given the time constraints, the backend is a modular monolith with clearly separated modules (AI integration, collaboration, export, auth) rather than fully distributed microservices, balancing complexity and maintainability."
+        },
+        {
+          "name": "Template-based AI Generation",
+          "description": "AI plan generation uses predefined prompt templates and rule-based orchestration to ensure predictable and efficient output within the limited AI scope."
+        }
+      ],
+      "infrastructure": {
+        "hosting": "Cloud provider (AWS or Azure)",
+        "services": [
+          "Managed Kubernetes or container service (e.g., AWS ECS, Azure App Service) for backend deployment",
+          "Managed PostgreSQL database service (e.g., AWS RDS, Azure Database for PostgreSQL)",
+          "CDN and static hosting for frontend (e.g., AWS S3 + CloudFront, Azure Blob Storage + CDN)",
+          "Load balancer for backend API and WebSocket traffic",
+          "Secrets management for API keys and OAuth credentials"
+        ],
+        "ci_cd": "Automated CI/CD pipeline using GitHub Actions or equivalent, triggered on pull requests and merges. Pipeline includes linting, unit and integration tests, build and packaging of frontend and backend, deployment to staging and production environments with rollback capability. Infrastructure as code scripts (e.g., Terraform or CloudFormation) manage cloud resources. Monitoring and alerting integrated post-deployment."
+      }
+    },
+    "api_endpoints": {
+      "api_design_principles": [
+        "RESTful resource-oriented design with clear, consistent URI structures",
+        "Use of standard HTTP methods (GET, POST, PUT, DELETE) aligned with CRUD operations",
+        "Stateless requests with JWT-based authentication for secure and scalable access",
+        "Support for pagination, filtering, and sorting on list endpoints where applicable",
+        "Error handling with meaningful HTTP status codes and descriptive error messages",
+        "Versioned API base path (/api/v1) to allow future backward-compatible changes",
+        "Minimal but sufficient payloads to reduce bandwidth and improve responsiveness",
+        "Endpoints designed to support core features and business objectives within 300-hour budget",
+        "Separation of concerns: distinct endpoints for user, project, plan components, collaboration, AI generation, and export",
+        "Real-time collaboration handled via WebSocket; REST API focuses on persistent data and orchestration"
+      ],
+      "base_url": "/api/v1",
+      "authentication": {
+        "type": "OAuth2 / JWT",
+        "description": "All endpoints (except authentication endpoints) require a valid JWT access token issued via OAuth 2.0 flows. Tokens must be included in the Authorization header as 'Bearer <token>'. The token authenticates the user and authorizes access based on user roles and project membership."
+      },
+      "resources": [
+        {
+          "name": "Authentication",
+          "description": "Endpoints to handle user login, token issuance, refresh, and logout.",
+          "endpoints": [
+            {
+              "name": "User Login / Token Request",
+              "method": "POST",
+              "path": "/auth/token",
+              "description": "Obtain JWT access and refresh tokens using OAuth 2.0 password grant or authorization code flow.",
+              "authentication_required": false,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "grant_type": "string - OAuth2 grant type (e.g., 'password', 'authorization_code')",
+                    "username": "string - required for password grant",
+                    "password": "string - required for password grant",
+                    "code": "string - authorization code for authorization_code grant",
+                    "redirect_uri": "string - redirect URI for authorization_code grant",
+                    "client_id": "string - OAuth client identifier",
+                    "client_secret": "string - OAuth client secret"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "access_token": "string - JWT access token",
+                    "refresh_token": "string - token to obtain new access tokens",
+                    "expires_in": "number - seconds until access token expiration",
+                    "token_type": "string - typically 'Bearer'"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Invalid request parameters or missing fields"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Invalid credentials or authorization code"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Refresh Access Token",
+              "method": "POST",
+              "path": "/auth/token/refresh",
+              "description": "Obtain a new access token using a valid refresh token.",
+              "authentication_required": false,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "refresh_token": "string - valid refresh token"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "access_token": "string - new JWT access token",
+                    "expires_in": "number - seconds until access token expiration",
+                    "token_type": "string - typically 'Bearer'"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Missing or invalid refresh token"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Refresh token expired or revoked"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "User Logout / Revoke Tokens",
+              "method": "POST",
+              "path": "/auth/logout",
+              "description": "Revoke current access and refresh tokens to log out the user.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {}
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Invalid or missing access token"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Users",
+          "description": "Manage user profiles and retrieve user information.",
+          "endpoints": [
+            {
+              "name": "Get Current User Profile",
+              "method": "GET",
+              "path": "/users/me",
+              "description": "Retrieve profile information of the authenticated user.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string - unique user identifier",
+                    "username": "string",
+                    "email": "string",
+                    "full_name": "string",
+                    "avatar_url": "string - optional profile image URL",
+                    "roles": "array of strings - user roles (e.g., 'admin', 'member')",
+                    "created_at": "string - ISO 8601 timestamp",
+                    "updated_at": "string - ISO 8601 timestamp"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized - invalid or missing token"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Projects",
+          "description": "Manage projects which contain project plans, team members, and collaboration data.",
+          "endpoints": [
+            {
+              "name": "List Projects",
+              "method": "GET",
+              "path": "/projects",
+              "description": "Retrieve a paginated list of projects the authenticated user has access to.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [
+                  {
+                    "name": "page",
+                    "type": "number",
+                    "required": false,
+                    "description": "Page number for pagination (default 1)"
+                  },
+                  {
+                    "name": "page_size",
+                    "type": "number",
+                    "required": false,
+                    "description": "Number of projects per page (default 10, max 50)"
+                  },
+                  {
+                    "name": "search",
+                    "type": "string",
+                    "required": false,
+                    "description": "Search projects by name or description"
+                  },
+                  {
+                    "name": "sort",
+                    "type": "string",
+                    "required": false,
+                    "description": "Sort order: 'created_at', '-created_at', 'name', '-name'"
+                  }
+                ],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "projects": [
+                      {
+                        "id": "string - project unique identifier",
+                        "name": "string",
+                        "description": "string",
+                        "owner_id": "string - user ID of project owner",
+                        "created_at": "string - ISO 8601 timestamp",
+                        "updated_at": "string - ISO 8601 timestamp"
+                      }
+                    ],
+                    "pagination": {
+                      "page": "number",
+                      "page_size": "number",
+                      "total_pages": "number",
+                      "total_items": "number"
+                    }
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Create Project",
+              "method": "POST",
+              "path": "/projects",
+              "description": "Create a new project. The authenticated user becomes the owner.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "name": "string - required, project name",
+                    "description": "string - optional, project description"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string - new project ID",
+                    "name": "string",
+                    "description": "string",
+                    "owner_id": "string",
+                    "created_at": "string",
+                    "updated_at": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error (e.g., missing name)"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get Project Details",
+              "method": "GET",
+              "path": "/projects/{projectId}",
+              "description": "Retrieve detailed information about a specific project.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "name": "string",
+                    "description": "string",
+                    "owner_id": "string",
+                    "created_at": "string",
+                    "updated_at": "string",
+                    "team_members": [
+                      {
+                        "user_id": "string",
+                        "role": "string - e.g., 'owner', 'editor', 'viewer'",
+                        "joined_at": "string"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Project",
+              "method": "PUT",
+              "path": "/projects/{projectId}",
+              "description": "Update project metadata (name, description). Only owners or editors can update.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "name": "string - optional",
+                    "description": "string - optional"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "name": "string",
+                    "description": "string",
+                    "owner_id": "string",
+                    "updated_at": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden - insufficient permissions"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete Project",
+              "method": "DELETE",
+              "path": "/projects/{projectId}",
+              "description": "Delete a project and all associated data. Only owners can delete.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Manage Project Team Members - List",
+              "method": "GET",
+              "path": "/projects/{projectId}/team",
+              "description": "List all team members with their roles for a project.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "members": [
+                      {
+                        "user_id": "string",
+                        "username": "string",
+                        "email": "string",
+                        "role": "string",
+                        "joined_at": "string"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Add or Update Team Member Role",
+              "method": "PUT",
+              "path": "/projects/{projectId}/team/{userId}",
+              "description": "Add a user to the project team or update their role. Only owners can manage team.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "role": "string - required, e.g., 'editor', 'viewer'"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "user_id": "string",
+                    "role": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Invalid role or missing data"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or user not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Remove Team Member",
+              "method": "DELETE",
+              "path": "/projects/{projectId}/team/{userId}",
+              "description": "Remove a user from the project team. Only owners can remove members.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or user not found"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Project Plans",
+          "description": "Manage detailed project plans including architecture, API specs, data models, and timelines within projects.",
+          "endpoints": [
+            {
+              "name": "List Project Plans",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans",
+              "description": "Retrieve a list of project plans associated with a project.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [
+                  {
+                    "name": "page",
+                    "type": "number",
+                    "required": false,
+                    "description": "Page number for pagination (default 1)"
+                  },
+                  {
+                    "name": "page_size",
+                    "type": "number",
+                    "required": false,
+                    "description": "Number of plans per page (default 10, max 50)"
+                  },
+                  {
+                    "name": "search",
+                    "type": "string",
+                    "required": false,
+                    "description": "Search plans by title or description"
+                  }
+                ],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "plans": [
+                      {
+                        "id": "string - plan unique identifier",
+                        "title": "string",
+                        "description": "string",
+                        "created_by": "string - user ID",
+                        "created_at": "string",
+                        "updated_at": "string"
+                      }
+                    ],
+                    "pagination": {
+                      "page": "number",
+                      "page_size": "number",
+                      "total_pages": "number",
+                      "total_items": "number"
+                    }
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Create Project Plan",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans",
+              "description": "Create a new project plan within a project. Initial plan can be empty or based on AI generation.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "title": "string - required",
+                    "description": "string - optional",
+                    "initial_idea": "string - optional high-level idea to trigger AI generation"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "description": "string",
+                    "created_by": "string",
+                    "created_at": "string",
+                    "updated_at": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get Project Plan Details",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}",
+              "description": "Retrieve detailed information of a specific project plan including components.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "description": "string",
+                    "created_by": "string",
+                    "created_at": "string",
+                    "updated_at": "string",
+                    "components": {
+                      "architecture": {
+                        "diagram_data": "object - JSON metadata for architecture diagrams"
+                      },
+                      "api_endpoints": [
+                        {
+                          "id": "string",
+                          "method": "string",
+                          "path": "string",
+                          "description": "string",
+                          "request_schema": "object - JSON schema",
+                          "response_schema": "object - JSON schema"
+                        }
+                      ],
+                      "data_models": [
+                        {
+                          "id": "string",
+                          "name": "string",
+                          "schema": "object - JSON schema"
+                        }
+                      ],
+                      "timeline": {
+                        "milestones": [
+                          {
+                            "id": "string",
+                            "title": "string",
+                            "due_date": "string",
+                            "status": "string - e.g., 'pending', 'completed'"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Project Plan Metadata",
+              "method": "PUT",
+              "path": "/projects/{projectId}/plans/{planId}",
+              "description": "Update project plan title or description.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "title": "string - optional",
+                    "description": "string - optional"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "description": "string",
+                    "updated_at": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete Project Plan",
+              "method": "DELETE",
+              "path": "/projects/{projectId}/plans/{planId}",
+              "description": "Delete a project plan and all its components.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Plan Components",
+          "description": "Manage individual components of a project plan: architecture diagrams, API endpoints, data models, and timeline milestones.",
+          "endpoints": [
+            {
+              "name": "Get Architecture Diagram",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/architecture",
+              "description": "Retrieve architecture diagram metadata for a project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "diagram_data": "object - JSON metadata representing architecture diagrams"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan or architecture not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Architecture Diagram",
+              "method": "PUT",
+              "path": "/projects/{projectId}/plans/{planId}/architecture",
+              "description": "Update architecture diagram metadata for a project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "diagram_data": "object - JSON metadata representing architecture diagrams"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "diagram_data": "object - updated diagram metadata"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Invalid diagram data"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "List API Endpoints",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/api-endpoints",
+              "description": "List all API endpoints defined in the project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [
+                  {
+                    "name": "method",
+                    "type": "string",
+                    "required": false,
+                    "description": "Filter by HTTP method (GET, POST, PUT, DELETE)"
+                  },
+                  {
+                    "name": "search",
+                    "type": "string",
+                    "required": false,
+                    "description": "Search by endpoint path or description"
+                  }
+                ],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "api_endpoints": [
+                      {
+                        "id": "string",
+                        "method": "string",
+                        "path": "string",
+                        "description": "string"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Create API Endpoint",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans/{planId}/api-endpoints",
+              "description": "Add a new API endpoint to the project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "method": "string - required, HTTP method (GET, POST, PUT, DELETE)",
+                    "path": "string - required, endpoint path (e.g., /users)",
+                    "description": "string - optional",
+                    "request_schema": "object - optional JSON schema for request body",
+                    "response_schema": "object - optional JSON schema for response body"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "method": "string",
+                    "path": "string",
+                    "description": "string",
+                    "request_schema": "object",
+                    "response_schema": "object"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get API Endpoint Details",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/api-endpoints/{endpointId}",
+              "description": "Retrieve details of a specific API endpoint.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "method": "string",
+                    "path": "string",
+                    "description": "string",
+                    "request_schema": "object",
+                    "response_schema": "object"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "API endpoint not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update API Endpoint",
+              "method": "PUT",
+              "path": "/projects/{projectId}/plans/{planId}/api-endpoints/{endpointId}",
+              "description": "Update details of an API endpoint.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "method": "string - optional",
+                    "path": "string - optional",
+                    "description": "string - optional",
+                    "request_schema": "object - optional",
+                    "response_schema": "object - optional"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "method": "string",
+                    "path": "string",
+                    "description": "string",
+                    "request_schema": "object",
+                    "response_schema": "object"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "API endpoint not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete API Endpoint",
+              "method": "DELETE",
+              "path": "/projects/{projectId}/plans/{planId}/api-endpoints/{endpointId}",
+              "description": "Delete an API endpoint from the project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "API endpoint not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "List Data Models",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/data-models",
+              "description": "List all data models defined in the project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [
+                  {
+                    "name": "search",
+                    "type": "string",
+                    "required": false,
+                    "description": "Search by data model name"
+                  }
+                ],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "data_models": [
+                      {
+                        "id": "string",
+                        "name": "string",
+                        "schema": "object - JSON schema"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Create Data Model",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans/{planId}/data-models",
+              "description": "Add a new data model to the project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "name": "string - required",
+                    "schema": "object - required JSON schema"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "name": "string",
+                    "schema": "object"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get Data Model Details",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/data-models/{modelId}",
+              "description": "Retrieve details of a specific data model.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "name": "string",
+                    "schema": "object"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Data model not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Data Model",
+              "method": "PUT",
+              "path": "/projects/{projectId}/plans/{planId}/data-models/{modelId}",
+              "description": "Update a data model's name or schema.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "name": "string - optional",
+                    "schema": "object - optional"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "name": "string",
+                    "schema": "object"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Data model not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete Data Model",
+              "method": "DELETE",
+              "path": "/projects/{projectId}/plans/{planId}/data-models/{modelId}",
+              "description": "Delete a data model from the project plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Data model not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "List Timeline Milestones",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/timeline/milestones",
+              "description": "List all milestones in the project plan timeline.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [
+                  {
+                    "name": "status",
+                    "type": "string",
+                    "required": false,
+                    "description": "Filter milestones by status (e.g., 'pending', 'completed')"
+                  }
+                ],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "milestones": [
+                      {
+                        "id": "string",
+                        "title": "string",
+                        "due_date": "string",
+                        "status": "string"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Create Timeline Milestone",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans/{planId}/timeline/milestones",
+              "description": "Add a new milestone to the project plan timeline.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "title": "string - required",
+                    "due_date": "string - required, ISO 8601 date",
+                    "status": "string - optional, default 'pending'"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "due_date": "string",
+                    "status": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Timeline Milestone",
+              "method": "PUT",
+              "path": "/projects/{projectId}/plans/{planId}/timeline/milestones/{milestoneId}",
+              "description": "Update a milestone's title, due date, or status.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "title": "string - optional",
+                    "due_date": "string - optional, ISO 8601 date",
+                    "status": "string - optional"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "due_date": "string",
+                    "status": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Milestone not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete Timeline Milestone",
+              "method": "DELETE",
+              "path": "/projects/{projectId}/plans/{planId}/timeline/milestones/{milestoneId}",
+              "description": "Delete a milestone from the project plan timeline.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Milestone not found"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI Plan Generation",
+          "description": "Endpoints to trigger AI-assisted generation and refinement of project plan components.",
+          "endpoints": [
+            {
+              "name": "Generate Detailed Project Plan",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans/{planId}/generate",
+              "description": "Trigger AI generation of detailed project plan components (architecture, API specs, data models, timeline) based on a high-level idea or existing plan data.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "high_level_idea": "string - optional, if provided triggers generation from scratch",
+                    "components": "array of strings - optional, specify which components to generate or refine (e.g., ['architecture', 'api_endpoints', 'data_models', 'timeline'])"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 202,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "generation_id": "string - identifier for tracking generation status",
+                    "status": "string - e.g., 'pending', 'in_progress'"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Invalid request or missing required data"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get AI Generation Status and Result",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/generate/{generationId}",
+              "description": "Retrieve status and partial or complete results of an AI generation request.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "generation_id": "string",
+                    "status": "string - 'pending', 'in_progress', 'completed', 'failed'",
+                    "result": {
+                      "architecture": "object - optional generated architecture data",
+                      "api_endpoints": "array - optional generated API endpoints",
+                      "data_models": "array - optional generated data models",
+                      "timeline": "object - optional generated timeline milestones"
+                    },
+                    "error_message": "string - present if status is 'failed'"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Generation request not found"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Collaboration",
+          "description": "Endpoints to manage comments and presence related to real-time collaboration. Real-time updates are handled via WebSocket.",
+          "endpoints": [
+            {
+              "name": "List Comments",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/comments",
+              "description": "Retrieve comments on a project plan, optionally filtered by component.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [
+                  {
+                    "name": "component",
+                    "type": "string",
+                    "required": false,
+                    "description": "Filter comments by plan component (e.g., 'architecture', 'api_endpoints', 'data_models', 'timeline')"
+                  },
+                  {
+                    "name": "page",
+                    "type": "number",
+                    "required": false,
+                    "description": "Page number for pagination"
+                  },
+                  {
+                    "name": "page_size",
+                    "type": "number",
+                    "required": false,
+                    "description": "Number of comments per page"
+                  }
+                ],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "comments": [
+                      {
+                        "id": "string",
+                        "user_id": "string",
+                        "username": "string",
+                        "component": "string",
+                        "component_id": "string - optional, e.g., API endpoint ID",
+                        "content": "string",
+                        "created_at": "string",
+                        "updated_at": "string"
+                      }
+                    ],
+                    "pagination": {
+                      "page": "number",
+                      "page_size": "number",
+                      "total_pages": "number",
+                      "total_items": "number"
+                    }
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Add Comment",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans/{planId}/comments",
+              "description": "Add a comment to a project plan or specific component.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "component": "string - required",
+                    "component_id": "string - optional",
+                    "content": "string - required"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "user_id": "string",
+                    "component": "string",
+                    "component_id": "string",
+                    "content": "string",
+                    "created_at": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Comment",
+              "method": "PUT",
+              "path": "/projects/{projectId}/plans/{planId}/comments/{commentId}",
+              "description": "Update a comment content. Only comment author can update.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "content": "string - required"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "content": "string",
+                    "updated_at": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Validation error"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Comment not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete Comment",
+              "method": "DELETE",
+              "path": "/projects/{projectId}/plans/{planId}/comments/{commentId}",
+              "description": "Delete a comment. Only comment author or project owner can delete.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "application/json",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 403,
+                    "description": "Forbidden"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Comment not found"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Progress Tracking",
+          "description": "Endpoints to track project progress, milestones, and task statuses.",
+          "endpoints": [
+            {
+              "name": "Get Project Progress Summary",
+              "method": "GET",
+              "path": "/projects/{projectId}/progress",
+              "description": "Retrieve overall progress summary including milestones status and task completion.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "milestones_total": "number",
+                    "milestones_completed": "number",
+                    "tasks_total": "number",
+                    "tasks_completed": "number",
+                    "last_updated": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Export",
+          "description": "Endpoints to generate and retrieve project plan exports in PDF and Markdown formats.",
+          "endpoints": [
+            {
+              "name": "Request Export Generation",
+              "method": "POST",
+              "path": "/projects/{projectId}/plans/{planId}/export",
+              "description": "Request generation of a project plan export document.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "format": "string - required, 'pdf' or 'markdown'"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 202,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "export_id": "string - identifier to retrieve export file",
+                    "status": "string - e.g., 'pending', 'processing'"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Invalid format or request"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project or plan not found"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get Export Status and Download",
+              "method": "GET",
+              "path": "/projects/{projectId}/plans/{planId}/export/{exportId}",
+              "description": "Retrieve status of export generation and download the file when ready.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "export_id": "string",
+                    "status": "string - 'pending', 'processing', 'completed', 'failed'",
+                    "download_url": "string - present if status is 'completed'",
+                    "error_message": "string - present if status is 'failed'"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Export not found"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "data_models": {
+      "entities": [
+        {
+          "name": "User",
+          "description": "Represents a user of the platform with authentication and profile information.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the user.",
+              "required": true
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "description": "Unique username chosen by the user.",
+              "required": true
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "description": "User's email address.",
+              "required": true
+            },
+            {
+              "name": "full_name",
+              "type": "string",
+              "description": "User's full name.",
+              "required": false
+            },
+            {
+              "name": "avatar_url",
+              "type": "string",
+              "description": "URL to the user's profile image.",
+              "required": false
+            },
+            {
+              "name": "password_hash",
+              "type": "string",
+              "description": "Hashed password for internal authentication (if applicable).",
+              "required": false
+            },
+            {
+              "name": "roles",
+              "type": "string[]",
+              "description": "Global roles assigned to the user (e.g., 'admin').",
+              "required": false
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the user was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the user profile was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "Project",
+          "description": "Represents a project container for plans, team members, and collaboration.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the project.",
+              "required": true
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Name of the project.",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Optional detailed description of the project.",
+              "required": false
+            },
+            {
+              "name": "owner_id",
+              "type": "uuid",
+              "description": "User ID of the project owner.",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the project was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the project was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "ProjectTeamMember",
+          "description": "Associates users with projects and defines their roles within the project.",
+          "properties": [
+            {
+              "name": "project_id",
+              "type": "uuid",
+              "description": "ID of the project.",
+              "required": true
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "description": "ID of the user.",
+              "required": true
+            },
+            {
+              "name": "role",
+              "type": "string",
+              "description": "Role of the user in the project (e.g., 'owner', 'editor', 'viewer').",
+              "required": true
+            },
+            {
+              "name": "joined_at",
+              "type": "timestamp",
+              "description": "Timestamp when the user joined the project team.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "ProjectPlan",
+          "description": "Represents a detailed project plan within a project, containing multiple components.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the project plan.",
+              "required": true
+            },
+            {
+              "name": "project_id",
+              "type": "uuid",
+              "description": "ID of the project this plan belongs to.",
+              "required": true
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "description": "Title of the project plan.",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Optional description of the project plan.",
+              "required": false
+            },
+            {
+              "name": "created_by",
+              "type": "uuid",
+              "description": "User ID of the creator of the plan.",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the plan was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the plan was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "ArchitectureDiagram",
+          "description": "Stores metadata and JSON representation of architecture diagrams for a project plan.",
+          "properties": [
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan this diagram belongs to.",
+              "required": true
+            },
+            {
+              "name": "diagram_data",
+              "type": "jsonb",
+              "description": "JSON metadata representing the architecture diagrams.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the diagram was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "ApiEndpoint",
+          "description": "Represents an API endpoint defined within a project plan.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the API endpoint.",
+              "required": true
+            },
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan this endpoint belongs to.",
+              "required": true
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "description": "HTTP method of the endpoint (GET, POST, PUT, DELETE).",
+              "required": true
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "URL path of the endpoint (e.g., /users).",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Optional description of the endpoint.",
+              "required": false
+            },
+            {
+              "name": "request_schema",
+              "type": "jsonb",
+              "description": "Optional JSON schema describing the request body.",
+              "required": false
+            },
+            {
+              "name": "response_schema",
+              "type": "jsonb",
+              "description": "Optional JSON schema describing the response body.",
+              "required": false
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the endpoint was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the endpoint was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "DataModel",
+          "description": "Represents a data model schema defined within a project plan.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the data model.",
+              "required": true
+            },
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan this data model belongs to.",
+              "required": true
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Name of the data model.",
+              "required": true
+            },
+            {
+              "name": "schema",
+              "type": "jsonb",
+              "description": "JSON schema representing the data model structure.",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the data model was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the data model was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "TimelineMilestone",
+          "description": "Represents a milestone in the implementation timeline of a project plan.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the milestone.",
+              "required": true
+            },
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan this milestone belongs to.",
+              "required": true
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "description": "Title or name of the milestone.",
+              "required": true
+            },
+            {
+              "name": "due_date",
+              "type": "date",
+              "description": "Due date for the milestone.",
+              "required": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Status of the milestone (e.g., 'pending', 'completed').",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the milestone was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the milestone was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "Comment",
+          "description": "Represents a comment made by a user on a project plan or its components.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the comment.",
+              "required": true
+            },
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan the comment belongs to.",
+              "required": true
+            },
+            {
+              "name": "user_id",
+              "type": "uuid",
+              "description": "ID of the user who made the comment.",
+              "required": true
+            },
+            {
+              "name": "component",
+              "type": "string",
+              "description": "Component of the plan the comment refers to (e.g., 'architecture', 'api_endpoints', 'data_models', 'timeline').",
+              "required": true
+            },
+            {
+              "name": "component_id",
+              "type": "uuid",
+              "description": "Optional ID of the specific component instance (e.g., API endpoint ID).",
+              "required": false
+            },
+            {
+              "name": "content",
+              "type": "string",
+              "description": "Text content of the comment.",
+              "required": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the comment was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the comment was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "AIGenerationRequest",
+          "description": "Tracks AI-assisted generation requests and their status/results for project plans.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the AI generation request.",
+              "required": true
+            },
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan for which generation was requested.",
+              "required": true
+            },
+            {
+              "name": "requested_by",
+              "type": "uuid",
+              "description": "User ID who triggered the AI generation.",
+              "required": true
+            },
+            {
+              "name": "high_level_idea",
+              "type": "string",
+              "description": "Optional high-level idea text used to trigger generation.",
+              "required": false
+            },
+            {
+              "name": "components",
+              "type": "string[]",
+              "description": "List of components requested for generation or refinement (e.g., ['architecture', 'api_endpoints']).",
+              "required": false
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Current status of the generation request ('pending', 'in_progress', 'completed', 'failed').",
+              "required": true
+            },
+            {
+              "name": "result_data",
+              "type": "jsonb",
+              "description": "JSON object containing partial or complete generated components.",
+              "required": false
+            },
+            {
+              "name": "error_message",
+              "type": "string",
+              "description": "Error message if generation failed.",
+              "required": false
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the generation request was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the generation request was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "ExportRequest",
+          "description": "Tracks export document generation requests and their status for project plans.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "uuid",
+              "description": "Unique identifier for the export request.",
+              "required": true
+            },
+            {
+              "name": "plan_id",
+              "type": "uuid",
+              "description": "ID of the project plan to export.",
+              "required": true
+            },
+            {
+              "name": "requested_by",
+              "type": "uuid",
+              "description": "User ID who requested the export.",
+              "required": true
+            },
+            {
+              "name": "format",
+              "type": "string",
+              "description": "Export format requested ('pdf' or 'markdown').",
+              "required": true
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "description": "Current status of the export request ('pending', 'processing', 'completed', 'failed').",
+              "required": true
+            },
+            {
+              "name": "download_url",
+              "type": "string",
+              "description": "URL to download the generated export file once completed.",
+              "required": false
+            },
+            {
+              "name": "error_message",
+              "type": "string",
+              "description": "Error message if export generation failed.",
+              "required": false
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "description": "Timestamp when the export request was created.",
+              "required": true
+            },
+            {
+              "name": "updated_at",
+              "type": "timestamp",
+              "description": "Timestamp when the export request was last updated.",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "source_entity": "Project",
+          "target_entity": "User",
+          "type": "many-to-one",
+          "description": "Each project has one owner (User)."
+        },
+        {
+          "source_entity": "ProjectTeamMember",
+          "target_entity": "Project",
+          "type": "many-to-one",
+          "description": "Each team member entry belongs to one project."
+        },
+        {
+          "source_entity": "ProjectTeamMember",
+          "target_entity": "User",
+          "type": "many-to-one",
+          "description": "Each team member entry references one user."
+        },
+        {
+          "source_entity": "ProjectPlan",
+          "target_entity": "Project",
+          "type": "many-to-one",
+          "description": "Each project plan belongs to one project."
+        },
+        {
+          "source_entity": "ProjectPlan",
+          "target_entity": "User",
+          "type": "many-to-one",
+          "description": "Each project plan is created by one user."
+        },
+        {
+          "source_entity": "ArchitectureDiagram",
+          "target_entity": "ProjectPlan",
+          "type": "one-to-one",
+          "description": "Each project plan has one architecture diagram."
+        },
+        {
+          "source_entity": "ApiEndpoint",
+          "target_entity": "ProjectPlan",
+          "type": "many-to-one",
+          "description": "Each API endpoint belongs to one project plan."
+        },
+        {
+          "source_entity": "DataModel",
+          "target_entity": "ProjectPlan",
+          "type": "many-to-one",
+          "description": "Each data model belongs to one project plan."
+        },
+        {
+          "source_entity": "TimelineMilestone",
+          "target_entity": "ProjectPlan",
+          "type": "many-to-one",
+          "description": "Each timeline milestone belongs to one project plan."
+        },
+        {
+          "source_entity": "Comment",
+          "target_entity": "ProjectPlan",
+          "type": "many-to-one",
+          "description": "Each comment belongs to one project plan."
+        },
+        {
+          "source_entity": "Comment",
+          "target_entity": "User",
+          "type": "many-to-one",
+          "description": "Each comment is authored by one user."
+        },
+        {
+          "source_entity": "AIGenerationRequest",
+          "target_entity": "ProjectPlan",
+          "type": "many-to-one",
+          "description": "Each AI generation request is associated with one project plan."
+        },
+        {
+          "source_entity": "AIGenerationRequest",
+          "target_entity": "User",
+          "type": "many-to-one",
+          "description": "Each AI generation request is triggered by one user."
+        },
+        {
+          "source_entity": "ExportRequest",
+          "target_entity": "ProjectPlan",
+          "type": "many-to-one",
+          "description": "Each export request is associated with one project plan."
+        },
+        {
+          "source_entity": "ExportRequest",
+          "target_entity": "User",
+          "type": "many-to-one",
+          "description": "Each export request is triggered by one user."
+        }
+      ]
+    },
+    "ui_components": {
+      "screens": [
+        {
+          "name": "Login / Authentication",
+          "description": "Allows users to log in to the platform using OAuth2 credentials and obtain JWT tokens.",
+          "route": "/login",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Login Form",
+              "type": "form",
+              "description": "Form to input username and password for authentication.",
+              "functionality": "Submits credentials to obtain JWT access and refresh tokens.",
+              "api_endpoints": [
+                "/api/v1/auth/token"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Error Message",
+              "type": "text",
+              "description": "Displays authentication errors such as invalid credentials.",
+              "functionality": "Shows error messages returned from login API.",
+              "api_endpoints": [],
+              "data_displayed": [
+                "Error messages"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Dashboard / Project List",
+          "description": "Landing page after login showing a paginated list of projects accessible by the user, with search and sorting.",
+          "route": "/projects",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Project Search Bar",
+              "type": "input",
+              "description": "Input field to search projects by name or description.",
+              "functionality": "Filters project list based on search query.",
+              "api_endpoints": [
+                "/api/v1/projects"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Project Sort Dropdown",
+              "type": "dropdown",
+              "description": "Dropdown to select sorting order (e.g., by creation date or name).",
+              "functionality": "Sorts the project list accordingly.",
+              "api_endpoints": [
+                "/api/v1/projects"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Project List",
+              "type": "list",
+              "description": "Displays projects as cards or rows with basic info.",
+              "functionality": "Shows project name, description snippet, owner, and creation date; clickable to open project details.",
+              "api_endpoints": [
+                "/api/v1/projects"
+              ],
+              "data_displayed": [
+                "Project name",
+                "Description",
+                "Owner",
+                "Created at"
+              ]
+            },
+            {
+              "name": "Create Project Button",
+              "type": "button",
+              "description": "Button to open a modal or page to create a new project.",
+              "functionality": "Triggers project creation flow.",
+              "api_endpoints": [
+                "/api/v1/projects"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Pagination Controls",
+              "type": "pagination",
+              "description": "Controls to navigate between pages of projects.",
+              "functionality": "Fetches and displays different pages of projects.",
+              "api_endpoints": [
+                "/api/v1/projects"
+              ],
+              "data_displayed": []
+            }
+          ]
+        },
+        {
+          "name": "Project Details / Team Management",
+          "description": "Shows detailed information about a selected project, including description and team members with roles.",
+          "route": "/projects/:projectId",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Project Info Panel",
+              "type": "card",
+              "description": "Displays project name, description, owner, and timestamps.",
+              "functionality": "Shows project metadata and allows editing if user has permission.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}",
+                "/api/v1/projects/{projectId} (PUT)"
+              ],
+              "data_displayed": [
+                "Project name",
+                "Description",
+                "Owner",
+                "Created at",
+                "Updated at"
+              ]
+            },
+            {
+              "name": "Edit Project Metadata Form",
+              "type": "form",
+              "description": "Form to edit project name and description (visible to owners/editors).",
+              "functionality": "Submits updates to project metadata.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId} (PUT)"
+              ],
+              "data_displayed": [
+                "Project name",
+                "Description"
+              ]
+            },
+            {
+              "name": "Team Members List",
+              "type": "list",
+              "description": "Lists all team members with their usernames, emails, roles, and join dates.",
+              "functionality": "Displays team members; owners can manage roles and remove members.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/team"
+              ],
+              "data_displayed": [
+                "Username",
+                "Email",
+                "Role",
+                "Joined at"
+              ]
+            },
+            {
+              "name": "Add / Update Team Member Role Form",
+              "type": "form",
+              "description": "Form to add a new member by username/email or update existing member's role (owners only).",
+              "functionality": "Sends requests to add or update team member roles.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/team/{userId} (PUT)"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Remove Team Member Button",
+              "type": "button",
+              "description": "Button to remove a member from the project team (owners only).",
+              "functionality": "Triggers removal of a team member.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/team/{userId} (DELETE)"
+              ],
+              "data_displayed": []
+            }
+          ]
+        },
+        {
+          "name": "Project Plans List",
+          "description": "Lists all project plans within a selected project, with search and pagination.",
+          "route": "/projects/:projectId/plans",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Plan Search Bar",
+              "type": "input",
+              "description": "Input to search plans by title or description.",
+              "functionality": "Filters the list of project plans.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Project Plans List",
+              "type": "list",
+              "description": "Displays plans as cards or rows showing title, description snippet, creator, and timestamps.",
+              "functionality": "Allows navigation to plan details.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans"
+              ],
+              "data_displayed": [
+                "Title",
+                "Description",
+                "Created by",
+                "Created at",
+                "Updated at"
+              ]
+            },
+            {
+              "name": "Create New Plan Button",
+              "type": "button",
+              "description": "Button to open a modal or page to create a new project plan, optionally with initial high-level idea input.",
+              "functionality": "Starts plan creation flow.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans (POST)"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Pagination Controls",
+              "type": "pagination",
+              "description": "Controls to navigate between pages of plans.",
+              "functionality": "Fetches and displays different pages of plans.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans"
+              ],
+              "data_displayed": []
+            }
+          ]
+        },
+        {
+          "name": "Project Plan Details",
+          "description": "Detailed view of a selected project plan showing metadata and all editable components: architecture, API endpoints, data models, timeline milestones, and comments.",
+          "route": "/projects/:projectId/plans/:planId",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Plan Metadata Panel",
+              "type": "card",
+              "description": "Displays and allows editing of plan title and description.",
+              "functionality": "Updates plan metadata.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId} (GET, PUT)"
+              ],
+              "data_displayed": [
+                "Title",
+                "Description",
+                "Created by",
+                "Created at",
+                "Updated at"
+              ]
+            },
+            {
+              "name": "AI Generation Controls",
+              "type": "form/button",
+              "description": "Interface to trigger AI-assisted generation or refinement of plan components with options to select components.",
+              "functionality": "Sends generation requests and shows generation status.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/generate (POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/generate/{generationId} (GET)"
+              ],
+              "data_displayed": [
+                "Generation status",
+                "Partial/complete generated data"
+              ]
+            },
+            {
+              "name": "Architecture Diagram Viewer / Editor",
+              "type": "diagram/editor",
+              "description": "Visual component to display and edit architecture diagrams using JSON metadata.",
+              "functionality": "Fetches, displays, and updates architecture diagram data.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/architecture (GET, PUT)"
+              ],
+              "data_displayed": [
+                "Diagram data"
+              ]
+            },
+            {
+              "name": "API Endpoints List",
+              "type": "list",
+              "description": "Lists all API endpoints with method, path, and description; supports filtering by HTTP method and search.",
+              "functionality": "Allows selection to view/edit details or delete endpoints.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints (GET)",
+                "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints (POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints/{endpointId} (GET, PUT, DELETE)"
+              ],
+              "data_displayed": [
+                "Method",
+                "Path",
+                "Description"
+              ]
+            },
+            {
+              "name": "API Endpoint Detail Editor",
+              "type": "form",
+              "description": "Form to view and edit API endpoint details including request and response JSON schemas.",
+              "functionality": "Updates or creates API endpoints.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints/{endpointId} (PUT)",
+                "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints (POST)"
+              ],
+              "data_displayed": [
+                "Method",
+                "Path",
+                "Description",
+                "Request schema",
+                "Response schema"
+              ]
+            },
+            {
+              "name": "Data Models List",
+              "type": "list",
+              "description": "Lists all data models with names and supports search.",
+              "functionality": "Allows selection to view/edit or delete data models.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/data-models (GET)",
+                "/api/v1/projects/{projectId}/plans/{planId}/data-models (POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/data-models/{modelId} (GET, PUT, DELETE)"
+              ],
+              "data_displayed": [
+                "Name"
+              ]
+            },
+            {
+              "name": "Data Model Editor",
+              "type": "form",
+              "description": "Form to view and edit data model name and JSON schema.",
+              "functionality": "Creates or updates data models.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/data-models/{modelId} (PUT)",
+                "/api/v1/projects/{projectId}/plans/{planId}/data-models (POST)"
+              ],
+              "data_displayed": [
+                "Name",
+                "Schema"
+              ]
+            },
+            {
+              "name": "Timeline Milestones List",
+              "type": "list",
+              "description": "Lists milestones with title, due date, and status; supports filtering by status.",
+              "functionality": "Allows adding, editing, or deleting milestones.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/timeline/milestones (GET, POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/timeline/milestones/{milestoneId} (PUT, DELETE)"
+              ],
+              "data_displayed": [
+                "Title",
+                "Due date",
+                "Status"
+              ]
+            },
+            {
+              "name": "Timeline Milestone Editor",
+              "type": "form",
+              "description": "Form to create or update milestone details.",
+              "functionality": "Submits milestone data for creation or update.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/timeline/milestones (POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/timeline/milestones/{milestoneId} (PUT)"
+              ],
+              "data_displayed": [
+                "Title",
+                "Due date",
+                "Status"
+              ]
+            },
+            {
+              "name": "Comments Panel",
+              "type": "comments",
+              "description": "Displays comments related to the entire plan or specific components, supports pagination and filtering by component.",
+              "functionality": "Allows adding, editing, and deleting comments with real-time updates via WebSocket.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/comments (GET, POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/comments/{commentId} (PUT, DELETE)"
+              ],
+              "data_displayed": [
+                "User",
+                "Content",
+                "Timestamp",
+                "Component",
+                "Component ID"
+              ]
+            },
+            {
+              "name": "Progress Summary Panel",
+              "type": "card",
+              "description": "Shows overall progress summary including total and completed milestones and tasks.",
+              "functionality": "Fetches and displays progress data.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/progress"
+              ],
+              "data_displayed": [
+                "Milestones total",
+                "Milestones completed",
+                "Tasks total",
+                "Tasks completed",
+                "Last updated"
+              ]
+            },
+            {
+              "name": "Export Plan Button",
+              "type": "button",
+              "description": "Button to request export of the project plan in PDF or Markdown format.",
+              "functionality": "Triggers export generation and shows export status with download link when ready.",
+              "api_endpoints": [
+                "/api/v1/projects/{projectId}/plans/{planId}/export (POST)",
+                "/api/v1/projects/{projectId}/plans/{planId}/export/{exportId} (GET)"
+              ],
+              "data_displayed": [
+                "Export status",
+                "Download URL"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "implementation_plan": [
+      {
+        "name": "Project Setup & Infrastructure",
+        "description": "Setup development environment, cloud infrastructure, CI/CD pipelines, and initial database schema.",
+        "status": "not_started",
+        "due_date_offset": 7,
+        "tasks": [
+          {
+            "name": "Development Environment Setup",
+            "description": "Configure local dev environments for frontend and backend development.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 8,
+            "dependencies": [],
+            "components_affected": [
+              "Frontend Web Client",
+              "Backend API Server"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Setup React 18 + TypeScript project scaffold",
+                "status": "not_started",
+                "description": "Initialize frontend repo with React, TypeScript, linting, formatting."
+              },
+              {
+                "name": "Setup Node.js 18 + Express backend scaffold",
+                "status": "not_started",
+                "description": "Initialize backend repo with Express, TypeScript, linting, formatting."
+              },
+              {
+                "name": "Configure shared GitHub repository and branching strategy",
+                "status": "not_started",
+                "description": "Setup GitHub repo, branch protection, and code review policies."
+              },
+              {
+                "name": "Install and configure OAuth 2.0 client libraries for frontend",
+                "status": "not_started",
+                "description": "Prepare frontend for authentication integration."
+              },
+              {
+                "name": "Install and configure OAuth 2.0 / JWT libraries for backend",
+                "status": "not_started",
+                "description": "Prepare backend for authentication and authorization."
+              }
+            ]
+          },
+          {
+            "name": "Cloud Infrastructure & CI/CD Setup",
+            "description": "Provision cloud resources and setup automated build/test/deploy pipelines.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 12,
+            "dependencies": [
+              "Development Environment Setup"
+            ],
+            "components_affected": [
+              "Backend API Server",
+              "Frontend Web Client",
+              "PostgreSQL Database"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Provision managed PostgreSQL instance (AWS RDS or Azure DB)",
+                "status": "not_started",
+                "description": "Setup cloud database service."
+              },
+              {
+                "name": "Setup cloud hosting for backend (ECS, App Service, or equivalent)",
+                "status": "not_started",
+                "description": "Prepare backend deployment environment."
+              },
+              {
+                "name": "Setup static hosting and CDN for frontend (S3 + CloudFront or Azure Blob Storage + CDN)",
+                "status": "not_started",
+                "description": "Prepare frontend deployment environment."
+              },
+              {
+                "name": "Configure secrets management for API keys and OAuth credentials",
+                "status": "not_started",
+                "description": "Securely store sensitive credentials."
+              },
+              {
+                "name": "Implement GitHub Actions CI/CD pipeline",
+                "status": "not_started",
+                "description": "Automate linting, testing, build, and deployment."
+              },
+              {
+                "name": "Setup monitoring and alerting basics",
+                "status": "not_started",
+                "description": "Integrate basic monitoring for backend and frontend."
+              }
+            ]
+          },
+          {
+            "name": "Database Schema Design & Setup",
+            "description": "Design and implement initial database schema for core entities.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 10,
+            "dependencies": [
+              "Cloud Infrastructure & CI/CD Setup"
+            ],
+            "components_affected": [
+              "PostgreSQL Database"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Design schema for User, Project, ProjectTeamMember",
+                "status": "not_started",
+                "description": "Define tables and relationships for users and projects."
+              },
+              {
+                "name": "Design schema for ProjectPlan and its components (ArchitectureDiagram, ApiEndpoint, DataModel, TimelineMilestone)",
+                "status": "not_started",
+                "description": "Define tables and relationships for project plans and components."
+              },
+              {
+                "name": "Design schema for Comment, AIGenerationRequest, ExportRequest",
+                "status": "not_started",
+                "description": "Define tables for collaboration and AI/export tracking."
+              },
+              {
+                "name": "Implement migrations and seed initial data",
+                "status": "not_started",
+                "description": "Create migration scripts and seed admin/test users."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Core Backend API Development",
+        "description": "Develop REST API endpoints for authentication, user management, projects, and project plans.",
+        "status": "not_started",
+        "due_date_offset": 35,
+        "tasks": [
+          {
+            "name": "Authentication API",
+            "description": "Implement OAuth 2.0 / JWT authentication endpoints.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 15,
+            "dependencies": [
+              "Database Schema Design & Setup"
+            ],
+            "components_affected": [
+              "Backend API Server",
+              "Authentication Service"
+            ],
+            "apis_affected": [
+              "/api/v1/auth/token",
+              "/api/v1/auth/token/refresh",
+              "/api/v1/auth/logout"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement login/token issuance endpoint",
+                "status": "not_started",
+                "description": "Support password grant and authorization code flows."
+              },
+              {
+                "name": "Implement token refresh endpoint",
+                "status": "not_started",
+                "description": "Allow refreshing access tokens."
+              },
+              {
+                "name": "Implement logout/token revocation endpoint",
+                "status": "not_started",
+                "description": "Support token revocation and logout."
+              },
+              {
+                "name": "Integrate OAuth 2.0 providers and JWT signing",
+                "status": "not_started",
+                "description": "Configure OAuth clients and JWT token generation."
+              },
+              {
+                "name": "Implement middleware for JWT validation and role-based access control",
+                "status": "not_started",
+                "description": "Secure API endpoints."
+              }
+            ]
+          },
+          {
+            "name": "User Profile API",
+            "description": "Implement endpoints to retrieve and manage user profiles.",
+            "status": "not_started",
+            "priority": "medium",
+            "estimated_hours": 6,
+            "dependencies": [
+              "Authentication API"
+            ],
+            "components_affected": [
+              "Backend API Server"
+            ],
+            "apis_affected": [
+              "/api/v1/users/me"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement GET /users/me endpoint",
+                "status": "not_started",
+                "description": "Return authenticated user's profile."
+              }
+            ]
+          },
+          {
+            "name": "Project Management API",
+            "description": "Implement CRUD endpoints for projects and team management.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 25,
+            "dependencies": [
+              "User Profile API"
+            ],
+            "components_affected": [
+              "Backend API Server"
+            ],
+            "apis_affected": [
+              "/api/v1/projects",
+              "/api/v1/projects/{projectId}",
+              "/api/v1/projects/{projectId}/team",
+              "/api/v1/projects/{projectId}/team/{userId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement project list, create, get, update, delete endpoints",
+                "status": "not_started",
+                "description": "Support pagination, search, sorting, and permissions."
+              },
+              {
+                "name": "Implement team members list, add/update role, remove member endpoints",
+                "status": "not_started",
+                "description": "Manage project team roles and membership."
+              },
+              {
+                "name": "Implement role-based access control for project ownership and editing",
+                "status": "not_started",
+                "description": "Enforce permissions on project APIs."
+              }
+            ]
+          },
+          {
+            "name": "Project Plans API",
+            "description": "Implement CRUD endpoints for project plans and their components.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 40,
+            "dependencies": [
+              "Project Management API"
+            ],
+            "components_affected": [
+              "Backend API Server"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}/plans",
+              "/api/v1/projects/{projectId}/plans/{planId}",
+              "/api/v1/projects/{projectId}/plans/{planId}/architecture",
+              "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints",
+              "/api/v1/projects/{projectId}/plans/{planId}/data-models",
+              "/api/v1/projects/{projectId}/plans/{planId}/timeline/milestones"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement project plans list, create, get, update, delete endpoints",
+                "status": "not_started",
+                "description": "Manage plans within projects."
+              },
+              {
+                "name": "Implement architecture diagram get and update endpoints",
+                "status": "not_started",
+                "description": "Manage architecture diagram JSON metadata."
+              },
+              {
+                "name": "Implement API endpoints CRUD endpoints",
+                "status": "not_started",
+                "description": "Manage API endpoint definitions with schemas."
+              },
+              {
+                "name": "Implement data models CRUD endpoints",
+                "status": "not_started",
+                "description": "Manage data model schemas."
+              },
+              {
+                "name": "Implement timeline milestones CRUD endpoints",
+                "status": "not_started",
+                "description": "Manage project timeline milestones."
+              },
+              {
+                "name": "Implement validation and permissions for all plan components",
+                "status": "not_started",
+                "description": "Ensure data integrity and access control."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "AI Integration & Real-time Collaboration Backend",
+        "description": "Implement AI plan generation orchestration and real-time collaboration backend modules.",
+        "status": "not_started",
+        "due_date_offset": 50,
+        "tasks": [
+          {
+            "name": "AI Plan Generation Backend",
+            "description": "Integrate OpenAI GPT-4 API for AI-assisted plan generation and refinement.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 25,
+            "dependencies": [
+              "Project Plans API"
+            ],
+            "components_affected": [
+              "Backend API Server",
+              "AI Integration Service"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}/plans/{planId}/generate",
+              "/api/v1/projects/{projectId}/plans/{planId}/generate/{generationId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Design prompt templates and rule-based orchestration logic",
+                "status": "not_started",
+                "description": "Create structured prompts for AI generation."
+              },
+              {
+                "name": "Implement generation request handling and status tracking",
+                "status": "not_started",
+                "description": "Manage async AI generation lifecycle."
+              },
+              {
+                "name": "Implement fallback and caching mechanisms for AI API calls",
+                "status": "not_started",
+                "description": "Mitigate cost and availability risks."
+              },
+              {
+                "name": "Implement result parsing and partial update of plan components",
+                "status": "not_started",
+                "description": "Store AI-generated data in DB."
+              },
+              {
+                "name": "Implement error handling and user feedback mechanisms",
+                "status": "not_started",
+                "description": "Handle AI failures gracefully."
+              }
+            ]
+          },
+          {
+            "name": "Real-time Collaboration Backend",
+            "description": "Implement WebSocket-based collaboration backend for real-time updates and comments.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 20,
+            "dependencies": [
+              "Project Plans API"
+            ],
+            "components_affected": [
+              "Backend API Server",
+              "Real-time Collaboration Module"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Setup Socket.IO server and connection management",
+                "status": "not_started",
+                "description": "Manage client connections and authentication."
+              },
+              {
+                "name": "Implement event handlers for plan edits, comments, presence",
+                "status": "not_started",
+                "description": "Broadcast updates to team members."
+              },
+              {
+                "name": "Implement basic conflict avoidance (last-write-wins, simple locking)",
+                "status": "not_started",
+                "description": "Prevent data conflicts in real-time edits."
+              },
+              {
+                "name": "Implement team size and message frequency limits",
+                "status": "not_started",
+                "description": "Ensure performance and scalability."
+              },
+              {
+                "name": "Integrate collaboration events with persistent storage (comments)",
+                "status": "not_started",
+                "description": "Sync real-time comments with DB."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Frontend UI Implementation",
+        "description": "Develop all UI screens and components including authentication, project and plan management, AI generation controls, collaboration, and export.",
+        "status": "not_started",
+        "due_date_offset": 85,
+        "tasks": [
+          {
+            "name": "Authentication UI",
+            "description": "Implement login screen and authentication flows.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 10,
+            "dependencies": [
+              "Authentication API"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [
+              "/api/v1/auth/token"
+            ],
+            "subtasks": [
+              {
+                "name": "Build login form with validation",
+                "status": "not_started",
+                "description": "Create UI for username/password input."
+              },
+              {
+                "name": "Implement OAuth 2.0 flow integration",
+                "status": "not_started",
+                "description": "Handle token requests and storage."
+              },
+              {
+                "name": "Display error messages on failed login",
+                "status": "not_started",
+                "description": "Show feedback for authentication errors."
+              }
+            ]
+          },
+          {
+            "name": "Dashboard & Project List UI",
+            "description": "Implement project listing, search, sorting, pagination, and project creation.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 15,
+            "dependencies": [
+              "Project Management API",
+              "Authentication UI"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [
+              "/api/v1/projects"
+            ],
+            "subtasks": [
+              {
+                "name": "Build project list view with cards/rows",
+                "status": "not_started",
+                "description": "Display project metadata."
+              },
+              {
+                "name": "Implement search bar and sorting dropdown",
+                "status": "not_started",
+                "description": "Filter and sort projects."
+              },
+              {
+                "name": "Implement pagination controls",
+                "status": "not_started",
+                "description": "Navigate project pages."
+              },
+              {
+                "name": "Implement create project modal/form",
+                "status": "not_started",
+                "description": "Allow users to create new projects."
+              }
+            ]
+          },
+          {
+            "name": "Project Details & Team Management UI",
+            "description": "Implement project detail view with metadata editing and team management.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 15,
+            "dependencies": [
+              "Project Management API",
+              "Dashboard & Project List UI"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}",
+              "/api/v1/projects/{projectId}/team",
+              "/api/v1/projects/{projectId}/team/{userId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Build project info panel with editable fields",
+                "status": "not_started",
+                "description": "Show and edit project metadata."
+              },
+              {
+                "name": "Build team members list with roles and join dates",
+                "status": "not_started",
+                "description": "Display team members."
+              },
+              {
+                "name": "Implement add/update team member role form",
+                "status": "not_started",
+                "description": "Allow owners to manage team roles."
+              },
+              {
+                "name": "Implement remove team member button",
+                "status": "not_started",
+                "description": "Allow owners to remove members."
+              }
+            ]
+          },
+          {
+            "name": "Project Plans List UI",
+            "description": "Implement listing, search, pagination, and creation of project plans.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 12,
+            "dependencies": [
+              "Project Plans API",
+              "Project Details & Team Management UI"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}/plans"
+            ],
+            "subtasks": [
+              {
+                "name": "Build plans list view with metadata",
+                "status": "not_started",
+                "description": "Display plan titles, descriptions, creators."
+              },
+              {
+                "name": "Implement search bar and pagination controls",
+                "status": "not_started",
+                "description": "Filter and navigate plans."
+              },
+              {
+                "name": "Implement create new plan button and modal",
+                "status": "not_started",
+                "description": "Allow plan creation with optional initial idea."
+              }
+            ]
+          },
+          {
+            "name": "Project Plan Details UI",
+            "description": "Implement detailed plan view with editable components and collaboration.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 40,
+            "dependencies": [
+              "Project Plans API",
+              "AI Plan Generation Backend",
+              "Real-time Collaboration Backend",
+              "Project Plans List UI"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}/plans/{planId}",
+              "/api/v1/projects/{projectId}/plans/{planId}/architecture",
+              "/api/v1/projects/{projectId}/plans/{planId}/api-endpoints",
+              "/api/v1/projects/{projectId}/plans/{planId}/data-models",
+              "/api/v1/projects/{projectId}/plans/{planId}/timeline/milestones",
+              "/api/v1/projects/{projectId}/plans/{planId}/comments",
+              "/api/v1/projects/{projectId}/plans/{planId}/generate",
+              "/api/v1/projects/{projectId}/plans/{planId}/generate/{generationId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Build plan metadata panel with edit capabilities",
+                "status": "not_started",
+                "description": "Show and update plan title and description."
+              },
+              {
+                "name": "Implement AI generation controls UI",
+                "status": "not_started",
+                "description": "Trigger AI generation and show status/results."
+              },
+              {
+                "name": "Implement architecture diagram viewer/editor",
+                "status": "not_started",
+                "description": "Display and edit JSON-based diagrams."
+              },
+              {
+                "name": "Implement API endpoints list and detail editor",
+                "status": "not_started",
+                "description": "Manage API endpoints with schemas."
+              },
+              {
+                "name": "Implement data models list and editor",
+                "status": "not_started",
+                "description": "Manage data model schemas."
+              },
+              {
+                "name": "Implement timeline milestones list and editor",
+                "status": "not_started",
+                "description": "Manage milestones with status and due dates."
+              },
+              {
+                "name": "Implement comments panel with real-time updates",
+                "status": "not_started",
+                "description": "Show, add, edit, delete comments with WebSocket."
+              },
+              {
+                "name": "Implement progress summary panel",
+                "status": "not_started",
+                "description": "Display overall project progress."
+              }
+            ]
+          },
+          {
+            "name": "Export UI",
+            "description": "Implement export request UI and download functionality.",
+            "status": "not_started",
+            "priority": "medium",
+            "estimated_hours": 8,
+            "dependencies": [
+              "Project Plan Details UI"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}/plans/{planId}/export",
+              "/api/v1/projects/{projectId}/plans/{planId}/export/{exportId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Build export plan button with format selection",
+                "status": "not_started",
+                "description": "Allow user to request PDF or Markdown export."
+              },
+              {
+                "name": "Display export status and download link",
+                "status": "not_started",
+                "description": "Show progress and provide download when ready."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Export & Documentation Backend",
+        "description": "Implement backend export generation module and documentation.",
+        "status": "not_started",
+        "due_date_offset": 95,
+        "tasks": [
+          {
+            "name": "Export Generation Module",
+            "description": "Implement PDF and Markdown export generation using Puppeteer and PDFKit.",
+            "status": "not_started",
+            "priority": "medium",
+            "estimated_hours": 15,
+            "dependencies": [
+              "Project Plans API"
+            ],
+            "components_affected": [
+              "Backend API Server",
+              "Export Generation Module"
+            ],
+            "apis_affected": [
+              "/api/v1/projects/{projectId}/plans/{planId}/export",
+              "/api/v1/projects/{projectId}/plans/{planId}/export/{exportId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Design export templates for PDF and Markdown",
+                "status": "not_started",
+                "description": "Create consistent document layouts."
+              },
+              {
+                "name": "Implement export request handling and status tracking",
+                "status": "not_started",
+                "description": "Manage async export lifecycle."
+              },
+              {
+                "name": "Integrate Puppeteer for PDF generation",
+                "status": "not_started",
+                "description": "Generate PDF documents from HTML."
+              },
+              {
+                "name": "Integrate PDFKit for alternative PDF generation",
+                "status": "not_started",
+                "description": "Support PDF generation fallback."
+              },
+              {
+                "name": "Implement Markdown export generation",
+                "status": "not_started",
+                "description": "Generate Markdown formatted documents."
+              },
+              {
+                "name": "Implement error handling and user feedback",
+                "status": "not_started",
+                "description": "Handle export failures gracefully."
+              }
+            ]
+          },
+          {
+            "name": "Project Documentation",
+            "description": "Write developer and user documentation for APIs, architecture, and usage.",
+            "status": "not_started",
+            "priority": "medium",
+            "estimated_hours": 10,
+            "dependencies": [
+              "Export Generation Module",
+              "Frontend UI Implementation",
+              "Core Backend API Development"
+            ],
+            "components_affected": [],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Document API endpoints with examples",
+                "status": "not_started",
+                "description": "Create API reference documentation."
+              },
+              {
+                "name": "Document system architecture and data models",
+                "status": "not_started",
+                "description": "Explain architecture overview and DB schema."
+              },
+              {
+                "name": "Write user guides for UI workflows",
+                "status": "not_started",
+                "description": "Describe usage of main UI features."
+              },
+              {
+                "name": "Prepare deployment and environment setup guides",
+                "status": "not_started",
+                "description": "Document infrastructure and CI/CD setup."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Testing, Integration & Deployment",
+        "description": "Perform testing, integration of frontend and backend, final deployment, and stabilization.",
+        "status": "not_started",
+        "due_date_offset": 105,
+        "tasks": [
+          {
+            "name": "Backend Unit and Integration Testing",
+            "description": "Write and run tests for backend API and modules.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 15,
+            "dependencies": [
+              "Core Backend API Development",
+              "AI Integration & Real-time Collaboration Backend",
+              "Export & Documentation Backend"
+            ],
+            "components_affected": [
+              "Backend API Server"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Write unit tests for authentication and user APIs",
+                "status": "not_started",
+                "description": "Test auth flows and user profile."
+              },
+              {
+                "name": "Write unit tests for project and plan APIs",
+                "status": "not_started",
+                "description": "Test CRUD operations and permissions."
+              },
+              {
+                "name": "Write integration tests for AI generation and collaboration",
+                "status": "not_started",
+                "description": "Test AI orchestration and WebSocket events."
+              },
+              {
+                "name": "Write tests for export generation module",
+                "status": "not_started",
+                "description": "Validate export workflows."
+              }
+            ]
+          },
+          {
+            "name": "Frontend Testing and QA",
+            "description": "Perform unit, integration, and manual testing of UI components and flows.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 15,
+            "dependencies": [
+              "Frontend UI Implementation"
+            ],
+            "components_affected": [
+              "Frontend Web Client"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Write unit tests for key UI components",
+                "status": "not_started",
+                "description": "Test forms, lists, and editors."
+              },
+              {
+                "name": "Perform integration testing with backend APIs",
+                "status": "not_started",
+                "description": "Validate end-to-end workflows."
+              },
+              {
+                "name": "Conduct manual exploratory testing",
+                "status": "not_started",
+                "description": "Verify usability and edge cases."
+              }
+            ]
+          },
+          {
+            "name": "Integration & End-to-End Testing",
+            "description": "Test full system integration including real-time collaboration and AI generation.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 10,
+            "dependencies": [
+              "Backend Unit and Integration Testing",
+              "Frontend Testing and QA"
+            ],
+            "components_affected": [
+              "Frontend Web Client",
+              "Backend API Server",
+              "AI Integration Service",
+              "Real-time Collaboration Module"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Test real-time collaboration with multiple users",
+                "status": "not_started",
+                "description": "Validate WebSocket synchronization and conflict handling."
+              },
+              {
+                "name": "Test AI generation request and result integration",
+                "status": "not_started",
+                "description": "Verify AI-generated plan components update UI and DB."
+              },
+              {
+                "name": "Test export generation and download flows",
+                "status": "not_started",
+                "description": "Ensure exports are generated and downloadable."
+              }
+            ]
+          },
+          {
+            "name": "Final Deployment & Stabilization",
+            "description": "Deploy to production environment, monitor, and fix critical issues.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 9,
+            "dependencies": [
+              "Integration & End-to-End Testing",
+              "Cloud Infrastructure & CI/CD Setup"
+            ],
+            "components_affected": [
+              "Backend API Server",
+              "Frontend Web Client",
+              "Infrastructure"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Deploy backend and frontend to production",
+                "status": "not_started",
+                "description": "Use CI/CD pipelines for deployment."
+              },
+              {
+                "name": "Monitor logs and performance metrics",
+                "status": "not_started",
+                "description": "Identify and resolve issues."
+              },
+              {
+                "name": "Fix critical bugs and regressions",
+                "status": "not_started",
+                "description": "Stabilize platform for launch."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "project_text": ""
+}

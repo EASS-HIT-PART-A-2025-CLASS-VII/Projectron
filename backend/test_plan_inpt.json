@@ -1,0 +1,23 @@
+{
+    "title": "Projectron - AI-Powered Project Planning Tool",
+    "description": "Projectron is a comprehensive project planning platform designed to help teams create, refine, and manage software projects with AI assistance. The application allows users to input high-level project ideas and automatically generates detailed project plans including architecture designs, API endpoints, data models, and implementation timelines. Users can customize generated plans, collaborate with team members, track progress, and refine different aspects of their projects using both direct editing and AI-assisted updates. Projectron is especially valuable for software development teams, product managers, and entrepreneurs who want to streamline the planning process, maintain consistency across project components, and reduce the time needed to create comprehensive technical documentation. The platform combines traditional project management capabilities with intelligent planning assistance to help teams move from concept to execution more efficiently.",
+    "tech_stack": [
+      "React",
+      "TypeScript",
+      "Node.js",
+      "MongoDB",
+      "Express",
+      "LangChain",
+      "Claude/OpenAI API",
+      "JWT Authentication",
+      "Material UI"
+    ],
+    "experience_level": "junior",
+    "team_size": 3,
+    "clarifying_QA": {
+      "What is the main goal of the application?": "To automate and simplify the creation of software project plans using AI.",
+      "Should it support real-time collaboration?": "Yes, team members should be able to edit and comment on the plan in real-time.",
+      "Is there a preferred deployment platform?": "Cloud-based, preferably using Vercel for frontend and Railway or Render for backend."
+    },
+    "time_scale": "small"
+  }

@@ -1,0 +1,1863 @@
+{
+  "structured_plan": {
+    "name": "Projectron Lite",
+    "description": "Projectron Lite is a streamlined, AI-assisted project planning platform designed to help small software teams and product managers quickly generate and customize essential project plans from high-level ideas. It focuses on automating the creation of core project components such as architecture outlines, API endpoint sketches, and basic timelines, while enabling lightweight real-time collaboration and editing. The platform aims to reduce the time and effort needed to produce consistent, actionable software project documentation within a tight development timeframe.",
+    "status": "draft",
+    "tech_stack": [
+      "React 18 (frontend)",
+      "Next.js 13 (frontend framework, deployed on Vercel)",
+      "Node.js 18 (backend)",
+      "Express.js 4 (backend API)",
+      "PostgreSQL 15 (database)",
+      "Prisma 4 (ORM)",
+      "Firebase Realtime Database or Socket.IO (for real-time collaboration)",
+      "OpenAI GPT-4 API (for AI-assisted plan generation)",
+      "NextAuth.js (authentication)",
+      "Vercel (frontend hosting)",
+      "Railway (backend hosting)"
+    ],
+    "experience_level": "mid",
+    "high_level_plan": {
+      "vision": "To empower software teams and product managers to rapidly transform project ideas into actionable, AI-generated plans with minimal manual effort, enabling faster project kickoff and improved alignment.",
+      "business_objectives": [
+        "Enable users to generate a basic project plan from a high-level idea within 5 minutes",
+        "Support real-time collaborative editing and commenting for up to 5 users simultaneously",
+        "Achieve a minimum user satisfaction score of 80% in initial usability testing",
+        "Deploy a stable MVP on cloud platforms (Vercel frontend, Railway backend) within 40 hours"
+      ],
+      "target_users": [
+        {
+          "type": "Software Development Teams",
+          "needs": [
+            "Quickly generate initial project plans",
+            "Maintain consistency across architecture and API design",
+            "Collaborate efficiently on project documentation"
+          ],
+          "pain_points": [
+            "Time-consuming manual project planning",
+            "Difficulty aligning team members on technical details",
+            "Lack of integrated AI assistance in planning tools"
+          ]
+        },
+        {
+          "type": "Product Managers",
+          "needs": [
+            "Simplify technical planning without deep engineering knowledge",
+            "Visualize project scope and timelines",
+            "Collaborate with engineers effectively"
+          ],
+          "pain_points": [
+            "Complexity of technical documentation",
+            "Communication gaps with development teams",
+            "Slow iteration on project plans"
+          ]
+        },
+        {
+          "type": "Entrepreneurs / Startup Founders",
+          "needs": [
+            "Rapidly prototype software project plans",
+            "Understand technical feasibility",
+            "Prepare documentation for stakeholders"
+          ],
+          "pain_points": [
+            "Limited technical expertise",
+            "Resource constraints on planning",
+            "Difficulty producing professional project plans quickly"
+          ]
+        }
+      ],
+      "core_features": [
+        "Input high-level project idea and generate a basic project plan with AI",
+        "Auto-generated architecture overview and API endpoint list",
+        "Editable project timeline with key milestones",
+        "Real-time collaborative editing and commenting on project plans",
+        "User authentication and simple project management dashboard",
+        "Cloud deployment with frontend on Vercel and backend on Railway"
+      ],
+      "scope": {
+        "in_scope": [
+          "AI-assisted generation of architecture, API endpoints, and timeline",
+          "Basic real-time collaboration (editing + commenting)",
+          "User authentication and project CRUD operations",
+          "Cloud deployment and CI/CD setup",
+          "Simple UI/UX focused on core workflows"
+        ],
+        "out_of_scope": [
+          "Advanced AI features like iterative plan refinement or deep learning customization",
+          "Comprehensive data modeling and detailed technical documentation generation",
+          "Offline mode or mobile app versions",
+          "Complex role-based access control or enterprise integrations",
+          "Extensive analytics or reporting dashboards"
+        ]
+      },
+      "success_criteria": [
+        "MVP deployed and accessible via cloud platforms",
+        "Users can generate and edit a project plan end-to-end within 10 minutes",
+        "Real-time collaboration works reliably for small teams",
+        "Positive feedback from initial user testing with minimal critical bugs",
+        "Project plan data persists correctly and can be retrieved/updated"
+      ],
+      "constraints": [
+        "Total development time limited to 40 hours",
+        "Must use Vercel for frontend and Railway for backend deployment",
+        "Limited scope to core features only due to time budget",
+        "AI integration limited to simple prompt-based generation (no custom ML training)",
+        "Real-time collaboration limited to basic functionality (no complex conflict resolution)"
+      ],
+      "assumptions": [
+        "AI generation can be implemented via existing APIs (e.g., OpenAI GPT) with simple prompts",
+        "Users will have internet access and modern browsers",
+        "Small team collaboration (up to 5 users) is sufficient for MVP",
+        "Authentication can be handled via third-party providers (e.g., OAuth) to save time",
+        "Basic UI components and real-time collaboration libraries (e.g., WebSocket or Firebase) are available"
+      ],
+      "risks": [
+        {
+          "description": "AI-generated plans may lack accuracy or relevance",
+          "impact": "high",
+          "mitigation": "Use well-crafted prompts and limit scope of AI output; allow manual editing to correct AI output"
+        },
+        {
+          "description": "Real-time collaboration implementation may exceed time budget",
+          "impact": "medium",
+          "mitigation": "Use existing real-time collaboration frameworks or services (e.g., Firebase Realtime DB) to accelerate development"
+        },
+        {
+          "description": "Deployment issues on Vercel or Railway could delay release",
+          "impact": "medium",
+          "mitigation": "Set up deployment pipelines early and test incremental deployments frequently"
+        },
+        {
+          "description": "User authentication integration complexity",
+          "impact": "medium",
+          "mitigation": "Use third-party authentication providers with SDKs to reduce implementation effort"
+        }
+      ]
+    },
+    "technical_architecture": {
+      "architecture_overview": "Projectron Lite is a cloud-native, web-based AI-assisted project planning platform designed with simplicity and rapid development in mind. It follows a client-server architecture with a React/Next.js frontend deployed on Vercel and a Node.js/Express backend deployed on Railway. The backend handles RESTful API requests, user authentication, project data persistence in PostgreSQL, and AI integration via OpenAI GPT-4 API. Real-time collaboration (editing and commenting) is enabled through Firebase Realtime Database, providing lightweight synchronization for up to 5 concurrent users. The system leverages third-party OAuth authentication via NextAuth.js to minimize implementation complexity. The architecture prioritizes modularity, maintainability, and rapid iteration within a 40-hour development window, focusing on core features and stable MVP delivery.",
+      "architecture_diagram_description": "Users interact with the React/Next.js frontend hosted on Vercel via modern browsers. The frontend communicates synchronously with the backend REST API hosted on Railway for user authentication, project CRUD operations, and AI-assisted plan generation. Real-time collaboration data (edits and comments) flows asynchronously between frontend clients and Firebase Realtime Database, enabling near-instant updates among collaborators. The backend integrates with OpenAI GPT-4 API over HTTPS to generate project plans from high-level ideas. PostgreSQL stores persistent project data accessed by the backend via Prisma ORM. Authentication is handled by NextAuth.js using OAuth providers, with tokens managed on the frontend and backend. CI/CD pipelines automate deployment to Vercel and Railway on code commits.",
+      "system_components": [
+        {
+          "name": "Frontend",
+          "type": "frontend",
+          "description": "Single Page Application (SPA) built with React 18 and Next.js 13, providing UI for inputting project ideas, viewing and editing generated plans, timelines, architecture outlines, API sketches, and real-time collaboration features.",
+          "technologies": [
+            "React 18",
+            "Next.js 13",
+            "NextAuth.js",
+            "Firebase Realtime Database SDK"
+          ],
+          "responsibilities": [
+            "Render UI and handle user interactions",
+            "Manage authentication state and session",
+            "Send REST API requests to backend for project data and AI generation",
+            "Connect to Firebase Realtime Database for real-time collaboration (editing and commenting)",
+            "Allow manual editing of AI-generated content",
+            "Display project timelines and milestones"
+          ]
+        },
+        {
+          "name": "Backend API",
+          "type": "backend",
+          "description": "Node.js 18 and Express.js 4 REST API server responsible for user authentication integration, project data management, AI plan generation orchestration, and serving frontend requests.",
+          "technologies": [
+            "Node.js 18",
+            "Express.js 4",
+            "Prisma 4",
+            "OpenAI GPT-4 API",
+            "NextAuth.js"
+          ],
+          "responsibilities": [
+            "Authenticate users via OAuth providers using NextAuth.js",
+            "Handle CRUD operations for projects and related entities in PostgreSQL",
+            "Invoke OpenAI GPT-4 API with crafted prompts to generate architecture outlines, API endpoints, and timelines",
+            "Validate and sanitize AI-generated content before returning to frontend",
+            "Manage session and authorization checks",
+            "Expose RESTful endpoints consumed by frontend"
+          ]
+        },
+        {
+          "name": "PostgreSQL Database",
+          "type": "database",
+          "description": "Relational database storing persistent user data, project plans, metadata, and user-project relationships.",
+          "technologies": [
+            "PostgreSQL 15",
+            "Prisma ORM"
+          ],
+          "responsibilities": [
+            "Persist user profiles and authentication metadata",
+            "Store project plans, including architecture outlines, API sketches, timelines, and comments metadata",
+            "Support efficient queries for project retrieval and updates"
+          ]
+        },
+        {
+          "name": "Firebase Realtime Database",
+          "type": "service",
+          "description": "Cloud-hosted NoSQL database used exclusively for real-time collaboration features, enabling low-latency synchronization of edits and comments among up to 5 concurrent users.",
+          "technologies": [
+            "Firebase Realtime Database"
+          ],
+          "responsibilities": [
+            "Store transient real-time editing and commenting data",
+            "Broadcast updates to connected clients instantly",
+            "Handle conflict resolution via last-write-wins or simple merge strategies",
+            "Provide SDKs for frontend integration to minimize backend complexity"
+          ]
+        },
+        {
+          "name": "OpenAI GPT-4 API",
+          "type": "external service",
+          "description": "Third-party AI service used to generate initial project plans, including architecture outlines, API endpoint sketches, and timelines from high-level user input.",
+          "technologies": [
+            "OpenAI GPT-4 API"
+          ],
+          "responsibilities": [
+            "Process prompt-based requests from backend",
+            "Return AI-generated textual project plan components",
+            "Enable rapid generation of consistent and actionable project documentation"
+          ]
+        },
+        {
+          "name": "Authentication Provider",
+          "type": "external service",
+          "description": "Third-party OAuth providers (e.g., Google, GitHub) integrated via NextAuth.js to handle user authentication securely and efficiently.",
+          "technologies": [
+            "OAuth 2.0",
+            "NextAuth.js"
+          ],
+          "responsibilities": [
+            "Authenticate users without building custom auth system",
+            "Provide secure tokens and user identity information",
+            "Simplify session management and reduce development effort"
+          ]
+        }
+      ],
+      "communication_patterns": [
+        {
+          "source": "Frontend",
+          "target": "Backend API",
+          "protocol": "HTTP/REST",
+          "pattern": "sync",
+          "description": "Frontend sends synchronous REST API requests to backend for user authentication, project CRUD operations, and AI-assisted plan generation. Backend responds with JSON data."
+        },
+        {
+          "source": "Backend API",
+          "target": "OpenAI GPT-4 API",
+          "protocol": "HTTPS/REST",
+          "pattern": "sync",
+          "description": "Backend synchronously calls OpenAI GPT-4 API with prompt payloads to generate project plan components, awaiting AI response before returning results to frontend."
+        },
+        {
+          "source": "Frontend",
+          "target": "Firebase Realtime Database",
+          "protocol": "WebSocket/Realtime SDK",
+          "pattern": "async/event-driven",
+          "description": "Frontend clients connect to Firebase Realtime Database to send and receive real-time updates for collaborative editing and commenting, enabling near-instant synchronization among users."
+        },
+        {
+          "source": "Frontend",
+          "target": "Authentication Provider",
+          "protocol": "OAuth 2.0 (redirect + token exchange)",
+          "pattern": "sync/async",
+          "description": "Frontend initiates OAuth login flows via NextAuth.js, redirecting users to third-party providers and receiving authentication tokens upon successful login."
+        },
+        {
+          "source": "Backend API",
+          "target": "PostgreSQL Database",
+          "protocol": "SQL over TCP",
+          "pattern": "sync",
+          "description": "Backend performs synchronous database queries and transactions via Prisma ORM to persist and retrieve user and project data."
+        }
+      ],
+      "architecture_patterns": [
+        {
+          "name": "Client-Server",
+          "description": "The system follows a classic client-server pattern where the frontend SPA acts as the client consuming REST APIs exposed by the backend server."
+        },
+        {
+          "name": "Microservice-lite / Modular Monolith",
+          "description": "While the backend is a single Express.js service, responsibilities are modularized (authentication, project management, AI integration) to maintain clarity and ease of development within the time budget."
+        },
+        {
+          "name": "Event-Driven (Real-time Collaboration)",
+          "description": "Real-time collaboration leverages Firebase Realtime Database's event-driven model to propagate changes asynchronously between clients without backend mediation."
+        },
+        {
+          "name": "Third-Party Integration",
+          "description": "Authentication and AI generation are outsourced to specialized third-party services (OAuth providers and OpenAI GPT-4) to reduce development complexity and accelerate delivery."
+        }
+      ],
+      "infrastructure": {
+        "hosting": "Cloud-based hosting using Vercel for frontend and Railway for backend",
+        "services": [
+          "Vercel (Frontend hosting and CDN)",
+          "Railway (Backend hosting and PostgreSQL managed database)",
+          "Firebase Realtime Database (Real-time collaboration service)",
+          "OpenAI GPT-4 API (AI generation)",
+          "OAuth Providers (Google, GitHub, etc. for authentication)"
+        ],
+        "ci_cd": "GitHub Actions or Railway/Vercel native CI/CD pipelines configured to trigger on push to main branch, automatically building, testing, and deploying frontend to Vercel and backend to Railway. Incremental deployments ensure rapid feedback and stable releases."
+      }
+    },
+    "api_endpoints": {
+      "api_design_principles": [
+        "RESTful design with clear resource-oriented endpoints and HTTP verbs",
+        "Stateless server interactions; all requests contain necessary authentication and data",
+        "Minimal and essential endpoints to fit 40-hour development budget",
+        "Consistent JSON request and response formats",
+        "Use of standard HTTP status codes for success and error handling",
+        "Secure endpoints requiring authentication except for public auth flows",
+        "Simple request schemas focusing on core features without complex filtering",
+        "Support for partial updates via PUT where applicable",
+        "Endpoints designed to enable AI-assisted generation and manual editing workflows",
+        "Separation of real-time collaboration handled by Firebase, not backend API"
+      ],
+      "base_url": "/api/v1",
+      "authentication": {
+        "type": "OAuth2 (via NextAuth.js) with JWT session tokens",
+        "description": "All protected endpoints require a valid JWT access token obtained via OAuth2 login through third-party providers (Google, GitHub, etc.). Tokens must be included in the Authorization header as 'Bearer <token>'. Authentication is handled by NextAuth.js on backend and frontend."
+      },
+      "resources": [
+        {
+          "name": "Auth",
+          "description": "Endpoints related to user authentication and session management. Most auth flows are handled by NextAuth.js and OAuth providers, so backend API surface is minimal.",
+          "endpoints": [
+            {
+              "name": "Get Current User",
+              "method": "GET",
+              "path": "/auth/me",
+              "description": "Retrieve the authenticated user's profile information.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string - unique user ID",
+                    "name": "string - user display name",
+                    "email": "string - user email address",
+                    "image": "string - URL to user avatar (optional)"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized - missing or invalid token"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Projects",
+          "description": "Manage user projects including creation, retrieval, update, and deletion of project plans.",
+          "endpoints": [
+            {
+              "name": "List Projects",
+              "method": "GET",
+              "path": "/projects",
+              "description": "Retrieve a list of projects owned by the authenticated user.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "projects": [
+                      {
+                        "id": "string - project unique ID",
+                        "title": "string - project title",
+                        "description": "string - short project description",
+                        "createdAt": "string - ISO 8601 timestamp",
+                        "updatedAt": "string - ISO 8601 timestamp"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Create Project",
+              "method": "POST",
+              "path": "/projects",
+              "description": "Create a new project with a high-level idea input. This triggers AI-assisted generation of the initial plan.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "title": "string - required, project title",
+                    "idea": "string - required, high-level project idea or description",
+                    "description": "string - optional, additional project description"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string - new project ID",
+                    "title": "string",
+                    "description": "string",
+                    "architectureOutline": "string - AI-generated architecture overview",
+                    "apiEndpoints": [
+                      {
+                        "method": "string - HTTP method",
+                        "path": "string - API endpoint path",
+                        "description": "string - brief description"
+                      }
+                    ],
+                    "timeline": {
+                      "milestones": [
+                        {
+                          "id": "string - milestone ID",
+                          "title": "string",
+                          "dueDate": "string - ISO 8601 date"
+                        }
+                      ]
+                    },
+                    "createdAt": "string",
+                    "updatedAt": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Bad Request - missing or invalid fields"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 500,
+                    "description": "Internal Server Error - AI generation failure or database error"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Get Project",
+              "method": "GET",
+              "path": "/projects/{projectId}",
+              "description": "Retrieve detailed project plan including architecture, API sketches, and timeline.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "description": "string",
+                    "architectureOutline": "string",
+                    "apiEndpoints": [
+                      {
+                        "method": "string",
+                        "path": "string",
+                        "description": "string"
+                      }
+                    ],
+                    "timeline": {
+                      "milestones": [
+                        {
+                          "id": "string",
+                          "title": "string",
+                          "dueDate": "string"
+                        }
+                      ]
+                    },
+                    "createdAt": "string",
+                    "updatedAt": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Update Project",
+              "method": "PUT",
+              "path": "/projects/{projectId}",
+              "description": "Update project details including manual edits to architecture outline, API endpoints, and timeline milestones.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "title": "string - optional",
+                    "description": "string - optional",
+                    "architectureOutline": "string - optional, updated architecture text",
+                    "apiEndpoints": "array of objects - optional, updated API endpoint sketches",
+                    "timeline": {
+                      "milestones": [
+                        {
+                          "id": "string - milestone ID (existing or new)",
+                          "title": "string",
+                          "dueDate": "string - ISO 8601 date"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string",
+                    "title": "string",
+                    "description": "string",
+                    "architectureOutline": "string",
+                    "apiEndpoints": [
+                      {
+                        "method": "string",
+                        "path": "string",
+                        "description": "string"
+                      }
+                    ],
+                    "timeline": {
+                      "milestones": [
+                        {
+                          "id": "string",
+                          "title": "string",
+                          "dueDate": "string"
+                        }
+                      ]
+                    },
+                    "updatedAt": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Bad Request - invalid data format"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Delete Project",
+              "method": "DELETE",
+              "path": "/projects/{projectId}",
+              "description": "Delete a project and all associated data permanently.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 204,
+                  "content_type": "",
+                  "schema_data": {}
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AI Generation",
+          "description": "Endpoints to trigger AI-assisted generation or regeneration of project plan components from high-level ideas or updated inputs.",
+          "endpoints": [
+            {
+              "name": "Generate Project Plan Components",
+              "method": "POST",
+              "path": "/projects/{projectId}/generate",
+              "description": "Invoke AI to generate or regenerate architecture outline, API endpoint sketches, and timeline milestones based on current project idea or updated description.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "idea": "string - optional, updated high-level idea or description to guide AI generation"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "architectureOutline": "string",
+                    "apiEndpoints": [
+                      {
+                        "method": "string",
+                        "path": "string",
+                        "description": "string"
+                      }
+                    ],
+                    "timeline": {
+                      "milestones": [
+                        {
+                          "id": "string",
+                          "title": "string",
+                          "dueDate": "string"
+                        }
+                      ]
+                    },
+                    "updatedAt": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Bad Request - invalid input"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  },
+                  {
+                    "status": 500,
+                    "description": "AI generation failed or service unavailable"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Comments",
+          "description": "Metadata endpoints for comments on project plans. Actual real-time comment data is stored and synchronized via Firebase Realtime Database; backend stores comment metadata for persistence and indexing.",
+          "endpoints": [
+            {
+              "name": "List Comments",
+              "method": "GET",
+              "path": "/projects/{projectId}/comments",
+              "description": "Retrieve a list of comments metadata for a project. Real-time comment content is handled by Firebase; this endpoint provides comment IDs, authorship, and timestamps.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": null
+              },
+              "response": {
+                "success": {
+                  "status": 200,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "comments": [
+                      {
+                        "id": "string - comment unique ID",
+                        "authorId": "string - user ID of commenter",
+                        "authorName": "string - display name",
+                        "createdAt": "string - ISO 8601 timestamp",
+                        "updatedAt": "string - ISO 8601 timestamp"
+                      }
+                    ]
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Add Comment Metadata",
+              "method": "POST",
+              "path": "/projects/{projectId}/comments",
+              "description": "Add comment metadata record when a new comment is created in Firebase. Actual comment content is managed in Firebase Realtime Database.",
+              "authentication_required": true,
+              "request": {
+                "query_params": [],
+                "body": {
+                  "type": "application/json",
+                  "schema_data": {
+                    "commentId": "string - unique comment ID generated client-side or by Firebase",
+                    "authorId": "string - user ID",
+                    "authorName": "string - user display name"
+                  }
+                }
+              },
+              "response": {
+                "success": {
+                  "status": 201,
+                  "content_type": "application/json",
+                  "schema_data": {
+                    "id": "string - comment metadata record ID",
+                    "commentId": "string",
+                    "authorId": "string",
+                    "authorName": "string",
+                    "createdAt": "string"
+                  }
+                },
+                "errors": [
+                  {
+                    "status": 400,
+                    "description": "Bad Request - missing required fields"
+                  },
+                  {
+                    "status": 401,
+                    "description": "Unauthorized"
+                  },
+                  {
+                    "status": 404,
+                    "description": "Project not found or access denied"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "data_models": {
+      "entities": [
+        {
+          "name": "User",
+          "description": "Represents a user authenticated via OAuth providers.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Unique user identifier (from OAuth or internal UUID).",
+              "required": true
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "User display name.",
+              "required": true
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "description": "User email address.",
+              "required": true
+            },
+            {
+              "name": "image",
+              "type": "string",
+              "description": "URL to user avatar image (optional).",
+              "required": false
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "description": "Timestamp when the user was created.",
+              "required": true
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "description": "Timestamp when the user was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "Project",
+          "description": "Represents a project plan owned by a user, including AI-generated and manually editable content.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Unique project identifier (UUID).",
+              "required": true
+            },
+            {
+              "name": "ownerId",
+              "type": "string",
+              "description": "ID of the user who owns the project.",
+              "required": true
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "description": "Project title.",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Optional additional project description.",
+              "required": false
+            },
+            {
+              "name": "idea",
+              "type": "string",
+              "description": "High-level project idea or description used for AI generation.",
+              "required": true
+            },
+            {
+              "name": "architectureOutline",
+              "type": "string",
+              "description": "AI-generated or manually edited architecture overview text.",
+              "required": false
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "description": "Timestamp when the project was created.",
+              "required": true
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "description": "Timestamp when the project was last updated.",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "ApiEndpoint",
+          "description": "Represents an API endpoint sketch within a project, describing method, path, and purpose.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Unique API endpoint identifier (UUID).",
+              "required": true
+            },
+            {
+              "name": "projectId",
+              "type": "string",
+              "description": "ID of the project this endpoint belongs to.",
+              "required": true
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "description": "HTTP method (e.g., GET, POST, PUT, DELETE).",
+              "required": true
+            },
+            {
+              "name": "path",
+              "type": "string",
+              "description": "API endpoint path (e.g., /users, /projects/{id}).",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "description": "Brief description of the endpoint's purpose.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "Milestone",
+          "description": "Represents a key milestone in the project timeline.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Unique milestone identifier (UUID).",
+              "required": true
+            },
+            {
+              "name": "projectId",
+              "type": "string",
+              "description": "ID of the project this milestone belongs to.",
+              "required": true
+            },
+            {
+              "name": "title",
+              "type": "string",
+              "description": "Milestone title or name.",
+              "required": true
+            },
+            {
+              "name": "dueDate",
+              "type": "date",
+              "description": "Due date for the milestone (ISO 8601 date).",
+              "required": true
+            }
+          ]
+        },
+        {
+          "name": "CommentMetadata",
+          "description": "Stores metadata about comments on project plans. Actual comment content is stored in Firebase Realtime Database.",
+          "properties": [
+            {
+              "name": "id",
+              "type": "string",
+              "description": "Unique comment metadata record ID (UUID).",
+              "required": true
+            },
+            {
+              "name": "commentId",
+              "type": "string",
+              "description": "Unique comment ID generated client-side or by Firebase.",
+              "required": true
+            },
+            {
+              "name": "projectId",
+              "type": "string",
+              "description": "ID of the project this comment belongs to.",
+              "required": true
+            },
+            {
+              "name": "authorId",
+              "type": "string",
+              "description": "User ID of the comment author.",
+              "required": true
+            },
+            {
+              "name": "authorName",
+              "type": "string",
+              "description": "Display name of the comment author.",
+              "required": true
+            },
+            {
+              "name": "createdAt",
+              "type": "datetime",
+              "description": "Timestamp when the comment was created.",
+              "required": true
+            },
+            {
+              "name": "updatedAt",
+              "type": "datetime",
+              "description": "Timestamp when the comment was last updated.",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "source_entity": "User",
+          "target_entity": "Project",
+          "type": "one-to-many",
+          "description": "A user can own multiple projects; each project belongs to exactly one user."
+        },
+        {
+          "source_entity": "Project",
+          "target_entity": "ApiEndpoint",
+          "type": "one-to-many",
+          "description": "Each project can have multiple API endpoint sketches."
+        },
+        {
+          "source_entity": "Project",
+          "target_entity": "Milestone",
+          "type": "one-to-many",
+          "description": "Each project can have multiple timeline milestones."
+        },
+        {
+          "source_entity": "Project",
+          "target_entity": "CommentMetadata",
+          "type": "one-to-many",
+          "description": "Each project can have multiple comment metadata records."
+        },
+        {
+          "source_entity": "User",
+          "target_entity": "CommentMetadata",
+          "type": "one-to-many",
+          "description": "A user can author multiple comments; each comment metadata record references one user."
+        }
+      ]
+    },
+    "ui_components": {
+      "screens": [
+        {
+          "name": "Login / Authentication",
+          "description": "Allows users to authenticate via third-party OAuth providers (Google, GitHub, etc.) to access the platform.",
+          "route": "/login",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "OAuth Login Buttons",
+              "type": "button",
+              "description": "Buttons to initiate OAuth login flows with supported providers.",
+              "functionality": "Triggers OAuth login via NextAuth.js; redirects to project dashboard upon success.",
+              "api_endpoints": [],
+              "data_displayed": []
+            },
+            {
+              "name": "Login Info Text",
+              "type": "text",
+              "description": "Brief explanation of login process and supported providers.",
+              "functionality": "Informs users about authentication method.",
+              "api_endpoints": [],
+              "data_displayed": []
+            }
+          ]
+        },
+        {
+          "name": "Project Dashboard",
+          "description": "Main landing page after login showing a list of user's projects with options to create, open, or delete projects.",
+          "route": "/projects",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Project List",
+              "type": "list/card",
+              "description": "Displays all projects owned by the authenticated user in a simple list or card format.",
+              "functionality": "Fetches and shows project title, short description, creation date; allows selecting a project to open or delete.",
+              "api_endpoints": [
+                "GET /api/v1/projects"
+              ],
+              "data_displayed": [
+                "project.id",
+                "project.title",
+                "project.description",
+                "project.createdAt"
+              ]
+            },
+            {
+              "name": "Create Project Button",
+              "type": "button",
+              "description": "Button to open the Create Project modal/form.",
+              "functionality": "Opens a modal or navigates to project creation form.",
+              "api_endpoints": [],
+              "data_displayed": []
+            },
+            {
+              "name": "Create Project Modal/Form",
+              "type": "form",
+              "description": "Form to input high-level project idea and title to create a new project with AI-assisted generation.",
+              "functionality": "Collects project title, idea (required), and optional description; submits to create project endpoint.",
+              "api_endpoints": [
+                "POST /api/v1/projects"
+              ],
+              "data_displayed": [
+                "title",
+                "idea",
+                "description"
+              ]
+            },
+            {
+              "name": "Delete Project Confirmation",
+              "type": "modal/dialog",
+              "description": "Confirmation dialog to prevent accidental project deletion.",
+              "functionality": "Confirms user intent before calling delete project endpoint.",
+              "api_endpoints": [
+                "DELETE /api/v1/projects/{projectId}"
+              ],
+              "data_displayed": [
+                "project.title"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Project Plan Editor",
+          "description": "Core screen to view and edit a single project plan including architecture outline, API endpoints, and timeline milestones with real-time collaboration and commenting.",
+          "route": "/projects/[projectId]",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "Project Header",
+              "type": "header",
+              "description": "Displays project title, description, and last updated timestamp.",
+              "functionality": "Shows project metadata; allows inline editing of title and description.",
+              "api_endpoints": [
+                "GET /api/v1/projects/{projectId}",
+                "PUT /api/v1/projects/{projectId}"
+              ],
+              "data_displayed": [
+                "title",
+                "description",
+                "updatedAt"
+              ]
+            },
+            {
+              "name": "Architecture Outline Editor",
+              "type": "textarea",
+              "description": "Editable text area showing AI-generated or manually edited architecture overview.",
+              "functionality": "Allows users to edit architecture outline; changes saved via update project endpoint.",
+              "api_endpoints": [
+                "PUT /api/v1/projects/{projectId}"
+              ],
+              "data_displayed": [
+                "architectureOutline"
+              ]
+            },
+            {
+              "name": "API Endpoints List",
+              "type": "list",
+              "description": "List of API endpoint sketches with method, path, and description fields editable inline.",
+              "functionality": "Users can add, edit, or remove API endpoints; updates saved to backend.",
+              "api_endpoints": [
+                "GET /api/v1/projects/{projectId}",
+                "PUT /api/v1/projects/{projectId}"
+              ],
+              "data_displayed": [
+                "apiEndpoints[].method",
+                "apiEndpoints[].path",
+                "apiEndpoints[].description"
+              ]
+            },
+            {
+              "name": "Add API Endpoint Button",
+              "type": "button",
+              "description": "Button to add a new blank API endpoint entry to the list.",
+              "functionality": "Inserts a new editable API endpoint row.",
+              "api_endpoints": [],
+              "data_displayed": []
+            },
+            {
+              "name": "Project Timeline Editor",
+              "type": "list/form",
+              "description": "Editable list of key milestones with title and due date fields.",
+              "functionality": "Users can add, edit, or delete milestones; changes saved to backend.",
+              "api_endpoints": [
+                "GET /api/v1/projects/{projectId}",
+                "PUT /api/v1/projects/{projectId}"
+              ],
+              "data_displayed": [
+                "timeline.milestones[].id",
+                "timeline.milestones[].title",
+                "timeline.milestones[].dueDate"
+              ]
+            },
+            {
+              "name": "Add Milestone Button",
+              "type": "button",
+              "description": "Button to add a new milestone entry.",
+              "functionality": "Adds a new editable milestone row.",
+              "api_endpoints": [],
+              "data_displayed": []
+            },
+            {
+              "name": "Save Changes Button",
+              "type": "button",
+              "description": "Button to save all manual edits made to the project plan.",
+              "functionality": "Triggers PUT /projects/{projectId} to update project data.",
+              "api_endpoints": [
+                "PUT /api/v1/projects/{projectId}"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Regenerate Plan Button",
+              "type": "button",
+              "description": "Button to invoke AI-assisted regeneration of architecture, API endpoints, and timeline based on current idea or updated description.",
+              "functionality": "Calls POST /projects/{projectId}/generate to refresh AI-generated content; merges with manual edits.",
+              "api_endpoints": [
+                "POST /api/v1/projects/{projectId}/generate"
+              ],
+              "data_displayed": []
+            },
+            {
+              "name": "Real-time Collaboration Presence Indicator",
+              "type": "status/indicator",
+              "description": "Shows avatars or names of users currently viewing or editing the project.",
+              "functionality": "Displays active collaborators in real-time using Firebase or Socket.IO presence data.",
+              "api_endpoints": [],
+              "data_displayed": [
+                "user.name",
+                "user.image"
+              ]
+            },
+            {
+              "name": "Comments Panel",
+              "type": "panel/list",
+              "description": "Sidebar or bottom panel showing comments metadata and real-time comment threads linked to project plan sections.",
+              "functionality": "Fetches comment metadata from backend and comment content from Firebase; allows adding, editing, and replying to comments in real-time.",
+              "api_endpoints": [
+                "GET /api/v1/projects/{projectId}/comments",
+                "POST /api/v1/projects/{projectId}/comments"
+              ],
+              "data_displayed": [
+                "comments[].id",
+                "comments[].authorName",
+                "comments[].createdAt",
+                "comments[].updatedAt"
+              ]
+            },
+            {
+              "name": "Add Comment Input",
+              "type": "input/textarea",
+              "description": "Input field to add new comments linked to specific project plan sections.",
+              "functionality": "Creates new comment in Firebase and posts metadata to backend.",
+              "api_endpoints": [
+                "POST /api/v1/projects/{projectId}/comments"
+              ],
+              "data_displayed": []
+            }
+          ]
+        },
+        {
+          "name": "User Profile / Settings",
+          "description": "Basic user profile screen to view user info and sign out.",
+          "route": "/profile",
+          "user_types": [
+            "Software Development Teams",
+            "Product Managers",
+            "Entrepreneurs / Startup Founders"
+          ],
+          "components": [
+            {
+              "name": "User Info Display",
+              "type": "card",
+              "description": "Shows user name, email, and avatar.",
+              "functionality": "Displays authenticated user profile data.",
+              "api_endpoints": [
+                "GET /api/v1/auth/me"
+              ],
+              "data_displayed": [
+                "name",
+                "email",
+                "image"
+              ]
+            },
+            {
+              "name": "Sign Out Button",
+              "type": "button",
+              "description": "Button to sign out the user and redirect to login screen.",
+              "functionality": "Triggers sign out via NextAuth.js.",
+              "api_endpoints": [],
+              "data_displayed": []
+            }
+          ]
+        }
+      ]
+    },
+    "implementation_plan": [
+      {
+        "name": "Project Setup & Infrastructure Configuration",
+        "description": "Set up development environment, repositories, CI/CD pipelines, and cloud infrastructure for frontend, backend, database, and real-time collaboration.",
+        "status": "not_started",
+        "due_date_offset": 2,
+        "tasks": [
+          {
+            "name": "Initialize Repositories and Development Environment",
+            "description": "Create GitHub repos, configure local dev environment, install dependencies for frontend and backend.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 2,
+            "dependencies": [],
+            "components_affected": [
+              "Frontend",
+              "Backend API"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Create GitHub repositories for frontend and backend",
+                "status": "not_started",
+                "description": "Set up separate repos or monorepo structure as decided."
+              },
+              {
+                "name": "Configure local dev environment with Node.js, React, Next.js, Express",
+                "status": "not_started",
+                "description": "Install required SDKs, libraries, and tools."
+              },
+              {
+                "name": "Set up ESLint, Prettier, and basic code style configs",
+                "status": "not_started",
+                "description": "Ensure consistent code formatting."
+              }
+            ]
+          },
+          {
+            "name": "Configure Cloud Infrastructure and CI/CD Pipelines",
+            "description": "Set up Vercel for frontend, Railway for backend and PostgreSQL, Firebase Realtime Database, and GitHub Actions pipelines.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 3,
+            "dependencies": [
+              "Initialize Repositories and Development Environment"
+            ],
+            "components_affected": [
+              "Frontend",
+              "Backend API",
+              "PostgreSQL Database",
+              "Firebase Realtime Database"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Set up Vercel project and connect frontend repo",
+                "status": "not_started",
+                "description": "Configure build and deployment settings."
+              },
+              {
+                "name": "Set up Railway project with Node.js backend and PostgreSQL",
+                "status": "not_started",
+                "description": "Provision PostgreSQL instance and connect backend."
+              },
+              {
+                "name": "Configure Firebase Realtime Database project and rules",
+                "status": "not_started",
+                "description": "Set up database and security rules for collaboration."
+              },
+              {
+                "name": "Create GitHub Actions workflows for frontend and backend CI/CD",
+                "status": "not_started",
+                "description": "Automate build, test, and deployment on push."
+              }
+            ]
+          },
+          {
+            "name": "Set up Authentication Providers and NextAuth.js",
+            "description": "Integrate OAuth providers (Google, GitHub) with NextAuth.js on frontend and backend.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 2,
+            "dependencies": [
+              "Initialize Repositories and Development Environment",
+              "Configure Cloud Infrastructure and CI/CD Pipelines"
+            ],
+            "components_affected": [
+              "Frontend",
+              "Backend API"
+            ],
+            "apis_affected": [
+              "/api/v1/auth/me"
+            ],
+            "subtasks": [
+              {
+                "name": "Register OAuth apps with Google and GitHub",
+                "status": "not_started",
+                "description": "Obtain client IDs and secrets."
+              },
+              {
+                "name": "Implement NextAuth.js configuration on backend",
+                "status": "not_started",
+                "description": "Set up OAuth callbacks and session management."
+              },
+              {
+                "name": "Implement frontend login flow with OAuth buttons",
+                "status": "not_started",
+                "description": "Create login page and handle redirects."
+              },
+              {
+                "name": "Implement /auth/me endpoint to return user profile",
+                "status": "not_started",
+                "description": "Return authenticated user info."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Database Schema & Backend Core API Development",
+        "description": "Design and implement database schema with Prisma, develop core REST API endpoints for projects, AI generation, and comments metadata.",
+        "status": "not_started",
+        "due_date_offset": 8,
+        "tasks": [
+          {
+            "name": "Design and Implement Database Schema with Prisma",
+            "description": "Create data models for User, Project, ApiEndpoint, Milestone, CommentMetadata and generate Prisma client.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 3,
+            "dependencies": [
+              "Configure Cloud Infrastructure and CI/CD Pipelines"
+            ],
+            "components_affected": [
+              "Backend API",
+              "PostgreSQL Database"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Define Prisma schema models for all entities",
+                "status": "not_started",
+                "description": "Translate data models into Prisma schema."
+              },
+              {
+                "name": "Run migrations and seed initial data if needed",
+                "status": "not_started",
+                "description": "Apply schema to PostgreSQL."
+              },
+              {
+                "name": "Generate Prisma client and test DB connectivity",
+                "status": "not_started",
+                "description": "Verify ORM integration."
+              }
+            ]
+          },
+          {
+            "name": "Implement Project CRUD API Endpoints",
+            "description": "Develop REST endpoints for listing, creating, retrieving, updating, and deleting projects with validation and authorization.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 5,
+            "dependencies": [
+              "Design and Implement Database Schema with Prisma",
+              "Set up Authentication Providers and NextAuth.js"
+            ],
+            "components_affected": [
+              "Backend API"
+            ],
+            "apis_affected": [
+              "GET /api/v1/projects",
+              "POST /api/v1/projects",
+              "GET /api/v1/projects/{projectId}",
+              "PUT /api/v1/projects/{projectId}",
+              "DELETE /api/v1/projects/{projectId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement GET /projects to list user projects",
+                "status": "not_started",
+                "description": "Return projects owned by authenticated user."
+              },
+              {
+                "name": "Implement POST /projects to create project and trigger AI generation",
+                "status": "not_started",
+                "description": "Validate input, create project record."
+              },
+              {
+                "name": "Implement GET /projects/{projectId} to retrieve project details",
+                "status": "not_started",
+                "description": "Return project with architecture, API endpoints, timeline."
+              },
+              {
+                "name": "Implement PUT /projects/{projectId} to update project and related entities",
+                "status": "not_started",
+                "description": "Support partial updates and validation."
+              },
+              {
+                "name": "Implement DELETE /projects/{projectId} to delete project",
+                "status": "not_started",
+                "description": "Remove project and cascade deletes."
+              }
+            ]
+          },
+          {
+            "name": "Implement AI Generation Endpoint",
+            "description": "Develop POST /projects/{projectId}/generate endpoint to call OpenAI GPT-4 API and generate architecture, API endpoints, and timeline.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 3,
+            "dependencies": [
+              "Implement Project CRUD API Endpoints"
+            ],
+            "components_affected": [
+              "Backend API"
+            ],
+            "apis_affected": [
+              "POST /api/v1/projects/{projectId}/generate"
+            ],
+            "subtasks": [
+              {
+                "name": "Design prompt templates for AI generation",
+                "status": "not_started",
+                "description": "Create clear prompts for architecture, API, timeline."
+              },
+              {
+                "name": "Integrate OpenAI GPT-4 API calls with backend",
+                "status": "not_started",
+                "description": "Implement API client and error handling."
+              },
+              {
+                "name": "Parse and validate AI response, map to data models",
+                "status": "not_started",
+                "description": "Sanitize and structure AI output."
+              },
+              {
+                "name": "Update project records with AI-generated content",
+                "status": "not_started",
+                "description": "Save architectureOutline, apiEndpoints, timeline milestones."
+              }
+            ]
+          },
+          {
+            "name": "Implement Comments Metadata API",
+            "description": "Develop endpoints to list and add comment metadata linked to projects.",
+            "status": "not_started",
+            "priority": "medium",
+            "estimated_hours": 2,
+            "dependencies": [
+              "Implement Project CRUD API Endpoints"
+            ],
+            "components_affected": [
+              "Backend API"
+            ],
+            "apis_affected": [
+              "GET /api/v1/projects/{projectId}/comments",
+              "POST /api/v1/projects/{projectId}/comments"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement GET /comments to list comment metadata",
+                "status": "not_started",
+                "description": "Return comment IDs, authorship, timestamps."
+              },
+              {
+                "name": "Implement POST /comments to add new comment metadata",
+                "status": "not_started",
+                "description": "Validate and store comment metadata."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Frontend UI Implementation",
+        "description": "Develop UI components and pages for authentication, project dashboard, project plan editor with real-time collaboration, and user profile.",
+        "status": "not_started",
+        "due_date_offset": 20,
+        "tasks": [
+          {
+            "name": "Implement Login / Authentication UI",
+            "description": "Create login page with OAuth buttons and info text, integrate with NextAuth.js.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 2,
+            "dependencies": [
+              "Set up Authentication Providers and NextAuth.js"
+            ],
+            "components_affected": [
+              "Frontend"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Create login page layout and OAuth buttons",
+                "status": "not_started",
+                "description": "UI for Google and GitHub login."
+              },
+              {
+                "name": "Implement login flow and redirect on success",
+                "status": "not_started",
+                "description": "Handle authentication state."
+              },
+              {
+                "name": "Add login info text and instructions",
+                "status": "not_started",
+                "description": "Explain login process."
+              }
+            ]
+          },
+          {
+            "name": "Implement Project Dashboard UI",
+            "description": "Develop project list, create project modal/form, and delete confirmation dialog.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 4,
+            "dependencies": [
+              "Implement Project CRUD API Endpoints",
+              "Implement Login / Authentication UI"
+            ],
+            "components_affected": [
+              "Frontend"
+            ],
+            "apis_affected": [
+              "GET /api/v1/projects",
+              "POST /api/v1/projects",
+              "DELETE /api/v1/projects/{projectId}"
+            ],
+            "subtasks": [
+              {
+                "name": "Create project list component with cards or list items",
+                "status": "not_started",
+                "description": "Display project metadata and actions."
+              },
+              {
+                "name": "Implement create project modal/form with validation",
+                "status": "not_started",
+                "description": "Collect title, idea, optional description."
+              },
+              {
+                "name": "Implement delete project confirmation dialog",
+                "status": "not_started",
+                "description": "Confirm before deletion."
+              },
+              {
+                "name": "Connect UI to backend API endpoints",
+                "status": "not_started",
+                "description": "Fetch, create, and delete projects."
+              }
+            ]
+          },
+          {
+            "name": "Implement Project Plan Editor UI",
+            "description": "Build project header, architecture outline editor, API endpoints list with add/edit/delete, timeline editor with milestones, save and regenerate buttons, real-time collaboration presence, comments panel, and add comment input.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 10,
+            "dependencies": [
+              "Implement Project CRUD API Endpoints",
+              "Implement AI Generation Endpoint",
+              "Implement Comments Metadata API",
+              "Configure Firebase Realtime Database"
+            ],
+            "components_affected": [
+              "Frontend"
+            ],
+            "apis_affected": [
+              "GET /api/v1/projects/{projectId}",
+              "PUT /api/v1/projects/{projectId}",
+              "POST /api/v1/projects/{projectId}/generate",
+              "GET /api/v1/projects/{projectId}/comments",
+              "POST /api/v1/projects/{projectId}/comments"
+            ],
+            "subtasks": [
+              {
+                "name": "Implement project header with editable title and description",
+                "status": "not_started",
+                "description": "Inline editing and update calls."
+              },
+              {
+                "name": "Implement architecture outline editable textarea",
+                "status": "not_started",
+                "description": "Save changes on demand."
+              },
+              {
+                "name": "Implement API endpoints list with add/edit/delete functionality",
+                "status": "not_started",
+                "description": "Editable rows for method, path, description."
+              },
+              {
+                "name": "Implement project timeline editor with milestones add/edit/delete",
+                "status": "not_started",
+                "description": "Date picker and title inputs."
+              },
+              {
+                "name": "Implement save changes button to update project",
+                "status": "not_started",
+                "description": "Batch update all editable fields."
+              },
+              {
+                "name": "Implement regenerate plan button to trigger AI generation",
+                "status": "not_started",
+                "description": "Call backend and merge results."
+              },
+              {
+                "name": "Integrate Firebase Realtime Database for real-time collaboration",
+                "status": "not_started",
+                "description": "Sync edits and comments among users."
+              },
+              {
+                "name": "Implement real-time collaboration presence indicator",
+                "status": "not_started",
+                "description": "Show active collaborators."
+              },
+              {
+                "name": "Implement comments panel with metadata and real-time threads",
+                "status": "not_started",
+                "description": "Fetch metadata from backend, content from Firebase."
+              },
+              {
+                "name": "Implement add comment input and posting flow",
+                "status": "not_started",
+                "description": "Create comment in Firebase and post metadata."
+              }
+            ]
+          },
+          {
+            "name": "Implement User Profile / Settings UI",
+            "description": "Create user profile page displaying user info and sign out button.",
+            "status": "not_started",
+            "priority": "medium",
+            "estimated_hours": 1,
+            "dependencies": [
+              "Implement Login / Authentication UI"
+            ],
+            "components_affected": [
+              "Frontend"
+            ],
+            "apis_affected": [
+              "GET /api/v1/auth/me"
+            ],
+            "subtasks": [
+              {
+                "name": "Create user info display card",
+                "status": "not_started",
+                "description": "Show name, email, avatar."
+              },
+              {
+                "name": "Implement sign out button with NextAuth.js integration",
+                "status": "not_started",
+                "description": "Handle logout and redirect."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Integration, Testing & Deployment",
+        "description": "Integrate frontend and backend, perform testing (unit, integration, manual), fix bugs, and deploy stable MVP to cloud platforms.",
+        "status": "not_started",
+        "due_date_offset": 30,
+        "tasks": [
+          {
+            "name": "Integrate Frontend with Backend APIs and Firebase",
+            "description": "Connect all UI components to backend REST APIs and Firebase Realtime Database for real-time collaboration.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 4,
+            "dependencies": [
+              "Frontend UI Implementation",
+              "Backend Core API Development",
+              "Configure Firebase Realtime Database"
+            ],
+            "components_affected": [
+              "Frontend",
+              "Backend API",
+              "Firebase Realtime Database"
+            ],
+            "apis_affected": [
+              "All project-related APIs",
+              "Comments APIs",
+              "AI Generation API"
+            ],
+            "subtasks": [
+              {
+                "name": "Connect authentication state and user info",
+                "status": "not_started",
+                "description": "Ensure protected routes and user context."
+              },
+              {
+                "name": "Connect project dashboard to backend APIs",
+                "status": "not_started",
+                "description": "Fetch, create, delete projects."
+              },
+              {
+                "name": "Connect project plan editor to backend APIs and Firebase",
+                "status": "not_started",
+                "description": "Load and save project data, sync real-time edits and comments."
+              },
+              {
+                "name": "Connect comments panel to backend and Firebase",
+                "status": "not_started",
+                "description": "Fetch metadata and sync comment threads."
+              }
+            ]
+          },
+          {
+            "name": "Testing and Bug Fixing",
+            "description": "Perform unit tests, integration tests, and manual exploratory testing; fix critical bugs and usability issues.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 4,
+            "dependencies": [
+              "Integrate Frontend with Backend APIs and Firebase"
+            ],
+            "components_affected": [
+              "Frontend",
+              "Backend API",
+              "Firebase Realtime Database"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Write and run unit tests for backend API endpoints",
+                "status": "not_started",
+                "description": "Test authentication, project CRUD, AI generation, comments."
+              },
+              {
+                "name": "Write and run unit tests for frontend components",
+                "status": "not_started",
+                "description": "Test UI logic and state management."
+              },
+              {
+                "name": "Perform manual end-to-end testing of core workflows",
+                "status": "not_started",
+                "description": "Login, create project, edit plan, collaborate, comment."
+              },
+              {
+                "name": "Fix bugs and polish UI/UX based on testing feedback",
+                "status": "not_started",
+                "description": "Address critical issues and improve usability."
+              }
+            ]
+          },
+          {
+            "name": "Final Deployment and Documentation",
+            "description": "Deploy final stable MVP to Vercel and Railway, prepare basic user and developer documentation.",
+            "status": "not_started",
+            "priority": "high",
+            "estimated_hours": 3,
+            "dependencies": [
+              "Testing and Bug Fixing"
+            ],
+            "components_affected": [
+              "Frontend",
+              "Backend API",
+              "Infrastructure"
+            ],
+            "apis_affected": [],
+            "subtasks": [
+              {
+                "name": "Perform final deployment to Vercel (frontend) and Railway (backend)",
+                "status": "not_started",
+                "description": "Verify production environment stability."
+              },
+              {
+                "name": "Prepare basic user documentation",
+                "status": "not_started",
+                "description": "Instructions for login, project creation, editing, collaboration."
+              },
+              {
+                "name": "Prepare developer documentation",
+                "status": "not_started",
+                "description": "Setup instructions, architecture overview, API specs."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "project_text": ""
+}

@@ -10,13 +10,12 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException, TimeoutException, InvalidSessionIdException, StaleElementReferenceException
 from webdriver_manager.chrome import ChromeDriverManager
-from app.services.ai.prompt_templates import (
+from app.services.ai.diagram_prompts import (
     SEQUENCE_DIAGRAM_PROMPT_TEMPLATE,
     SEQUENCE_DIAGRAM_JSON_TEMPLATE,
     SEQUENCE_DIAGRAM_DIRECT_TEMPLATE)
 from langchain.schema import HumanMessage
 from langchain_core.language_models.llms import LLM
-from app.services.ai.llm_utils import create_llm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
