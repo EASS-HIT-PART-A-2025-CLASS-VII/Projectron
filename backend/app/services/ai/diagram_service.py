@@ -9,17 +9,18 @@ import os
 from langchain.schema import HumanMessage
 
 from app.core.config import get_settings
-from app.services.ai.ai_utils import create_llm
+from app.services.ai.ai_utils import compact_json, create_llm
 from app.services.ai.diagram_prompts import (
     CLASS_DIAGRAM_JSON_TEMPLATE,
     ACTIVITY_DIAGRAM_JSON_TEMPLATE
 )
+from app.utils.timing import timed
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 DiagramType = Literal["class", "activity"]
 
-
+@timed
 async def generate_or_update_diagram(
     project_plan: str,
     existing_json: Optional[str] = None,
@@ -118,7 +119,7 @@ async def generate_or_update_diagram(
                 Return ONLY the corrected JSON without any additional text.
 
                 ORIGINAL JSON:
-                {json.dumps(diagram_data, indent=2)}
+                {compact_json(diagram_data)}
                 
                 Expected schema for {diagram_type} diagram:
                 {get_schema_description(diagram_type)}

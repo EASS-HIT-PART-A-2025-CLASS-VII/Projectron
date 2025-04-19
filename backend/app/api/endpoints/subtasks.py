@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.api.deps import get_current_user
 from app.db.models.auth import User
 from app.db.models.project import Project, Milestone, Task, Subtask
+from app.pydantic_models.project_http_models import SubtaskCreate, SubtaskPatch
+from app.utils.helpers import _404, _clamp, _get_milestone_or_404, _get_project_or_404, _get_task_or_404
 from app.utils.mongo_encoder import serialize_mongodb_doc
 
 router = APIRouter()
@@ -104,198 +106,109 @@ async def get_subtask(project_id: str, milestone_id: str, task_id: str, subtask_
     
     return serialize_mongodb_doc(subtask_dict)
 
-@router.post("/{project_id}/milestones/{milestone_id}/tasks/{task_id}/subtasks", response_description="Create a new subtask", status_code=status.HTTP_201_CREATED)
-async def create_subtask(project_id: str, milestone_id: str, task_id: str, subtask_data: dict, current_user: User = Depends(get_current_user)):
-    """
-    Create a new subtask for a task.
-    """
-    try:
-        project = Project.objects.get(id=project_id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project with ID {project_id} not found"
-        )
-    
-    # Check if user has access to update the project
-    if project.owner_id.id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this project"
-        )
-    
-    try:
-        milestone = Milestone.objects.get(id=milestone_id, project_id=project.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Milestone with ID {milestone_id} not found in project {project_id}"
-        )
-    
-    try:
-        task = Task.objects.get(id=task_id, milestone_id=milestone.id, project_id=project.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with ID {task_id} not found in milestone {milestone_id}"
-        )
-    
-    # Determine the highest current order value
-    existing_subtasks = Subtask.objects(task_id=task.id)
-    max_order = 0
-    if existing_subtasks:
-        max_order = max(subtask.order for subtask in existing_subtasks) + 1
-    
-    # Create the subtask
-    subtask = Subtask(
-        task_id=task.id,
-        order=subtask_data.get('order', max_order),
-        **subtask_data
+@router.post(
+    "/{project_id}/milestones/{milestone_id}/tasks/{task_id}/subtasks",
+    status_code=201,
+    response_description="Create subtask",
+)
+async def create_subtask(
+    project_id: str,
+    milestone_id: str,
+    task_id: str,
+    payload: SubtaskCreate,
+    user: User = Depends(get_current_user),
+):
+    project   = _get_project_or_404(project_id, user)
+    milestone = _get_milestone_or_404(milestone_id, project_id)
+    task      = _get_task_or_404(task_id, milestone_id, project_id)
+
+    max_order = (
+        Subtask.objects(task_id=task_id).order_by("-order").first().order
+        if Subtask.objects(task_id=task_id) else -1
     )
+    target_order = _clamp(payload.order or max_order + 1, max_order + 1)
+
+    # shift >= target (+1), descending to avoid dup
+    for st in (
+        Subtask.objects(task_id=task_id, order__gte=target_order).order_by("-order")
+    ):
+        st.update(inc__order=1)
+
+    subtask = Subtask(
+        task_id=task_id,
+        order=target_order,
+        **payload.model_dump(exclude={"order"}),
+    ).save()
+
+    project.update(set__updated_at=datetime.now(tz=timezone.utc))
+    return serialize_mongodb_doc(subtask.to_mongo().to_dict())
+
+
+@router.put(
+    "/{project_id}/milestones/{milestone_id}/tasks/{task_id}/subtasks/{subtask_id}",
+    response_description="Update subtask",
+)
+async def update_subtask(
+    project_id: str,
+    milestone_id: str,
+    task_id: str,
+    subtask_id: str,
+    patch: SubtaskPatch,
+    user: User = Depends(get_current_user),
+):
+    project   = _get_project_or_404(project_id, user)
+    _         = _get_milestone_or_404(milestone_id, project_id)
+    task      = _get_task_or_404(task_id, milestone_id, project_id)
+    subtask   = Subtask.objects(id=subtask_id, task_id=task_id).first() or _404("Subtask")
+
+    # --- order move ---------------------------------------------------
+    if patch.order is not None and patch.order != subtask.order:
+        max_order = (
+            Subtask.objects(task_id=task_id).order_by("-order").first().order
+        )
+        new_order = _clamp(patch.order, max_order)
+
+        # park at -1
+        subtask.update(set__order=-1)
+
+        if new_order < subtask.order:
+            Subtask.objects(task_id=task_id, order__gte=new_order, order__lt=subtask.order) \
+                   .update(inc__order=1)
+        else:
+            Subtask.objects(task_id=task_id, order__gt=subtask.order, order__lte=new_order) \
+                   .update(dec__order=1)
+
+        subtask.order = new_order
+
+    # --- patch other fields ------------------------------------------
+    for k, v in patch.model_dump(exclude_none=True, exclude={"order"}).items():
+        setattr(subtask, k, v)
     subtask.save()
-    
-    # Update project's updated_at field
-    project.updated_at = datetime.now()
-    project.save()
-    
-    # Return the newly created subtask
-    subtask_dict = subtask.to_mongo().to_dict()
-    
-    return serialize_mongodb_doc(subtask_dict) 
 
-@router.put("/{project_id}/milestones/{milestone_id}/tasks/{task_id}/subtasks/{subtask_id}", response_description="Update a subtask")
-async def update_subtask(project_id: str, milestone_id: str, task_id: str, subtask_id: str, subtask_data: dict, current_user: User = Depends(get_current_user)):
-    """
-    Update a subtask's information.
-    """
-    try:
-        project = Project.objects.get(id=project_id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project with ID {project_id} not found"
-        )
-    
-    # Check if user has access to update the project
-    if project.owner_id.id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this project"
-        )
-    
-    try:
-        milestone = Milestone.objects.get(id=milestone_id, project_id=project.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Milestone with ID {milestone_id} not found in project {project_id}"
-        )
-    
-    try:
-        task = Task.objects.get(id=task_id, milestone_id=milestone.id, project_id=project.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with ID {task_id} not found in milestone {milestone_id}"
-        )
-    
-    try:
-        subtask = Subtask.objects.get(id=subtask_id, task_id=task.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Subtask with ID {subtask_id} not found in task {task_id}"
-        )
-    
-    # Update subtask fields
-    for key, value in subtask_data.items():
-        if key != 'id' and key != 'task_id':
-            setattr(subtask, key, value)
-    
-    subtask.save()
-    
-    # Update project's updated_at field
-    project.updated_at = datetime.now()
-    project.save()
+    project.update(set__updated_at=datetime.now(tz=timezone.utc))
+    return serialize_mongodb_doc(subtask.to_mongo().to_dict())
 
-    task_was_updated      = False
-    milestone_was_updated = False
-    # If all subtasks are completed, check if we should update task status
-    if subtask.status == "completed":
-        all_subtasks = Subtask.objects(task_id=task.id)
-        all_completed = all(s.status == "completed" for s in all_subtasks)
-        if all_completed and task.status != "completed":
-            task.status = "completed"
-            task.save()
-            task_was_updated = True
-            # Check if all tasks in milestone are completed
-            all_tasks = Task.objects(milestone_id=milestone.id)
-            all_tasks_completed = all(t.status == "completed" for t in all_tasks)
-            if all_tasks_completed and milestone.status != "completed":
-                milestone.status = "completed"
-                milestone.save()
-                milestone_was_updated = True
-    
-    # Return the updated subtask
-    subtask_dict = subtask.to_mongo().to_dict()
-    
-    return {
-    "subtask": serialize_mongodb_doc(subtask_dict),
-    "affected_resources": {
-        "task": {"id": str(task.id), "status": task.status} if task_was_updated else None,
-        "milestone": {"id": str(milestone.id), "status": milestone.status} if milestone_was_updated else None
-    }
-}
+@router.delete(
+    "/{project_id}/milestones/{milestone_id}/tasks/{task_id}/subtasks/{subtask_id}",
+    status_code=204,
+    response_description="Delete subtask",
+)
+async def delete_subtask(
+    project_id: str,
+    milestone_id: str,
+    task_id: str,
+    subtask_id: str,
+    user: User = Depends(get_current_user),
+):
+    project   = _get_project_or_404(project_id, user)
+    _         = _get_milestone_or_404(milestone_id, project_id)
+    task      = _get_task_or_404(task_id, milestone_id, project_id)
+    subtask   = Subtask.objects(id=subtask_id, task_id=task_id).first() or _404("Subtask")
 
-@router.delete("/{project_id}/milestones/{milestone_id}/tasks/{task_id}/subtasks/{subtask_id}", response_description="Delete a subtask")
-async def delete_subtask(project_id: str, milestone_id: str, task_id: str, subtask_id: str, current_user: User = Depends(get_current_user)):
-    """
-    Delete a subtask.
-    """
-    try:
-        project = Project.objects.get(id=project_id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Project with ID {project_id} not found"
-        )
-    
-    # Check if user has access to update the project
-    if project.owner_id.id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this project"
-        )
-    
-    try:
-        milestone = Milestone.objects.get(id=milestone_id, project_id=project.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Milestone with ID {milestone_id} not found in project {project_id}"
-        )
-    
-    try:
-        task = Task.objects.get(id=task_id, milestone_id=milestone.id, project_id=project.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with ID {task_id} not found in milestone {milestone_id}"
-        )
-    
-    try:
-        subtask = Subtask.objects.get(id=subtask_id, task_id=task.id)
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Subtask with ID {subtask_id} not found in task {task_id}"
-        )
-    
-    # Delete the subtask
+    deleted_order = subtask.order
     subtask.delete()
-    
-    # Update project's updated_at field
-    project.updated_at = datetime.now()
-    project.save()
+
+    Subtask.objects(task_id=task_id, order__gt=deleted_order).update(dec__order=1)
+    project.update(set__updated_at=datetime.now(tz=timezone.utc))
     
     return {"message": "Subtask deleted successfully"}

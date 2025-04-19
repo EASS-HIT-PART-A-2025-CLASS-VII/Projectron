@@ -15,7 +15,7 @@ class TimeScale(str, Enum):
     CUSTOM = "custom"  # User-defined
 
 class PlanGenerationInput(BaseModel):
-    title: str
+    name: str
     description: str
     tech_stack: List[str] = []
     experience_level: str = "junior" # e.g., "junior", "mid", "senior"
@@ -82,6 +82,13 @@ class MilestoneResponse(BaseModel):
     class Config:
         orm_mode = True
 
+class MilestonePatch(BaseModel):
+    name:        str | None = None
+    description: str | None = None
+    status:      str | None = Field(None, pattern="^(not_started|in_progress|completed)$")
+    due_date:    datetime | None = None
+    order:       int | None = Field(None, ge=0)
+
 class TaskSuggestionInput(BaseModel):
     milestone_name: str
     milestone_description: str
@@ -96,4 +103,25 @@ class TimeEstimationInput(BaseModel):
 class TaskSuggestionResponse(BaseModel):
     suggested_tasks: List[Dict[str, Any]]
 
+class TaskCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    status: Optional[str] = Field("not_started", pattern="^(not_started|in_progress|completed)$")
+    priority: Optional[str] = Field("medium", pattern="^(low|medium|high)$")
+    estimated_hours: Optional[int] = 0
+    components_affected: List[str] = []
+    apis_affected: List[str] = []
+    order: Optional[int] = None
+    due_date: Optional[datetime] = None
 
+class TaskPatch(TaskCreate):
+    name: Optional[str] = None
+
+class SubtaskCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    status: Optional[str] = Field("not_started", pattern="^(not_started|in_progress|completed)$")
+    order: Optional[int] = None
+
+class SubtaskPatch(SubtaskCreate):
+    name: Optional[str] = None    # everything optional for patch

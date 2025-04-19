@@ -190,10 +190,9 @@ class ComprehensiveProjectPlan(BaseModel):
     status: str = "draft"
     tech_stack: List[str]
     experience_level: str
-    team_size: int = Field(..., ge=1, le=20)
     high_level_plan: Dict[str, Any]
     technical_architecture: Dict[str, Any]
     api_endpoints: Dict[str, Any]
     data_models: Dict[str, Any]
     ui_components: Dict[str, Any]
-    milestones: List[Dict[str, Any]]
+    implementation_plan: List[Dict[str, Any]]

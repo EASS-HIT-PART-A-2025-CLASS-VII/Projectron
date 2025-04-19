@@ -19,7 +19,7 @@ api_router.include_router(tasks.router, prefix="/projects", tags=["tasks"])
 # Subtask routes
 api_router.include_router(subtasks.router, prefix="/projects", tags=["subtasks"])
 
-# AI routes
+# Plan routes
 api_router.include_router(plan.router, prefix="/plan", tags=["plan"])
 
 # Diagram routes

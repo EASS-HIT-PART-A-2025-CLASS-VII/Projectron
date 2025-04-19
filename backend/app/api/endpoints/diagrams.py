@@ -2,7 +2,7 @@
 from contextlib import asynccontextmanager
 import json
 from bson import ObjectId
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, Response
+from fastapi import APIRouter, HTTPException, Depends, Response
 from app.core.config import get_settings
 from app.db.models.auth import User
 from app.db.models.project import Project
@@ -10,7 +10,7 @@ from app.services.ai.diagram_service import generate_or_update_diagram, generate
 from app.api.deps import get_current_user
 from typing import Optional
 from pydantic import BaseModel
-from app.services.ai.ai_utils import create_llm
+from app.services.ai.ai_utils import compact_json, create_llm
 from app.services.ai.sequence_diagram_generator import SequenceDiagramGenerator, generate_sequence_diagram
 
 class DiagramRequest(BaseModel):
@@ -59,7 +59,7 @@ async def create_sequence_diagram(
         llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE)
         
         # Generate the sequence diagram
-        plan = project.description + "\n" + json.dumps(project.technical_architecture)
+        plan = project.description + "\n" + compact_json(project.technical_architecture)
         result = await generate_sequence_diagram(
             project_plan=plan, 
             llm=llm, 
@@ -108,9 +108,10 @@ async def update_sequence_diagram(
         # Create the LLM with the configured settings
         llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE)
         
+        plan = project.description + "\n" + compact_json(project.technical_architecture)
         # Generate the sequence diagram
         result = await generate_sequence_diagram(
-            project_plan=json.dumps(project.json_plan), 
+            project_plan=plan, 
             existing_json=project.sequence_diagram_source_code,
             llm=llm, 
             use_json_intermediate=True,
@@ -152,7 +153,7 @@ async def create_class_diagram(
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        plan = project.description + "\n" + json.dumps(project.data_models)
+        plan = project.description + "\n" + "Data Models" + compact_json(project.data_models) + "\n" + "System components:" + compact_json(project.technical_architecture.get("system_components"))
         # Generate the class diagram JSON representation
         diagram_json = await generate_or_update_diagram(
             project_plan=plan,
@@ -191,11 +192,11 @@ async def update_class_diagram(
             raise HTTPException(status_code=404, detail="Project not found")
 
         # Generate the updated class diagram JSON representation
-        plan = project.description + "\n" + json.dumps(project.data_models)
+        plan = project.description + "\n" + compact_json(project.technical_architecture)
 
         diagram_json = await generate_or_update_diagram(
             project_plan=plan,
-            existing_json=project.class_diagram_json,
+            existing_json=json.dumps(project.class_diagram_json),
             change_request=request.change_request,
             diagram_type="class"
         )
@@ -229,7 +230,7 @@ async def create_activity_diagram(
             raise HTTPException(status_code=404, detail="Project not found")
 
         # Generate the activity diagram JSON representation
-        plan = project.description + "\n" + json.dumps(project.data_models)
+        plan = project.description + "\n" + compact_json(project.technical_architecture)
 
         diagram_json = await generate_or_update_diagram(
             project_plan=plan,
@@ -267,7 +268,7 @@ async def update_activity_diagram(
             raise HTTPException(status_code=404, detail="Project not found")
 
         # Generate the updated activity diagram JSON representation
-        plan = project.description + "\n" + json.dumps(project.data_models)
+        plan = project.description + "\n" + compact_json(project.technical_architecture)
 
         diagram_json = await generate_or_update_diagram(
             project_plan=plan,

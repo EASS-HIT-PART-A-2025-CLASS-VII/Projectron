@@ -1,7 +1,7 @@
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 from pydantic import BaseModel, EmailStr, field_validator
 
@@ -74,7 +74,8 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     #     )
 
     # Update last login time
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(tz=timezone.utc)
+
     user.save()
     
     # Create access token with user ID as the subject
@@ -136,7 +137,7 @@ def verify_email(token: str):
         )
     
     # Check if token has expired
-    if datetime.now() > user.verification_token_expires:
+    if datetime.now(tz=timezone.utc) > user.verification_token_expires:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Verification token has expired"

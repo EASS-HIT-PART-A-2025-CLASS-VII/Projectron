@@ -1,23 +1,27 @@
 {
-    "title": "Projectron - AI-Powered Project Planning Tool",
-    "description": "Projectron is a comprehensive project planning platform designed to help teams create, refine, and manage software projects with AI assistance. The application allows users to input high-level project ideas and automatically generates detailed project plans including architecture designs, API endpoints, data models, and implementation timelines. Users can customize generated plans, collaborate with team members, track progress, and refine different aspects of their projects using both direct editing and AI-assisted updates. Projectron is especially valuable for software development teams, product managers, and entrepreneurs who want to streamline the planning process, maintain consistency across project components, and reduce the time needed to create comprehensive technical documentation. The platform combines traditional project management capabilities with intelligent planning assistance to help teams move from concept to execution more efficiently.",
-    "tech_stack": [
-      "React",
-      "TypeScript",
-      "Node.js",
-      "MongoDB",
-      "Express",
-      "LangChain",
-      "Claude/OpenAI API",
-      "JWT Authentication",
-      "Material UI"
-    ],
-    "experience_level": "junior",
-    "team_size": 3,
-    "clarifying_QA": {
-      "What is the main goal of the application?": "To automate and simplify the creation of software project plans using AI.",
-      "Should it support real-time collaboration?": "Yes, team members should be able to edit and comment on the plan in real-time.",
-      "Is there a preferred deployment platform?": "Cloud-based, preferably using Vercel for frontend and Railway or Render for backend."
+    "input_data": {
+      "name": "NutriTrack - Personalized Nutrition Management App",
+      "description": "NutriTrack is a mobile-first web application that helps users track and optimize their nutritional intake based on personal health goals. The app allows users to log meals, scan food barcodes, view nutritional analysis, and receive personalized recommendations. It features a comprehensive food database, customizable meal plans, progress tracking with visual analytics, and integration with popular fitness wearables. The app also includes a social component where users can share recipes, participate in challenges, and connect with nutrition experts for personalized advice. NutriTrack aims to simplify healthy eating by providing actionable insights based on users' dietary patterns and nutritional science, making it easier for people to make informed food choices aligned with their health objectives.",
+      "tech_stack": [
+        "React Native",
+        "Node.js",
+        "PostgreSQL",
+        "GraphQL",
+        "Redux",
+        "Firebase",
+        "TensorFlow Lite",
+        "Expo",
+        "Stripe"
+      ],
+      "experience_level": "junior",
+      "team_size": 1,
+      "time_scale": "small"
     },
-    "time_scale": "small"
-  }
+      "clarification_qa": {
+        "What are the core features that should be prioritized?": "Meal logging, nutritional analysis, personalized recommendations, and progress tracking.",
+        "Will the app require a subscription model?": "Yes, we plan to have a freemium model with basic features free and advanced analytics and personalized coaching as premium features.",
+        "Are there any specific integrations needed with third-party services?": "Integration with Apple Health, Google Fit, and potentially major fitness wearables like Fitbit.",
+        "What level of personalization should the recommendations have?": "Recommendations should consider user goals (weight loss, muscle gain, health maintenance), dietary restrictions, allergies, and past eating habits.",
+        "How important is the social component to the MVP?": "For the MVP, focus on the core tracking and recommendation features. The social aspects can be implemented in later phases."
+      }
+    }

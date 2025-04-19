@@ -1,7 +1,7 @@
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from mongoengine.queryset.visitor import Q
 from app.api.deps import get_current_user
 from app.db.models.auth import User
@@ -27,7 +27,7 @@ async def list_projects(current_user: User = Depends(get_current_user)):
         # Only include needed fields
         project_dict = {
             'id': str(project.id),
-            'title': project.title,
+            'name': project.name,
             'description': project.description,
             'status': project.status,
             'created_at': project.created_at,
@@ -88,8 +88,7 @@ async def update_project(project_id: str, project_data: dict, current_user: User
     Does not affect milestones, tasks, or subtasks.
     """
     try:
-        object_id = ObjectId(project_id)
-        project = Project.objects.get(id=object_id)
+        project = Project.objects.get(id=project_id)
     except:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -107,7 +106,7 @@ async def update_project(project_id: str, project_data: dict, current_user: User
         if hasattr(project, key):
             setattr(project, key, value)
     
-    project.updated_at = datetime.now()
+    project.updated_at = datetime.now(tz=timezone.utc)
 
     project.save()
 
@@ -135,21 +134,6 @@ async def delete_project(project_id: str, current_user: User = Depends(get_curre
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this project"
         )
-    
-    # Get all milestones for this project
-    milestones = Milestone.objects(project_id=project.id)
-    
-    # For each milestone, delete tasks and subtasks
-    for milestone in milestones:
-        tasks = Task.objects(milestone_id=milestone.id)
-        for task in tasks:
-            # Delete subtasks
-            Subtask.objects(task_id=task.id).delete()
-        # Delete tasks
-        Task.objects(project_id=project.id).delete()
-    
-    # Delete milestones
-    Milestone.objects(project_id=project.id).delete()
     
     # Delete the project
     project.delete()

@@ -3,8 +3,7 @@ import json
 import logging
 import re
 import time
-from typing import Dict, Optional, Tuple, List, Any
-
+from typing import Dict, Optional, Tuple, Any
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -16,6 +15,8 @@ from app.services.ai.diagram_prompts import (
     SEQUENCE_DIAGRAM_DIRECT_TEMPLATE)
 from langchain.schema import HumanMessage
 from langchain_core.language_models.llms import LLM
+
+from app.utils.timing import timed
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -485,6 +486,7 @@ def extract_json_from_text(text: str) -> str:
     # If no JSON blocks found, return the original text
     return text.strip()
 
+@timed
 async def generate_sequence_diagram(
     project_plan: str, 
     llm: LLM,

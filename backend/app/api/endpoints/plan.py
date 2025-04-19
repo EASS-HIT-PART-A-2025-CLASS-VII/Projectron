@@ -20,7 +20,7 @@ async def generate_clarification_questions(
     """Generate clarification questions for a project description"""
     try:
         questions = await ai_service.generate_clarification_questions(project_info=input_data)
-        return {"questions": questions}
+        return questions
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -36,8 +36,8 @@ async def generate_project_plan(
     """Generate a complete project plan based on description and answers to clarification questions"""
     try:
         plan = await ai_service.generate_project_plan(project_info=input_data, clarification_qa=clarification_qa)
-        project_id = await create_or_update_project_from_plan(project_data=plan.get("structured_plan", {}), input_data=input_data ,current_user=current_user)
-        return {"structured_plan": plan.get("structured_plan"), project_id: project_id}
+        project_id = await create_or_update_project_from_plan(project_data=plan.get("structured_plan", {}), input_data=input_data.model_dump() ,current_user=current_user)
+        return {"structured_plan": plan.get("structured_plan"), "project_id": project_id}
     
     except Exception as e:
         print("Error in generate_project_plan:", str(e))
@@ -54,8 +54,7 @@ async def refine_project_plan(
     """Refine an existing project plan based on feedback"""
     try:
         # Validate project ID and get project
-        object_id = ObjectId(input_data.project_id)
-        project = Project.objects(id=object_id).first()
+        project = Project.objects(id=input_data.project_id).first()
         
         if not project:
             raise HTTPException(

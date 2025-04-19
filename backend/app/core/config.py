@@ -37,7 +37,9 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "rmcx lfdo olyb dhdm")
     
     # OPENAI SERVICE
-    AI_MODEL_NAME: str = "gpt-4.1-mini"
+    AI_MODEL_STRONG: str = "gpt-4.1-mini"
+    AI_MODEL_FAST: str = "gpt-4.1-nano"
+
     DIAGRAM_TEMPERATURE: float = 0.2
     openai_api_key: str = ""
 

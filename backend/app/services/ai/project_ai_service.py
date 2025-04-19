@@ -3,9 +3,9 @@ from langchain.chains import LLMChain
 from langchain.output_parsers.json import SimpleJsonOutputParser
 import json
 from langchain.prompts import ChatPromptTemplate
-from app.pydantic_models.project_http_models import PlanGenerationInput
+from app.pydantic_models.project_http_models import ClarificationResponse, PlanGenerationInput
 from app.core.config import get_settings
-from app.services.ai.ai_utils import create_llm
+from app.services.ai.ai_utils import compact_json, create_llm
 from app.services.ai.validations import validate_and_repair_json
 from app.pydantic_models.ai_plan_models import (
     HighLevelPlan,
@@ -28,6 +28,8 @@ from app.services.ai.plan_prompts import (
     REFINE_PROJECT_PLAN_PROMPT
 )
 import logging
+
+from app.utils.timing import timed
 from ...core.config import get_settings
 
 settings = get_settings()
@@ -37,8 +39,8 @@ class ProjectAIService:
     """Service for AI-powered project planning features with logical progression"""
     
     def __init__(self):
-        self.llm = create_llm()
-        self.llm_repair_mode = create_llm(temperature=0.4)
+        self.llm = create_llm(json_mode=True)
+        self.fast_llm = create_llm(json_mode=True, mode="fast")
 
 
 
@@ -66,6 +68,7 @@ class ProjectAIService:
             return LLMChain(llm=llm, prompt=prompt, output_parser=output_parser)
         return LLMChain(llm=llm, prompt=prompt)
     
+                            
     async def generate_clarification_questions(self, project_info: PlanGenerationInput) -> List[str]:
         """Generate clarification questions for a project description"""
         
@@ -75,36 +78,73 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke({
-            "project_description": json.dumps(project_info),
+            "name": project_info.name,
+            "project_description": project_info.description,
+            "experience_level": project_info.experience_level,
+            "team_size": project_info.team_size,
+            "tech_stack": project_info.tech_stack,
             "total_hours": project_info.total_hours,
         })
         
-        return result.get("text", "")
+        # Parse the result
+        raw_result = result.get("text", "")
+        
+        # If it's a string, parse it as JSON
+        if isinstance(raw_result, str):
+            try:
+                parsed_result = json.loads(raw_result)
+            except json.JSONDecodeError:
+                parsed_result = {"questions": []}
+        else:
+            parsed_result = raw_result
+        
+        # If the result is a list directly, wrap it in the expected structure
+        if isinstance(parsed_result, list):
+            parsed_result = {"questions": parsed_result}
+        
+        # Validate and repair the JSON
+        validated_result = await validate_and_repair_json(
+            response=parsed_result,
+            model=ClarificationResponse,
+            llm_chain_creator=self.create_chain
+        )
+        
+        return validated_result
     
+    @timed 
     async def generate_project_plan(self, project_info: PlanGenerationInput, clarification_qa: Dict[str, str] = {}) -> Dict[str, Any]:
         """Generate a comprehensive project plan based on description and clarification answers"""
         
         # Step 1: Generate high-level project vision and scope
         high_level_plan = await self._generate_high_level_plan(project_info, clarification_qa)
-        
+        hl_subset = {k: high_level_plan[k] for k in ("vision","core_features","constraints","tech_stack")}
+
         # Step 2: Generate technical architecture based on high-level plan
-        technical_architecture = await self._generate_technical_architecture(project_info, high_level_plan)
-        
+        technical_architecture = await self._generate_technical_architecture(project_info, hl_subset)
+        arch_subset = {
+            "system_components":     technical_architecture["system_components"],
+            "communication_patterns": technical_architecture["communication_patterns"],
+            "architecture_patterns":  technical_architecture["architecture_patterns"],
+        }
+
         # Step 3: Generate API endpoints based on architecture and high-level plan
-        api_endpoints = await self._generate_api_endpoints(project_info, high_level_plan, technical_architecture)
-        
+        api_endpoints = await self._generate_api_endpoints(project_info, hl_subset, arch_subset)
+        api_subset = {
+            "resources": api_endpoints["resources"]
+        }
+
         # Step 4: Generate data models based on architecture, APIs, and high-level plan
-        data_models = await self._generate_data_models(project_info, high_level_plan, technical_architecture, api_endpoints)
+        data_models = await self._generate_data_models(project_info, {"core_features": hl_subset["core_features"]}, {"system_components": arch_subset["system_components"]}, api_subset)
         
         # Step 5: Generate UI components based on high-level plan, APIs, and data models
-        ui_components = await self._generate_ui_components(project_info, high_level_plan, api_endpoints, data_models)
+        ui_components = await self._generate_ui_components(project_info, hl_subset, api_subset, {"entities": data_models["entities"]})
         
         # Step 6: Generate detailed milestones, tasks, and subtasks based on all previous information
         detailed_plan = await self._generate_detailed_implementation_plan(
             project_info,
-            high_level_plan,
-            technical_architecture,
-            api_endpoints,
+            hl_subset,
+            arch_subset,
+            api_subset,
             data_models,
             ui_components
         )
@@ -130,7 +170,7 @@ class ProjectAIService:
         """Generate a high-level project plan with vision, objectives, and scope"""
         
         # Format clarification Q&A as a list for better prompt readability
-        print("generating high level plan...")
+        print("generating high level plan... 🌨️")
         clarification_qa_str = "\n".join([
             f"Q: {q}\nA: {a}" for q, a in clarification_qa.items()
             ])
@@ -141,7 +181,7 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"project_title": project_info.title,
+            {"project_name": project_info.name,
             "project_description": project_info.description,
             "total_hours": project_info.total_hours,
             "tech_stack": project_info.tech_stack,
@@ -150,22 +190,20 @@ class ProjectAIService:
             "clarification_qa": clarification_qa_str}
         )
         
-        print(type(result))
-        print(str(result)[:40])
         # Validate and repair the response if needed
         validated_result = await validate_and_repair_json(
             response=result.get("text", ""),
             model=HighLevelPlan,
             llm_chain_creator=self.create_chain
         )
-        print("finished generating high level plan")
+        print("finished generating high level plan\n")
         
         return validated_result
     
     async def _generate_technical_architecture(self, project_info: PlanGenerationInput, high_level_plan: Dict[str, Any]) -> Dict[str, Any]:
         """Generate detailed technical architecture based on the high-level plan"""
         
-        print("generating technical architecture...")
+        print("generating technical architecture... 👨‍💻")
 
         chain = self.create_chain(
             prompt_template=TECHNICAL_ARCHITECTURE_PROMPT,
@@ -173,13 +211,11 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"high_level_plan_json":json.dumps(high_level_plan),
+            {"high_level_plan_json":compact_json(high_level_plan),
              "total_hours": project_info.total_hours,
             "project_description":project_info.description,}
         )
         
-        print(type(result))
-        print(str(result)[:40])
         # Validate and repair the response if needed
         validated_result = await validate_and_repair_json(
             response=result.get("text", ""),
@@ -187,7 +223,7 @@ class ProjectAIService:
             llm_chain_creator=self.create_chain
         )
         
-        print("finished generating technical architecture")
+        print("finished generating technical architecture\n")
         return validated_result
     
     async def _generate_api_endpoints(
@@ -198,7 +234,7 @@ class ProjectAIService:
     ) -> Dict[str, Any]:
         """Generate API endpoints documentation based on high-level plan and technical architecture"""
         
-        print("generating api endpoints...")
+        print("generating api endpoints... 🔚")
 
         chain = self.create_chain(
             prompt_template=API_ENDPOINTS_PROMPT,
@@ -206,13 +242,11 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"high_level_plan_json":json.dumps(high_level_plan),
+            {"high_level_plan_json":compact_json(high_level_plan),
              "total_hours": project_info.total_hours,
-            "technical_architecture_json":json.dumps(technical_architecture)}
+            "technical_architecture_json":compact_json(technical_architecture)}
         )
         
-        print(type(result))
-        print(str(result)[:40])
         # Validate and repair the response if needed
         validated_result = await validate_and_repair_json(
             response=result.get("text", ""),
@@ -220,7 +254,7 @@ class ProjectAIService:
             llm_chain_creator=self.create_chain
         )
         
-        print("finished generating api endpoints")
+        print("finished generating api endpoints\n")
 
         return validated_result
     
@@ -233,7 +267,7 @@ class ProjectAIService:
     ) -> Dict[str, Any]:
         """Generate database schema and data models based on all previous planning"""
         
-        print("generating data models...")
+        print("generating data models... ⚙️")
 
         chain = self.create_chain(
             prompt_template=DATA_MODELS_PROMPT,
@@ -241,14 +275,12 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"high_level_plan_json":json.dumps(high_level_plan),
-            "technical_architecture_json":json.dumps(technical_architecture),
+            {"high_level_plan_json":compact_json(high_level_plan),
+            "technical_architecture_json":compact_json(technical_architecture),
             "total_hours": project_info.total_hours,
-            "api_endpoints_json":json.dumps(api_endpoints)}
+            "api_endpoints_json":compact_json(api_endpoints)}
         )
         
-        print(type(result))
-        print(str(result)[:40])
         # Validate and repair the response if needed
         validated_result = await validate_and_repair_json(
             response=result.get("text", ""),
@@ -256,7 +288,7 @@ class ProjectAIService:
             llm_chain_creator=self.create_chain
         )
         
-        print("finished generating data models")
+        print("finished generating data models\n")
 
         return validated_result
     
@@ -269,7 +301,7 @@ class ProjectAIService:
     ) -> Dict[str, Any]:
         """Generate UI components breakdown based on all previous planning"""
         
-        print("generating ui components...")
+        print("generating ui components... 👁️")
 
         chain = self.create_chain(
             prompt_template=UI_COMPONENTS_PROMPT,
@@ -277,14 +309,12 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"high_level_plan_json":json.dumps(high_level_plan),
-            "api_endpoints_json":json.dumps(api_endpoints),
+            {"high_level_plan_json":compact_json(high_level_plan),
+            "api_endpoints_json":compact_json(api_endpoints),
             "total_hours": project_info.total_hours,
-            "data_models_json":json.dumps(data_models)}
+            "data_models_json":compact_json(data_models)}
         )
         
-        print(type(result))
-        print(str(result)[:40])
         # Validate and repair the response if needed
         validated_result = await validate_and_repair_json(
             response=result.get("text", ""),
@@ -292,7 +322,7 @@ class ProjectAIService:
             llm_chain_creator=self.create_chain
         )
         
-        print("finished generating ui components")
+        print("finished generating ui components\n")
 
         return validated_result
     
@@ -307,7 +337,7 @@ class ProjectAIService:
     ) -> Dict[str, Any]:
         """Generate detailed milestones, tasks, and subtasks based on all previous planning"""
         
-        print("generating detailed implementation plan...")
+        print("generating detailed implementation plan... 🏁")
 
         chain = self.create_chain(
             prompt_template=DETAILED_IMPLEMENTATION_PLAN_PROMPT,
@@ -315,16 +345,14 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"high_level_plan_json":json.dumps(high_level_plan),
-            "technical_architecture_json":json.dumps(technical_architecture),
-            "api_endpoints_json":json.dumps(api_endpoints),
-            "data_models_json":json.dumps(data_models),
+            {"high_level_plan_json":compact_json(high_level_plan),
+            "technical_architecture_json":compact_json(technical_architecture),
+            "api_endpoints_json":compact_json(api_endpoints),
+            "data_models_json":compact_json(data_models),
             "total_hours": project_info.total_hours,
-            "ui_components_json":json.dumps(ui_components)}
+            "ui_components_json":compact_json(ui_components)}
         )
         
-        print(type(result))
-        print(str(result)[:40])
         # Validate and repair the response if needed
         validated_result = await validate_and_repair_json(
             response=result.get("text", ""),
@@ -332,7 +360,7 @@ class ProjectAIService:
             llm_chain_creator=self.create_chain
         )
         
-        print("finished generating detailed implementation plan")
+        print("finished generating detailed implementation plan\n")
 
         return validated_result
     
@@ -376,7 +404,7 @@ class ProjectAIService:
         # This is just to ensure the structure is valid, not to repair it
         try:
             ComprehensiveProjectPlan(**comprehensive_plan)
-            print("Comprehensive plan validated successfully.✅")
+            print("Comprehensive plan validated successfully.✅\n")
         except Exception as e:
             print(f"Warning: Comprehensive plan validation failed: {str(e)}")
             
@@ -384,14 +412,14 @@ class ProjectAIService:
     
     async def _generate_text_plan(self, comprehensive_plan: Dict[str, Any]) -> str:
         """Generate a textual overview of the project plan"""
-        print("generating text plan...")
+        print("generating text plan... 🗨️\n")
 
         chain = self.create_chain(
             prompt_template=TEXT_PLAN_PROMPT
         )
         
         result = await chain.ainvoke(
-            {"project_json": json.dumps(comprehensive_plan)}
+            {"project_json": compact_json(comprehensive_plan)}
         )
         
         print("finished generating text plan")
@@ -407,7 +435,7 @@ class ProjectAIService:
         )
         
         result = await chain.ainvoke(
-            {"current_plan_json":json.dumps(current_plan),
+            {"current_plan_json":compact_json(current_plan),
              "total_hours": current_plan.get("total_hours", 100),
             "feedback":feedback}
         )

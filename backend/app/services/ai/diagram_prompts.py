@@ -13,7 +13,7 @@ User Request:
 {existing_context}
 
 
-Create a comprehensive JSON representation of a UML class diagram that fully captures the software architecture described in the project plan. The JSON must adhere exactly to this schema:
+Create a focused JSON representation of a UML class diagram that captures the CORE architecture of the system described in the project plan. The diagram should be concise and highlight only the most important classes and relationships. The JSON must adhere exactly to this schema:
 
 {{
   "classes": [
@@ -41,48 +41,52 @@ Follow these instructions precisely:
 1. Output ONLY the JSON object without any markdown formatting or explanations.
 2. Use double quotes for all string literals.
 3. Do not include any extra keys beyond those defined in the schema.
+4. Limit the total number of classes to a MAXIMUM of 15-20 classes.
+5. Focus only on the most important classes that represent core domain concepts or critical architectural components.
 
-MANDATORY DETAILED ANALYSIS PROCESS:
-1. First, extract EVERY SINGLE named component, feature, and subsystem explicitly mentioned in the project plan.
-2. For each platform, technology, or external integration mentioned, create dedicated classes to represent them.
-3. For each phase or milestone in the project, ensure all mentioned features have corresponding classes.
-4. For each functional area (e.g., authentication, data visualization, API integration), create a complete set of classes covering:
-   - Model/Entity classes that represent data structures
-   - Controller/Service classes that implement business logic
-   - Repository/DAO classes for data persistence
-   - UI/View components where applicable
-   - Factory/Builder classes where complex objects are needed
-5. Identify all cross-cutting concerns (security, logging, configuration) and create appropriate classes.
-6. For each class identified, meticulously define:
-   - All attributes necessary for the class's functionality
-   - All methods needed to implement the described behaviors
-   - Appropriate visibility modifiers for encapsulation
-7. Establish logical relationships between classes:
-   - Inheritance for "is-a" relationships
-   - Composition for "contains-a" strong relationships
-   - Aggregation for "has-a" weaker relationships
-   - Association for "uses-a" relationships
-   - Correct cardinality based on business rules (1-to-1, 1-to-many, many-to-many)
-8. Implement architectural patterns evident from the requirements:
-   - MVC/MVVM for UI-heavy applications
-   - Repository pattern for data access
-   - Factory/Strategy patterns where appropriate
-   - Observer pattern for event handling
-9. Ensure multi-platform requirements have dedicated classes (e.g., iOS/Android specifics).
-10. Create adapter classes for each external integration point.
+SELECTIVE ANALYSIS PROCESS:
+1. Identify only the PRIMARY domain entities and core business concepts explicitly mentioned in the project plan.
+2. Include only the MOST CRITICAL system components that represent architectural keystones.
+3. For each selected core functional area, include ONLY:
+   - Primary domain model classes that represent key business entities
+   - Main service/controller classes that implement critical business logic
+   - Key repository classes for important data persistence
+   - Essential interfaces or abstract classes that define critical contracts
+4. Exclude:
+   - Utility classes
+   - Helper classes
+   - Implementation details
+   - Excessive UI components
+   - Classes that represent minor features
+   - Similar classes that can be represented by a single example
+5. For each class included, define ONLY:
+   - The most significant attributes that define its core state
+   - The most important methods that represent its key behaviors
+   - Use appropriate visibility modifiers
+6. Establish only the most important relationships between classes:
+   - Focus on relationships that show the core structure of the system
+   - Include relationships that demonstrate key architectural patterns
+   - Show important dependencies between major components
 
-CRITICAL VERIFICATION CHECKLIST (You MUST satisfy ALL these criteria):
-- Every feature mentioned in the project plan has corresponding classes
-- Every milestone's deliverables are represented in the class structure
-- All platforms mentioned have dedicated architecture components
-- All external integrations have specific adapter/service classes
-- Proper layering exists (presentation, business logic, data access)
-- Authentication and security concerns are properly modeled
-- Data flows are represented with appropriate relationships
-- Reporting/visualization features have dedicated components
-- Testing infrastructure is represented if mentioned in the plan
-- Cross-cutting concerns have appropriate classes
-- Relationships use correct cardinality and type
+CLASS SELECTION CRITERIA (You MUST follow these strictly):
+- Primary domain entities that represent core business concepts
+- Key service classes that implement critical business processes
+- Main controller classes that coordinate system behavior
+- Important repository interfaces for data access
+- Critical interfaces or abstract classes that define system contracts
+- Classes that represent architectural patterns essential to the system
+- Classes mentioned repeatedly or emphasized in the project plan
+- Classes that serve as integration points with critical external systems
+
+DIAGRAM QUALITY CHECKLIST:
+- The diagram is visually manageable (15-20 classes maximum)
+- Core business entities are properly represented
+- Key architectural patterns are visible
+- Main system components and their relationships are clear
+- Critical data flows can be understood from the diagram
+- The diagram provides a useful high-level view of the system
+- An observer can understand the primary purpose and structure of the system
+- The most important capabilities of the system are represented
 
 Example:
 {{
@@ -92,21 +96,29 @@ Example:
       "attributes": [
         {{ "visibility": "+", "type": "String", "name": "userId" }},
         {{ "visibility": "-", "type": "String", "name": "password" }},
-        {{ "visibility": "+", "type": "String", "name": "email" }},
-        {{ "visibility": "+", "type": "String", "name": "role" }}
+        {{ "visibility": "+", "type": "String", "name": "email" }}
       ],
       "methods": [
-        {{ "visibility": "+", "name": "authenticate", "parameters": [ {{ "name": "password", "type": "String" }} ], "return_type": "Boolean" }},
-        {{ "visibility": "+", "name": "hasPermission", "parameters": [ {{ "name": "permission", "type": "String" }} ], "return_type": "Boolean" }}
+        {{ "visibility": "+", "name": "authenticate", "parameters": [ {{ "name": "password", "type": "String" }} ], "return_type": "Boolean" }}
+      ]
+    }},
+    {{
+      "name": "UserService",
+      "attributes": [
+        {{ "visibility": "-", "type": "UserRepository", "name": "userRepository" }}
+      ],
+      "methods": [
+        {{ "visibility": "+", "name": "registerUser", "parameters": [ {{ "name": "userData", "type": "User" }} ], "return_type": "User" }},
+        {{ "visibility": "+", "name": "authenticateUser", "parameters": [ {{ "name": "credentials", "type": "Credentials" }} ], "return_type": "Boolean" }}
       ]
     }}
   ],
   "relationships": [
     {{
-      "source": "User",
-      "target": "Role",
+      "source": "UserService",
+      "target": "User",
       "type": "association",
-      "cardinality": {{ "source": "many", "target": "1" }}
+      "cardinality": {{ "source": "1", "target": "many" }}
     }}
   ]
 }}

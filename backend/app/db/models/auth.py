@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DateTimeField, ListField, DictField, BooleanField
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
 
@@ -7,7 +7,7 @@ class User(Document):
     email = StringField(required=True, unique=True)
     hashed_password = StringField(required=True)
     full_name = StringField(required=True)
-    created_at = DateTimeField(default=datetime.now)
+    created_at = DateTimeField(default=lambda: datetime.now(tz=timezone.utc))
     last_login = DateTimeField()
     roles = ListField(StringField())
     preferences = DictField()
@@ -42,7 +42,7 @@ class User(Document):
         # Generate a random token
         token = secrets.token_urlsafe(32)
         # Set expiration time (24 hours from now)
-        expires = datetime.now() + timedelta(hours=24)
+        expires = datetime.now(tz=timezone.utc) + timedelta(hours=24)
         
         # Save token and expiration time
         self.verification_token = token

@@ -6,29 +6,43 @@ These prompts guide the AI to generate different components of a project plan.
 # Prompt for generating clarification questions
 CLARIFICATION_QUESTIONS_PROMPT = """
 You are an experienced software architect and project manager. 
-Your task is to generate clarification questions for a software project description.
+Your task is to generate simple clarification questions for a software project.
 
-# Project Description
-{project_description}
-
-# Project Time Budget
-{total_hours} hours total
+# Project Information
+Project Name: {name}
+Project Description: {project_description}
+Experience Level: {experience_level}
+Team Size: {team_size}
+Preferred Tech Stack: {tech_stack}
+Project Time Budget: {total_hours} hours total
 
 # Instructions
-Generate 5-8 specific clarification questions that would help you better understand the project requirements,
-technical constraints, scope, and objectives. Focus on questions that would give you critical information
-for architecting this solution effectively. Include questions about:
-- Business goals and success metrics
-- User types and their needs
-- Technical constraints or preferences
-- Integration requirements with existing systems
-- Performance expectations and scale
-- Timeline and resource constraints
+This is the first step in our project planning process. Generate 4-6 easy-to-answer questions that will help with planning this software project. The questions should be:
+- Simple and straightforward
+- Answerable in 1-2 sentences
+- Mostly technical (about 75%) with some product/idea questions
+- Relevant to the specific project described
 
-Given the time budget of {total_hours} hours, include questions that will help determine the appropriate scope and complexity for this budget.
+Focus on questions about:
+- Core technical requirements
+- Key data needs
+- Essential integrations
+- Basic user needs
+- Main technical challenges
+- Development priorities
+
+Given the team size of {team_size}, experience level of {experience_level}, and time budget of {total_hours} hours, keep questions practical and focused on what's actually needed to build the project.
 
 # Output Format
 Provide the questions as a JSON array of strings.
+
+# Examples of Good Questions:
+- "Will users need to log in? If yes, what authentication method would you prefer?"
+- "What are the 2-3 most important pieces of data this application needs to store?"
+- "Are there any third-party APIs or services this needs to connect with?"
+- "Will this need to work offline, or is it always online?"
+- "Which feature should be developed first?"
+- "Do you need a mobile app, web app, or both?"
 """
 
 # Prompt for generating high-level project plan
@@ -37,7 +51,7 @@ You are an experienced product manager and software strategist.
 Your task is to create a high-level project plan for a software development project.
 
 # Project Information
-Project Name: {project_title}
+Project Name: {project_name}
 Project Description: {project_description}
 Experience Level: {experience_level}
 Team Size: {team_size}
@@ -51,7 +65,7 @@ Preferred Tech Stack: {tech_stack}
 
 # Instructions
 Create a high-level project plan that includes:
-1. Project name - USE THE EXACT PROJECT NAME PROVIDED: "{project_title}" (do not create a new name)
+1. Project name - USE THE EXACT PROJECT NAME PROVIDED: "{project_name}" (do not create a new name)
 2. Project vision - what this project aims to achieve
 3. Business objectives - specific, measurable goals
 4. Target users - who will use this application and why
@@ -72,7 +86,7 @@ Provide the high-level plan as a JSON object with the following structure:
 
 ```json
 {{
-    "name": "{project_title}",
+    "name": "{project_name}",
     "description": "Detailed project description",
     "vision": "What this project aims to achieve",
     "business_objectives": ["Objective 1", "Objective 2", ...],

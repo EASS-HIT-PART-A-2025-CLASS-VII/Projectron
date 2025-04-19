@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 from app.db.models.auth import User
 from app.db.models.project import Project
@@ -28,7 +28,7 @@ async def get_structured_project(project_id: str, current_user=None):
     """
     try:
         # Convert string ID to ObjectId for MongoDB query
-        project = Project.objects(id=ObjectId(project_id)).first()
+        project = Project.objects(id=project_id).first()
     except InvalidQueryError:
         raise ValueError(f"Invalid project ID format: {project_id}")
     except DoesNotExist:
@@ -147,7 +147,7 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
             project.data_models = project_data.get("data_models", {})
             project.ui_components = project_data.get("ui_components", {})
             
-            project.updated_at = datetime.now()
+            project.updated_at = datetime.now(tz=timezone.utc)
             project.save()
             
         else:
@@ -167,8 +167,8 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
                 api_endpoints=project_data.get("api_endpoints", {}),
                 data_models=project_data.get("data_models", {}),
                 ui_components=project_data.get("ui_components", {}),
-                created_at=datetime.now(),
-                updated_at=datetime.now()
+                created_at=datetime.now(tz=timezone.utc),
+                updated_at=datetime.now(tz=timezone.utc)
             )
             project.save()
         
@@ -182,7 +182,7 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
             # Calculate due date if due_date_offset is provided
             due_date = None
             if "due_date_offset" in milestone_data:
-                due_date = datetime.now() + timedelta(days=milestone_data["due_date_offset"])
+                due_date = datetime.now(tz=timezone.utc) + timedelta(days=milestone_data["due_date_offset"])
             
             milestone = Milestone(
                 project_id=project.id,
@@ -204,7 +204,7 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
                 # Calculate due date if due_date_offset is provided
                 task_due_date = None
                 if "due_date_offset" in task_data:
-                    task_due_date = datetime.now() + timedelta(days=task_data["due_date_offset"])
+                    task_due_date = datetime.now(tz=timezone.utc) + timedelta(days=task_data["due_date_offset"])
                 elif due_date:
                     # If task has no due date but milestone does, use milestone's due date
                     task_due_date = due_date
@@ -275,7 +275,7 @@ async def get_milestones_from_db(project_id):
             "name": milestone.name,
             "description": milestone.description,
             "status": milestone.status,
-            "due_date_offset": (milestone.due_date - datetime.now()).days if milestone.due_date else 30,
+            "due_date_offset": (milestone.due_date - datetime.now(tz=timezone.utc)).days if milestone.due_date else 30,
             "tasks": []
         }
         
