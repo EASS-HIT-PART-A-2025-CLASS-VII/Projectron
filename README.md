@@ -22,7 +22,7 @@ Projectron is an innovative project planning tool designed for solo developers. 
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Shadcn
 - **Backend**: FastAPI, Pydantic, LangChain
 - **Database**: MongoDB
 - **Containerization**: Docker
