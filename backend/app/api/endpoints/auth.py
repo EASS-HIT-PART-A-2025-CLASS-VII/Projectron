@@ -47,6 +47,8 @@ class UserResponse(BaseModel):
             return str(v)
         return v
 
+class ResendRequest(BaseModel):
+    email: EmailStr
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Dict[str, str]:
@@ -67,11 +69,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # if not user.is_email_verified:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_403_FORBIDDEN,
-    #         detail="Email not verified. Please check your inbox to verify your email."
-    #     )
+    if not user.is_email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not verified. Please check your inbox to verify your email."
+        )
 
     # Update last login time
     user.last_login = datetime.now(tz=timezone.utc)
@@ -154,12 +156,12 @@ def verify_email(token: str):
 
 
 @router.post("/resend-verification")
-def resend_verification_email(email: str):
+def resend_verification_email(request: ResendRequest):
     """
     Resend verification email
     """
     # Find user
-    user = User.objects(email=email).first()
+    user = User.objects(email=request.email).first()
     if not user:
         # Don't reveal that email doesn't exist for security
         return {"message": "If your email exists, a verification link will be sent"}

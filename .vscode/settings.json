@@ -6,7 +6,18 @@
         "./backend",
         "./backend",
         "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
+        "./backend",
         "./backend"
-    ]
+    ],
+    "css.validate": false,
+    "scss.validate": false
 }
 

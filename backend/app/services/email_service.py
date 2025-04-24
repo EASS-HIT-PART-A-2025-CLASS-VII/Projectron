@@ -12,7 +12,7 @@ class EmailService:
         """Send verification email with confirmation link"""
         
         # Create confirmation link
-        confirmation_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
+        confirmation_url = f"{settings.FRONTEND_URL}/auth/verify-email/confirm?token={token}"
         
         # Email content
         subject = "Verify your email address"

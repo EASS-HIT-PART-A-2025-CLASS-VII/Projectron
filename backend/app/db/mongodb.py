@@ -1,3 +1,4 @@
+from datetime import timezone
 import os
 import mongoengine
 from ..core.config import get_settings
@@ -9,7 +10,9 @@ def connect_to_mongo():
         mongoengine.connect(
             host=settings.MONGODB_URI,
             db=settings.MONGODB_DB_NAME,
-            alias='default'
+            alias='default',
+            tz_aware=True,            # ← tell PyMongo to return aware datetimes
+            tzinfo=timezone.utc       
         )
         print(f"Connected to MongoDB")
         return True
