@@ -1,116 +1,74 @@
-# 🚀 Projectron – AI-Powered Project Planner
+# Projectron
 
-**Projectron** is an intelligent project planning tool that uses AI to help you create, organize, and manage projects with ease.  
-The system takes your project description and automatically generates comprehensive project plans with milestones, tasks, and subtasks.
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
----
+Projectron is an innovative project planning tool designed for solo developers. It leverages artificial intelligence to transform high-level project descriptions into comprehensive, actionable development plans with minimal effort.
 
-## 🌟 Features
+## 🚀 Features
 
-- **AI-Generated Project Plans** – Describe your project, and let our AI create a detailed breakdown  
-- **Interactive Timeline** – Visualize your project with an intuitive, scrollable timeline  
-- **Hierarchical Organization** – Clearly structured milestones, tasks, and subtasks  
-- **Real-time AI Assistance** – Get help refining and adjusting your project plan  
-- **Collaborative Editing** – Modify the AI-generated plan to suit your needs  
+- **AI-Powered Planning**: Transform brief project descriptions into complete development roadmaps
+- **Technical Documentation**: Auto-generate architecture diagrams, API specs, and database schemas
+- **Implementation Guide**: Get milestone-based development plans with task breakdowns
+- **Progress Tracking**: Monitor your development journey with visual progress indicators
+- **Context-Aware Assistant**: Get intelligent suggestions and answers based on your specific project
 
----
+## 🧠 Perfect for Solo Developers
+
+- **Reduced Planning Time**: Cut planning from days to minutes with AI assistance
+- **Consistent Documentation**: Maintain professional documentation without the overhead
+- **Technical Decision Support**: Get AI recommendations for architecture and technology choices
+- **Focus on Coding**: Spend less time planning and more time building
+- **Built-In Expertise**: Leverage the context-aware assistant that understands your specific project details
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- React with TypeScript  
-- Tailwind CSS for styling  
-- Next.js framework  
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Backend**: FastAPI, Pydantic, LangChain
+- **Database**: MongoDB
+- **Containerization**: Docker
 
-### Backend
-- FastAPI (Python)  
-- Pydantic for data validation  
-- MongoDB for data storage  
-- LangChain for AI integrations  
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Docker and Docker Compose  
-- Node.js (v16+)  
-- Python 3.9+  
-
-### Installation
-
-Clone the repository:
+## 🔧 Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/yourusername/projectron.git
 cd projectron
-```
 
-Start the application with Docker Compose:
-
-```bash
+# Start with Docker
 docker-compose up -d
+
+# Access at http://localhost:3000
 ```
 
-Access the application:
+## 📝 Core Workflows
 
-- Frontend: [http://localhost:3000](http://localhost:3000)  
-- API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)  
+### Project Generation
 
----
+1. **Describe Your Project**: Input a high-level description of what you want to build
+2. **Answer Clarifying Questions**: Refine requirements through targeted questions
+3. **Review & Customize**: Adjust the AI-generated plan to match your vision
+4. **Engage with Assistant**: Get help from the context-aware AI assistant throughout development
 
-## 📋 Usage
+### Project Workspace
 
-### ➕ Create a New Project
+Your project includes seven integrated sections:
 
-1. Click **"New Project"** on the dashboard  
-2. Enter a description of your project  
-3. Answer the AI's clarifying questions  
-
-### 📊 View Your Project Plan
-
-- Explore the **interactive timeline**  
-- Expand milestones to see tasks and subtasks  
-- Track progress and deadlines  
-
-### ✏️ Modify Your Plan
-
-- Edit any element by clicking on it  
-- Ask the AI to refine specific parts of the plan  
-- Add custom milestones, tasks, or subtasks  
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-```bash
-# Fork the repository
-# Create your feature branch
-git checkout -b feature/amazing-feature
-
-# Commit your changes
-git commit -m 'Add some amazing feature'
-
-# Push to the branch
-git push origin feature/amazing-feature
-
-# Open a Pull Request
-```
-
----
+1. **High-level Plan**: Strategic overview and approach recommendations
+2. **Architecture Design**: Component relationships and technology recommendations
+3. **API Endpoints**: Interface documentation with endpoints and response formats
+4. **Data Models**: Database schema definitions and field specifications
+5. **UI Components**: Interface component specifications and user interactions
+6. **Implementation Plan**: Structured tasks with effort estimates
+7. **Technical Diagrams**: Visual representations of your system design
 
 ## 📜 License
 
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
-
----
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgements
 
-- This project uses language models from **OpenAI**  
-- UI components inspired by **Shadcn UI**  
-- Project management methodologies from **industry best practices**  
-- Built with ❤️ by **Eden Cohen**
+- [Next.js](https://nextjs.org/)
+- [React](https://reactjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [MongoDB](https://www.mongodb.com/)
