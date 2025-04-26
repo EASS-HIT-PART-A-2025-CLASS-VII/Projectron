@@ -61,12 +61,14 @@ export function HeroSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative pt-24 pb-16 md:pt-20 md:pb-24 overflow-hidden bg-background"
+      className="relative pt-24 pb-16 md:pt-20 md:pb-24 md:px-12 overflow-hidden bg-background"
     >
       {/* Background effects - static version */}
-      <div className="absolute inset-0 bg-gradient-hero opacity-70" />
+      <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-secondary-background to-transparent z-0"></div>
+
+      <div className="absolute inset-0 opacity-70" />
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 z-10"
         style={{
           backgroundImage:
             "radial-gradient(circle at center, var(--secondary) 1px, transparent 1px)",
@@ -121,7 +123,7 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.8 }}
-              className="mb-4 inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium"
+              className="mb-4 inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-text text-sm font-medium"
             >
               <motion.span
                 initial={{ scale: 0.8 }}
@@ -206,7 +208,7 @@ export function HeroSection() {
                   transition={{ duration: 0.2 }}
                 >
                   <Button
-                    variant="cta"
+                    variant="outlineGradient"
                     size="lg"
                     className="w-full sm:w-auto space-x-2 relative overflow-hidden group"
                   >
@@ -234,7 +236,7 @@ export function HeroSection() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto group"
+                    className="w-full sm:w-auto group bg-white text-primary-background font-semibold hover:bg-gradient-cta"
                   >
                     <span>Explore Features</span>
                     <motion.span
@@ -331,7 +333,7 @@ function EnhancedBlueprintPipeline({
     <div className="relative w-full h-full">
       {/* Enhanced glowing background for the pipeline */}
       <motion.div
-        className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/10 to-transparent"
+        className="absolute inset-0 rounded-xl bg-gradient-to-br from-gradient-cta/10 to-transparent"
         style={{ filter: "blur(40px)" }}
         initial={{ opacity: 0 }}
         animate={isInView ? { opacity: 0.8 } : {}}
@@ -355,7 +357,11 @@ function EnhancedBlueprintPipeline({
               y2="0%"
             >
               <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="var(--primary)" stopOpacity="1" />
+              <stop
+                offset="100%"
+                stopColor="var(--primary-gradient)"
+                stopOpacity="1"
+              />
             </linearGradient>
             <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="6" result="blur" />
@@ -406,7 +412,7 @@ function EnhancedBlueprintPipeline({
                 cx="0"
                 cy="0"
                 r="3"
-                fill="var(--primary)"
+                fill="url(#pipelineGradient)"
                 filter="url(#glow)"
                 initial={{ opacity: 0 }}
                 animate={{
@@ -437,7 +443,7 @@ function EnhancedBlueprintPipeline({
                 cx="0"
                 cy="0"
                 r="3"
-                fill="var(--primary)"
+                fill="url(#pipelineGradient)"
                 filter="url(#glow)"
                 initial={{ opacity: 0 }}
                 animate={{
@@ -526,37 +532,68 @@ function EnhancedBlueprintPipeline({
                         {/* Card content - custom for each stage */}
                         {index === 0 && (
                           <>
+                            {/* Define Requirements - Document with user stories */}
                             <rect
                               x={stage.x - 20}
-                              y={stage.y - 15}
+                              y={stage.y - 20}
                               width="40"
-                              height="5"
-                              rx="2"
-                              fill="var(--primary)"
+                              height="40"
+                              rx="3"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <rect
+                              x={stage.x - 15}
+                              y={stage.y - 15}
+                              width="30"
+                              height="4"
+                              rx="1"
+                              fill="url(#pipelineGradient)"
+                            />
+                            <circle
+                              cx={stage.x - 12}
+                              cy={stage.y - 5}
+                              r="3"
+                              fill="url(#pipelineGradient)"
                               fillOpacity="0.7"
                             />
                             <rect
-                              x={stage.x - 20}
-                              y={stage.y - 5}
-                              width="30"
+                              x={stage.x - 7}
+                              y={stage.y - 7}
+                              width="20"
                               height="3"
-                              rx="1.5"
+                              rx="1"
                               fill="var(--muted)"
                             />
+                            <circle
+                              cx={stage.x - 12}
+                              cy={stage.y + 5}
+                              r="3"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.7"
+                            />
                             <rect
-                              x={stage.x - 20}
+                              x={stage.x - 7}
                               y={stage.y + 3}
-                              width="35"
+                              width="20"
                               height="3"
-                              rx="1.5"
+                              rx="1"
                               fill="var(--muted)"
                             />
+                            <circle
+                              cx={stage.x - 12}
+                              cy={stage.y + 15}
+                              r="3"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.7"
+                            />
                             <rect
-                              x={stage.x - 20}
-                              y={stage.y + 11}
-                              width="25"
+                              x={stage.x - 7}
+                              y={stage.y + 13}
+                              width="20"
                               height="3"
-                              rx="1.5"
+                              rx="1"
                               fill="var(--muted)"
                             />
                           </>
@@ -564,179 +601,330 @@ function EnhancedBlueprintPipeline({
 
                         {index === 1 && (
                           <>
+                            {/* Architect System - System diagram */}
+                            <rect
+                              x={stage.x - 20}
+                              y={stage.y - 20}
+                              width="40"
+                              height="40"
+                              rx="3"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1"
+                              strokeOpacity="0.3"
+                            />
                             <circle
                               cx={stage.x}
-                              cy={stage.y - 5}
-                              r="14"
-                              stroke="var(--primary)"
-                              strokeWidth="2"
-                              fill="transparent"
-                            />
-                            <motion.circle
-                              cx={stage.x}
-                              cy={stage.y - 5}
-                              r="9"
-                              stroke="var(--primary)"
+                              cy={stage.y - 10}
+                              r="8"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
                               strokeWidth="1.5"
-                              fill="transparent"
-                              strokeDasharray="30"
-                              animate={
-                                pipelineFinished
-                                  ? {
-                                      rotate: 360,
-                                      transition: {
-                                        duration: 8,
-                                        repeat: Infinity,
-                                        ease: "linear",
-                                      },
-                                    }
-                                  : {}
-                              }
+                            />
+                            <circle
+                              cx={stage.x - 15}
+                              cy={stage.y + 10}
+                              r="6"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <circle
+                              cx={stage.x + 15}
+                              cy={stage.y + 10}
+                              r="6"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
                             />
                             <line
-                              x1={stage.x - 15}
-                              y1={stage.y + 15}
+                              x1={stage.x}
+                              y1={stage.y - 2}
+                              x2={stage.x - 15}
+                              y2={stage.y + 4}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <line
+                              x1={stage.x}
+                              y1={stage.y - 2}
                               x2={stage.x + 15}
-                              y2={stage.y + 15}
-                              stroke="var(--primary)"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
+                              y2={stage.y + 4}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
                             />
                           </>
                         )}
 
                         {index === 2 && (
                           <>
+                            {/* Model Data - Database schema */}
+                            <rect
+                              x={stage.x - 20}
+                              y={stage.y - 20}
+                              width="40"
+                              height="8"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.8"
+                            />
+                            <line
+                              x1={stage.x - 20}
+                              y1={stage.y - 12}
+                              x2={stage.x + 20}
+                              y2={stage.y - 12}
+                              stroke="var(--border)"
+                              strokeWidth="1"
+                            />
                             <rect
                               x={stage.x - 18}
-                              y={stage.y - 18}
-                              width="36"
-                              height="12"
-                              rx="3"
-                              stroke="var(--primary)"
-                              strokeWidth="1.5"
-                              fill="var(--card)"
+                              y={stage.y - 9}
+                              width="5"
+                              height="5"
+                              rx="1"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.6"
+                            />
+                            <rect
+                              x={stage.x - 12}
+                              y={stage.y - 9}
+                              width="28"
+                              height="5"
+                              rx="1"
+                              fill="var(--muted)"
+                              fillOpacity="0.3"
                             />
                             <line
-                              x1={stage.x - 12}
-                              y1={stage.y + 5}
-                              x2={stage.x + 12}
-                              y2={stage.y + 5}
-                              stroke="var(--muted)"
-                              strokeWidth="2"
-                              strokeLinecap="round"
+                              x1={stage.x - 20}
+                              y1={stage.y - 2}
+                              x2={stage.x + 20}
+                              y2={stage.y - 2}
+                              stroke="var(--border)"
+                              strokeWidth="1"
+                            />
+                            <rect
+                              x={stage.x - 18}
+                              y={stage.y + 1}
+                              width="5"
+                              height="5"
+                              rx="1"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.6"
+                            />
+                            <rect
+                              x={stage.x - 12}
+                              y={stage.y + 1}
+                              width="28"
+                              height="5"
+                              rx="1"
+                              fill="var(--muted)"
+                              fillOpacity="0.3"
                             />
                             <line
-                              x1={stage.x - 12}
-                              y1={stage.y + 12}
-                              x2={stage.x + 12}
-                              y2={stage.y + 12}
-                              stroke="var(--muted)"
-                              strokeWidth="2"
-                              strokeLinecap="round"
+                              x1={stage.x - 20}
+                              y1={stage.y + 8}
+                              x2={stage.x + 20}
+                              y2={stage.y + 8}
+                              stroke="var(--border)"
+                              strokeWidth="1"
+                            />
+                            <rect
+                              x={stage.x - 18}
+                              y={stage.y + 11}
+                              width="5"
+                              height="5"
+                              rx="1"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.6"
+                            />
+                            <rect
+                              x={stage.x - 12}
+                              y={stage.y + 11}
+                              width="28"
+                              height="5"
+                              rx="1"
+                              fill="var(--muted)"
+                              fillOpacity="0.3"
                             />
                           </>
                         )}
 
                         {index === 3 && (
                           <>
+                            {/* Build Components - UI interface */}
                             <rect
-                              x={stage.x - 18}
-                              y={stage.y - 18}
-                              width="15"
-                              height="15"
+                              x={stage.x - 20}
+                              y={stage.y - 20}
+                              width="40"
+                              height="40"
                               rx="3"
-                              fill="var(--primary)"
-                              fillOpacity="0.6"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1"
                             />
                             <rect
-                              x={stage.x + 3}
-                              y={stage.y - 18}
+                              x={stage.x - 17}
+                              y={stage.y - 17}
+                              width="34"
+                              height="7"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.2"
+                            />
+                            <rect
+                              x={stage.x - 17}
+                              y={stage.y - 7}
                               width="15"
-                              height="15"
-                              rx="3"
-                              fill="var(--primary)"
+                              height="24"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.7"
+                            />
+                            <rect
+                              x={stage.x + 1}
+                              y={stage.y - 7}
+                              width="16"
+                              height="10"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
                               fillOpacity="0.4"
                             />
                             <rect
-                              x={stage.x - 18}
-                              y={stage.y + 3}
-                              width="15"
-                              height="15"
-                              rx="3"
-                              fill="var(--primary)"
-                              fillOpacity="0.3"
-                            />
-                            <rect
-                              x={stage.x + 3}
-                              y={stage.y + 3}
-                              width="15"
-                              height="15"
-                              rx="3"
-                              fill="var(--primary)"
-                              fillOpacity="0.8"
+                              x={stage.x + 1}
+                              y={stage.y + 6}
+                              width="16"
+                              height="11"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.5"
                             />
                           </>
                         )}
 
                         {index === 4 && (
                           <>
-                            <line
-                              x1={stage.x - 18}
-                              y1={stage.y - 10}
-                              x2={stage.x + 18}
-                              y2={stage.y - 10}
-                              stroke="var(--primary)"
-                              strokeWidth="3.5"
-                              strokeLinecap="round"
+                            {/* Integrate APIs - API connections */}
+                            <rect
+                              x={stage.x - 20}
+                              y={stage.y - 10}
+                              width="12"
+                              height="20"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.7"
                             />
-                            <circle
-                              cx={stage.x - 10}
-                              cy={stage.y + 5}
-                              r="6"
-                              fill="var(--primary)"
-                              fillOpacity="0.8"
+                            <rect
+                              x={stage.x + 8}
+                              y={stage.y - 10}
+                              width="12"
+                              height="20"
+                              rx="2"
+                              fill="url(#pipelineGradient)"
+                              fillOpacity="0.7"
                             />
-                            <line
-                              x1={stage.x - 3}
-                              y1={stage.y + 5}
-                              x2={stage.x + 18}
-                              y2={stage.y + 5}
-                              stroke="var(--primary)"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
+                            <path
+                              d={`M${stage.x - 8} ${stage.y - 5} C ${
+                                stage.x - 3
+                              } ${stage.y - 5}, ${stage.x + 3} ${
+                                stage.y - 5
+                              }, ${stage.x + 8} ${stage.y - 5}`}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                              fill="transparent"
+                              strokeDasharray="2"
+                            />
+                            <path
+                              d={`M${stage.x + 8} ${stage.y} C ${stage.x + 3} ${
+                                stage.y
+                              }, ${stage.x - 3} ${stage.y}, ${stage.x - 8} ${
+                                stage.y
+                              }`}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                              fill="transparent"
+                            />
+                            <path
+                              d={`M${stage.x - 8} ${stage.y + 5} C ${
+                                stage.x - 3
+                              } ${stage.y + 5}, ${stage.x + 3} ${
+                                stage.y + 5
+                              }, ${stage.x + 8} ${stage.y + 5}`}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                              fill="transparent"
+                              strokeDasharray="2"
                             />
                           </>
                         )}
 
                         {index === 5 && (
                           <>
+                            {/* Deploy & Monitor - Launch and metrics */}
                             <rect
-                              x={stage.x - 18}
-                              y={stage.y - 15}
-                              width="36"
-                              height="6"
-                              rx="2"
-                              fill="var(--primary)"
-                              fillOpacity="1"
+                              x={stage.x - 20}
+                              y={stage.y - 20}
+                              width="40"
+                              height="40"
+                              rx="3"
+                              fill="var(--card)"
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1"
+                            />
+                            <path
+                              d={`M${stage.x - 10} ${stage.y - 15} L${
+                                stage.x
+                              } ${stage.y - 5} L${stage.x + 10} ${
+                                stage.y - 15
+                              }`}
+                              fill="url(#pipelineGradient)"
+                              stroke="url(#pipelineGradient)"
                             />
                             <rect
-                              x={stage.x - 18}
+                              x={stage.x - 2}
                               y={stage.y - 5}
-                              width="24"
-                              height="6"
-                              rx="2"
-                              fill="var(--primary)"
-                              fillOpacity="0.7"
+                              width="4"
+                              height="8"
+                              fill="url(#pipelineGradient)"
                             />
-                            <rect
-                              x={stage.x - 18}
-                              y={stage.y + 5}
-                              width="30"
-                              height="6"
-                              rx="2"
-                              fill="var(--primary)"
-                              fillOpacity="0.5"
+                            <line
+                              x1={stage.x - 15}
+                              y1={stage.y + 5}
+                              x2={stage.x - 15}
+                              y2={stage.y + 15}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <line
+                              x1={stage.x - 5}
+                              y1={stage.y + 10}
+                              x2={stage.x - 5}
+                              y2={stage.y + 15}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <line
+                              x1={stage.x + 5}
+                              y1={stage.y + 7}
+                              x2={stage.x + 5}
+                              y2={stage.y + 15}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <line
+                              x1={stage.x + 15}
+                              y1={stage.y + 12}
+                              x2={stage.x + 15}
+                              y2={stage.y + 15}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1.5"
+                            />
+                            <line
+                              x1={stage.x - 17}
+                              y1={stage.y + 15}
+                              x2={stage.x + 17}
+                              y2={stage.y + 15}
+                              stroke="url(#pipelineGradient)"
+                              strokeWidth="1"
                             />
                           </>
                         )}
@@ -769,7 +957,7 @@ function EnhancedBlueprintPipeline({
                             width="20"
                             height="20"
                           >
-                            <div className="w-full h-full flex items-center justify-center text-primary">
+                            <div className="w-full h-full flex items-center justify-center text-gradient-cta">
                               {React.createElement(stage.icon, { size: 18 })}
                             </div>
                           </foreignObject>
@@ -782,7 +970,7 @@ function EnhancedBlueprintPipeline({
                           width="80"
                           height="80"
                           rx="12"
-                          stroke="var(--primary)"
+                          stroke="url(#pipelineGradient)"
                           strokeOpacity="0.5"
                           fill="transparent"
                           initial={{ strokeWidth: 0 }}
@@ -804,9 +992,11 @@ function EnhancedBlueprintPipeline({
                     </TooltipTrigger>
                     <TooltipContent
                       side="bottom"
-                      className="bg-card border border-primary/20 text-sm"
+                      className="bg-card border border-gradient-cta/20 text-sm"
                     >
-                      <p className="font-medium text-primary">{stage.title}</p>
+                      <p className="font-medium bg-gradient-cta bg-clip-text text-transparent">
+                        {stage.title}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {stage.description}
                       </p>
@@ -826,7 +1016,11 @@ function EnhancedBlueprintPipeline({
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
+              <stop
+                offset="0%"
+                stopColor="var(--primary-gradient)"
+                stopOpacity="0.2"
+              />
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           </defs>

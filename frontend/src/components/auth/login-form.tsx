@@ -56,11 +56,8 @@ export function LoginForm() {
   return (
     <div>
       <h2 className="text-h3 font-semibold text-primary-text text-center">
-        Log in to your account
+        Log in
       </h2>
-      <p className="mt-2 text-secondary-text text-center">
-        Welcome back! Please enter your credentials to continue.
-      </p>
 
       {error && (
         <Alert variant="destructive" className="mt-4">
@@ -118,7 +115,11 @@ export function LoginForm() {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full text-black font-bold"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...

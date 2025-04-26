@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import Logo from "../../../public/logo.svg";
 
 // Form validation schema
 const registerSchema = z
@@ -68,10 +69,10 @@ export function RegisterForm() {
   return (
     <div className="">
       <h2 className="text-h3 font-semibold text-primary-text text-center ">
-        Create your account!
+        Create an account
       </h2>
-      <p className="mt-2 text-md text-center">
-        Get started with Projectron by creating your account!
+      <p className="mt-2 text-md text-center text-secondary-text">
+        Start planning you first project for free
       </p>
 
       {error && (
@@ -166,7 +167,7 @@ export function RegisterForm() {
           <Button
             type="submit"
             variant="cta"
-            className="w-full"
+            className="w-full text-black"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

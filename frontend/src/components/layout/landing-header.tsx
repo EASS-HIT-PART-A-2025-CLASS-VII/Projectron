@@ -27,11 +27,15 @@ export function LandingHeader() {
 
   // Calculate opacity based on scroll position
   const opacity =
-    scrollPosition <= 70 ? 0 : Math.abs(Math.min((scrollPosition - 70) / 70, 1));
+    scrollPosition <= 70
+      ? 0
+      : Math.abs(Math.min((scrollPosition - 70) / 70, 1));
 
   // Calculate blur based on scroll position
   const blur =
-    scrollPosition <= 70 ? 0 : Math.abs(Math.min(((scrollPosition - 70) / 70) * 8, 8));
+    scrollPosition <= 70
+      ? 0
+      : Math.abs(Math.min(((scrollPosition - 70) / 70) * 8, 8));
 
   // Close mobile menu when clicking elsewhere
   useEffect(() => {
@@ -47,7 +51,7 @@ export function LandingHeader() {
     <>
       {/* Fixed header that changes style on scroll */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-4 transition-all duration-300"
+        className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-2 transition-all duration-300"
         style={{
           backgroundColor: `rgba(var(--background-rgb, 255, 255, 255), ${opacity})`,
           backdropFilter: `blur(${blur}px)`,
@@ -56,7 +60,7 @@ export function LandingHeader() {
         <div className="container mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Logo className="h-14 w-auto" aria-label="Projectron" />
+            <Logo className="h-16 w-auto" aria-label="Projectron" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -65,7 +69,12 @@ export function LandingHeader() {
 
             {/* CTA Button */}
             <Link href="/auth/register">
-              <Button variant="gradient">Get Started</Button>
+              <Button
+                className="bg-white text-primary-background"
+                variant="outline"
+              >
+                Get Started
+              </Button>
             </Link>
           </nav>
 
@@ -95,7 +104,7 @@ export function LandingHeader() {
             <MobileNavLinks closeMenu={() => setIsMenuOpen(false)} />
 
             <Link href="/auth/register" onClick={() => setIsMenuOpen(false)}>
-              <Button variant="cta" className="w-full">
+              <Button variant="outline" className="w-full">
                 Get Started
               </Button>
             </Link>

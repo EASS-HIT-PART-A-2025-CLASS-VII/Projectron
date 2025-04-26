@@ -20,6 +20,8 @@ const buttonVariants = cva(
         link: "underline-offset-4 hover:underline text-primary",
         gradient: "bg-gradient-cta text-primary-foreground hover:opacity-90",
         cta: "bg-primary-cta text-white font-semibold hover:bg-cta-hover", // Custom variant for CTA buttons
+        outlineGradient:
+          "relative text-white before:absolute before:inset-0 before:p-[2px] before:bg-gradient-cta before:rounded-md before:content-[''] before:-z-10 after:absolute after:inset-[2px] after:rounded-[5px] after:bg-black after:content-[''] after:-z-10 after:transition-opacity duration-300 hover:after:opacity-0 overflow-hidden",
       },
       size: {
         default: "h-10 py-2 px-4",

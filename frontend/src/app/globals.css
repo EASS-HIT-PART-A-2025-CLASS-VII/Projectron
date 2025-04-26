@@ -46,7 +46,7 @@
   --popover-foreground: #ffffff;
 
   /* Actions */
-  --primary: #12e88f;
+  --primary: #13ef95;
   --primary-foreground: #ffffff;
   --secondary: #17171b;
   --secondary-foreground: #ffffff;
@@ -60,7 +60,7 @@
   --border: #303030;
   --input: #303030;
   --ring: #10c676;
-  --primary-gradient: #0e9b9b;
+  --primary-gradient: #14b2dd;
 }
 
 /* Semantic aliases for Projectron design system */
