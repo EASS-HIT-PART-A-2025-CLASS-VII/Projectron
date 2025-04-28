@@ -12,6 +12,8 @@ export interface User {
 
 // For project listing page (simpler structure)
 export interface ProjectListItem {
+  milestone_count: number;
+  task_count: number;
   id: string;
   name: string;
   description: string;
@@ -20,6 +22,7 @@ export interface ProjectListItem {
   updated_at: string;
   owner_id: string | null;
   collaborator_ids: string[];
+  completion_percentage: number;
 }
 
 // For detailed project view (complex structure with nested data)
@@ -103,4 +106,3 @@ export interface ProjectsResponse {
 export interface ProjectResponse {
   project: Project;
 }
- 

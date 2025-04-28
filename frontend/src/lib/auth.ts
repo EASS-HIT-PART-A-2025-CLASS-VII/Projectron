@@ -142,7 +142,9 @@ export function saveToken(token: string): void {
 export function getToken(): string | null {
   // Check if we're running in a browser (not during server-side rendering)
   if (typeof window !== "undefined") {
-    return localStorage.getItem("token");
+    let token = localStorage.getItem("token");
+    console.log(token);
+    return token;
   }
   return null;
 }

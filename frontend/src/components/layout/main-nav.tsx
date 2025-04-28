@@ -1,196 +1,203 @@
-// src/components/layout/main-nav.tsx
 "use client";
 
+import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import {
-  LayoutDashboard,
-  Plus,
-  Settings,
-  User,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
+import { LayoutDashboard, LogOut, Menu, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import Logo from "../public/logo.svg";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn, capitalizeWords } from "@/lib/utils";
+import { useState } from "react";
+import Logo from "../../../public/logo.svg";
 
-export function MainNav() {
-  const pathname = usePathname();
+export function Navbar() {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
 
   const navItems = [
     {
-      name: "Projects",
+      name: "My Projects",
       href: "/projects",
-      icon: <LayoutDashboard className="h-5 w-5 mr-2" />,
-    },
-    {
-      name: "New Project",
-      href: "/projects/new",
-      icon: <Plus className="h-5 w-5 mr-2" />,
+      icon: LayoutDashboard,
     },
   ];
 
-  return (
-    <nav className="bg-secondary-background border-b border-divider">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          {/* Logo */}
-          <div className="flex">
-            <div className="flex flex-shrink-0 items-center">
-              <Link href="/" className="flex items-center">
-                <Logo className="h-8 w-auto" aria-label="Projectron" />
-              </Link>
-            </div>
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
-            {/* Desktop navigation */}
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "inline-flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                    pathname === item.href
-                      ? "text-primary-text bg-hover-active"
-                      : "text-secondary-text hover:text-primary-text hover:bg-hover-active"
-                  )}
-                >
-                  {item.icon}
-                  {item.name}
-                </Link>
-              ))}
-            </div>
+  return (
+    <>
+      {/* Desktop navbar */}
+      <header className="sticky top-0 z-40 border-b border-divider bg-secondary-background">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <div className="flex items-center">
+            <Logo className="left-0 h-12 w-fit" />
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center sm:hidden">
+          <div className="flex items-center gap-3">
+            <nav className="ml-8 hidden md:flex">
+              <ul className="flex space-x-4 right-0">
+                {navItems.map((item) => (
+                  <li key={item.name}>
+                    <Link href={item.href}>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "flex items-center px-3 py-2 text-sm transition-colors hover:bg-hover-active"
+                        )}
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {item.name}
+                      </Button>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            {/* User menu dropdown */}
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+                  >
+                    <Avatar>
+                      <AvatarFallback className="bg-transparent text-white gradient-border gradient-border-full">
+                        {getInitials(user.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 bg-secondary-background border-divider"
+                >
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-0.5">
+                      <p className="text-sm font-medium">{user.full_name}</p>
+                      <p className="text-xs text-secondary-text">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onClick={logout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleMobileMenu}
-              aria-expanded={mobileMenuOpen}
+              className="ml-2 md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-5 w-5" />
               )}
-              <span className="sr-only">Open main menu</span>
             </Button>
           </div>
-
-          {/* User dropdown (desktop) */}
-          <div className="hidden sm:flex sm:items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="text-secondary-text hover:text-primary-text"
-                >
-                  <User className="h-5 w-5 mr-2" />
-                  <span>{user?.full_name || "User"}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/profile"
-                    className="cursor-pointer flex items-center"
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/settings"
-                    className="cursor-pointer flex items-center"
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="cursor-pointer">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
-      </div>
+      </header>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-secondary-background">
-          <div className="space-y-1 px-4 pb-3 pt-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "px-3 py-2 rounded-md text-base font-medium flex items-center",
-                  pathname === item.href
-                    ? "text-primary-text bg-hover-active"
-                    : "text-secondary-text hover:text-primary-text hover:bg-hover-active"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
-            ))}
-            {/* Mobile menu user options */}
-            <Link
-              href="/profile"
-              className="px-3 py-2 rounded-md text-base font-medium text-secondary-text hover:text-primary-text hover:bg-hover-active flex items-center"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <User className="h-5 w-5 mr-2" />
-              Profile
-            </Link>
-            <Link
-              href="/settings"
-              className="px-3 py-2 rounded-md text-base font-medium text-secondary-text hover:text-primary-text hover:bg-hover-active flex items-center"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Settings className="h-5 w-5 mr-2" />
-              Settings
-            </Link>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                logout();
-              }}
-              className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-secondary-text hover:text-primary-text hover:bg-hover-active flex items-center"
-            >
-              <LogOut className="h-5 w-5 mr-2" />
-              Logout
-            </button>
-          </div>
+        <div className="fixed inset-0 top-16 z-30 md:hidden bg-secondary-background">
+          <nav className="p-4">
+            <ul className="space-y-4">
+              {navItems.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center py-2 text-lg",
+                      pathname?.startsWith(item.href)
+                        ? "text-primary-text"
+                        : "text-secondary-text"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href="/profile"
+                  className="flex items-center py-2 text-lg text-secondary-text"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="mr-3 h-5 w-5" />
+                  Profile
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/settings"
+                  className="flex items-center py-2 text-lg text-secondary-text"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Settings className="mr-3 h-5 w-5" />
+                  Settings
+                </Link>
+              </li>
+              <li>
+                <button
+                  className="flex items-center py-2 text-lg text-destructive w-full text-left"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                  }}
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Log out
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
       )}
-    </nav>
+    </>
   );
 }
+
+export default Navbar;

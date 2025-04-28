@@ -86,6 +86,58 @@
   }
 }
 
+@layer utilities {
+  .gradient-border {
+    position: relative;
+    background-clip: padding-box;
+    border: 0.5px solid transparent; /* Thinner border */
+    z-index: 0;
+  }
+
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    margin: -0.5px; /* Thinner border (0.5px) */
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      var(--primary-cta, #12e88f) 0%,
+      var(--primary-gradient, #10c676) 100%
+    );
+  }
+
+  /* Adjust the inner background to match the thinner border */
+  .gradient-border::after {
+    content: "";
+    position: absolute;
+    top: 0.4px;
+    right: 0.4px;
+    bottom: 0.4px;
+    left: 0.4px;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--secondary-background, #101014);
+  }
+
+  /* Border radius classes remain the same */
+  .gradient-border-square {
+    border-radius: 0.5rem;
+  }
+
+  .gradient-border-rounded {
+    border-radius: 0.75rem;
+  }
+
+  .gradient-border-full {
+    border-radius: 9999px;
+  }
+}
+
 @layer components {
   h1 {
     font-size: 2.5rem;

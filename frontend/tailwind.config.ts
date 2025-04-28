@@ -17,6 +17,16 @@ module.exports = {
     },
     extend: {
       // Add font weight explicitly
+      utilities: {
+        ".gradient-border": {
+          position: "relative",
+          padding: "2px",
+          borderRadius: "9999px",
+          overflow: "hidden",
+          background:
+            "linear-gradient(135deg, var(--primary) 0%, var(--primary-gradient, var(--primary)) 100%)",
+        },
+      },
       fontWeight: {
         normal: "400",
         medium: "500",

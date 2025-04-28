@@ -2,10 +2,11 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { MainNav } from "./main-nav";
+import { Navbar } from "./main-nav";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import LoadingScreen from "../ui/loading-screen";
+import { Toaster } from "../ui/toaster";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -34,10 +35,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex flex-col min-h-screen bg-primary-background">
-      <MainNav />
+      <Navbar />
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           {children}
+          <Toaster />
         </div>
       </main>
       <footer className="bg-secondary-background border-t border-divider py-4">
