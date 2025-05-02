@@ -38,7 +38,7 @@ export async function apiClient<T>(
     if (response.status === 401) {
       // Handle unauthorized - clear token and redirect to login
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/auth/login";
       throw new Error("Unauthorized");
     }
 

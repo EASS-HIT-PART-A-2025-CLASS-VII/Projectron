@@ -18,10 +18,18 @@ def serialize_mongodb_doc(obj: Any) -> Any:
     """
     Recursively serialize MongoDB documents and ObjectIds to JSON-compatible formats.
     Handles nested dictionaries, lists, and special MongoDB types.
+    Converts '_id' fields to 'id' fields.
     """
     if isinstance(obj, dict):
         # Handle dictionaries - including those from .to_mongo().to_dict()
-        return {k: serialize_mongodb_doc(v) for k, v in obj.items() if k != '_id' or v is not None}
+        result = {}
+        for k, v in obj.items():
+            if v is not None:
+                if k == '_id':
+                    result['id'] = serialize_mongodb_doc(v)
+                else:
+                    result[k] = serialize_mongodb_doc(v)
+        return result
     elif isinstance(obj, list):
         # Handle lists
         return [serialize_mongodb_doc(item) for item in obj]

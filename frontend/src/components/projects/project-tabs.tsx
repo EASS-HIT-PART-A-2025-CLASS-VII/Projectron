@@ -16,8 +16,10 @@ import {
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
-import { HighLevelPlanTab } from "./tabs/high-level-plan-tab";
-import { ArchitectureTab } from "./tabs/architecture-tab";
+import { HighLevelPlanTab } from "./tabs/high-level-plan-tab/index";
+import { ArchitectureTab } from "./tabs/architecture-tab/index";
+import { ApiEndpointsTab } from "./tabs/api-endpoints-tab/index";
+import { DataModelsTab } from "./tabs/data-models-tab/index";
 
 interface ProjectTabsProps {
   project: Project;
@@ -80,29 +82,13 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
       id: "api-endpoints",
       label: "API Endpoints",
       icon: <ServerCrash className="h-4 w-4" />,
-      content: (
-        <div className="p-6 border border-divider rounded-lg bg-secondary-background">
-          <h3 className="text-xl font-semibold mb-4">API Endpoints</h3>
-          <p className="text-secondary-text">
-            This will show API documentation and interface details. The detailed
-            implementation will be added in a separate component.
-          </p>
-        </div>
-      ),
+      content: <ApiEndpointsTab project={project} />,
     },
     {
       id: "data-models",
       label: "Data Models",
       icon: <Database className="h-4 w-4" />,
-      content: (
-        <div className="p-6 border border-divider rounded-lg bg-secondary-background">
-          <h3 className="text-xl font-semibold mb-4">Data Models</h3>
-          <p className="text-secondary-text">
-            This will display database schema and relationships. The detailed
-            implementation will be added in a separate component.
-          </p>
-        </div>
-      ),
+      content: <DataModelsTab project={project} />,
     },
     {
       id: "ui-components",

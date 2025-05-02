@@ -103,6 +103,8 @@ async def update_project(project_id: str, project_data: dict, current_user: User
         )
     
     for key, value in project_data.items():
+        if key in ['id','_id', 'owner_id']:
+            continue
         if hasattr(project, key):
             setattr(project, key, value)
     
