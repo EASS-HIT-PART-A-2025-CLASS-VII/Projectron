@@ -20,6 +20,7 @@ import { HighLevelPlanTab } from "./tabs/high-level-plan-tab/index";
 import { ArchitectureTab } from "./tabs/architecture-tab/index";
 import { ApiEndpointsTab } from "./tabs/api-endpoints-tab/index";
 import { DataModelsTab } from "./tabs/data-models-tab/index";
+import { UIComponentsTab } from "./tabs/ui_components-tab/index";
 
 interface ProjectTabsProps {
   project: Project;
@@ -94,15 +95,7 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
       id: "ui-components",
       label: "UI Components",
       icon: <Layout className="h-4 w-4" />,
-      content: (
-        <div className="p-6 border border-divider rounded-lg bg-secondary-background">
-          <h3 className="text-xl font-semibold mb-4">UI Components</h3>
-          <p className="text-secondary-text">
-            This will show interface designs and component specifications. The
-            detailed implementation will be added in a separate component.
-          </p>
-        </div>
-      ),
+      content: <UIComponentsTab project={project} />,
     },
     {
       id: "implementation-plan",

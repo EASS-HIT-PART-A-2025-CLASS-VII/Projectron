@@ -45,7 +45,7 @@ export function Navbar() {
       {/* Desktop navbar */}
       <header className="sticky top-0 z-40 border-b border-divider bg-secondary-background">
         <div className="container flex h-16 items-center justify-between px-4">
-          <div className="flex items-center">
+          <div className="flex items-center my-auto h-fit">
             <Logo className="left-0 h-12 w-fit" />
           </div>
 

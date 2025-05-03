@@ -7,27 +7,21 @@ import {
   Cloud,
   CheckCircle2,
   XCircle,
+  SquareChartGantt,
+  Puzzle,
+  Grid2x2,
+  LayoutPanelTop,
+  AudioWaveform,
 } from "lucide-react";
 
 // Helper to calculate section completion status
-export const calculateSectionStatus = (
-  architecture: TechnicalArchitecture
-): SectionStatus => {
-  return {
-    overview: !!architecture.architecture_overview,
-    components:
-      architecture.system_components &&
-      architecture.system_components.length > 0,
-    communication:
-      architecture.communication_patterns &&
-      architecture.communication_patterns.length > 0,
-    patterns:
-      architecture.architecture_patterns &&
-      architecture.architecture_patterns.length > 0,
-    infrastructure:
-      architecture.infrastructure &&
-      Object.keys(architecture.infrastructure).length > 0,
-  };
+
+export const sections = {
+  overview: "overview",
+  components: "components",
+  communication: "communication",
+  patterns: "patterns",
+  infrastructure: "infrastructure",
 };
 
 // Get section icon

@@ -13,22 +13,15 @@ import {
 import { HighLevelPlan } from "./types";
 
 // Calculate if sections are complete
-export const calculateSectionStatus = (plan: HighLevelPlan) => {
-  return {
-    overview: true, // Overview is just links to other sections
-    vision:
-      !!plan.vision &&
-      plan.vision.length > 0 &&
-      plan.business_objectives &&
-      plan.business_objectives.length > 0,
-    users: plan.target_users && plan.target_users.length > 0,
-    features: plan.core_features && plan.core_features.length > 0,
-    scope:
-      plan.scope &&
-      (plan.scope.in_scope.length > 0 || plan.scope.out_of_scope.length > 0),
-    success: plan.success_criteria && plan.success_criteria.length > 0,
-    risks: plan.risks && plan.risks.length > 0,
-  };
+
+export const sections = {
+  overview: "overview",
+  vision: "vision",
+  users: "users",
+  features: "features",
+  scope: "scope",
+  success: "success",
+  risks: "risks",
 };
 
 // Get icon for each section

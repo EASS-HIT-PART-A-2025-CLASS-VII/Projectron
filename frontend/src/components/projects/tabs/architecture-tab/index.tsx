@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { AlertTriangle, Edit } from "lucide-react";
+import { AlertTriangle, Edit, ChevronsLeftRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,21 +28,20 @@ import {
   TechnicalArchitecture,
   ToastState,
 } from "./types";
-import {
-  calculateSectionStatus,
-  getSectionIcon,
-  getSectionLabel,
-  getStatusIcon,
-} from "./helpers";
+import { sections, getSectionIcon, getSectionLabel } from "./helpers";
 
-export function ArchitectureTab({ project: initialProject }: ArchitectureTabProps) {
+export function ArchitectureTab({
+  project: initialProject,
+}: ArchitectureTabProps) {
   // Keep track of the most up to date project version
-  const [currentProject, setCurrentProject] = useState<ArchitectureTabProps["project"]>(initialProject);
+  const [currentProject, setCurrentProject] =
+    useState<ArchitectureTabProps["project"]>(initialProject);
   const [selectedSection, setSelectedSection] = useState("overview");
-  
+
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
-  const [editedArchitecture, setEditedArchitecture] = useState<TechnicalArchitecture | null>(null);
+  const [editedArchitecture, setEditedArchitecture] =
+    useState<TechnicalArchitecture | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [toast, setToast] = useState<ToastState>({ open: false, title: "" });
@@ -55,12 +54,11 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
   }, [currentProject.technical_architecture]);
 
   // Get data to display (either edited or original)
-  const architecture = isEditing 
-    ? editedArchitecture || {} as TechnicalArchitecture 
-    : currentProject.technical_architecture || {} as TechnicalArchitecture;
+  const architecture = isEditing
+    ? editedArchitecture || ({} as TechnicalArchitecture)
+    : currentProject.technical_architecture || ({} as TechnicalArchitecture);
 
   // Calculate section completion status
-  const sectionStatus = calculateSectionStatus(architecture);
 
   // If architecture is not available yet
   if (!architecture || Object.keys(architecture).length === 0) {
@@ -152,7 +150,7 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
     if (!editedArchitecture) return;
     setEditedArchitecture({
       ...editedArchitecture,
-      architecture_overview: value
+      architecture_overview: value,
     });
     setUnsavedChanges(true);
   };
@@ -161,7 +159,7 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
     if (!editedArchitecture) return;
     setEditedArchitecture({
       ...editedArchitecture,
-      architecture_diagram_description: value
+      architecture_diagram_description: value,
     });
     setUnsavedChanges(true);
   };
@@ -169,48 +167,48 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
   // System Components Update Functions
   const updateComponent = (index: number, field: string, value: any) => {
     if (!editedArchitecture || !editedArchitecture.system_components) return;
-    
+
     const updatedComponents = [...editedArchitecture.system_components];
     // @ts-ignore
     updatedComponents[index][field] = value;
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      system_components: updatedComponents
+      system_components: updatedComponents,
     });
     setUnsavedChanges(true);
   };
 
   const addComponent = () => {
     if (!editedArchitecture) return;
-    
+
     const newComponent = {
       name: "New Component",
       type: "Service",
       description: "Description of the new component",
       technologies: [],
-      responsibilities: []
+      responsibilities: [],
     };
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
       system_components: [
         ...(editedArchitecture.system_components || []),
-        newComponent
-      ]
+        newComponent,
+      ],
     });
     setUnsavedChanges(true);
   };
 
   const deleteComponent = (index: number) => {
     if (!editedArchitecture || !editedArchitecture.system_components) return;
-    
+
     const updatedComponents = [...editedArchitecture.system_components];
     updatedComponents.splice(index, 1);
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      system_components: updatedComponents
+      system_components: updatedComponents,
     });
     setUnsavedChanges(true);
   };
@@ -219,18 +217,20 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
   const addTechnology = (componentIndex: number, technology: string) => {
     if (!editedArchitecture || !editedArchitecture.system_components) return;
     if (!technology.trim()) return;
-    
+
     const updatedComponents = [...editedArchitecture.system_components];
-    const technologies = [...(updatedComponents[componentIndex].technologies || [])];
-    
+    const technologies = [
+      ...(updatedComponents[componentIndex].technologies || []),
+    ];
+
     if (!technologies.includes(technology)) {
       technologies.push(technology);
-      
+
       updatedComponents[componentIndex].technologies = technologies;
-      
+
       setEditedArchitecture({
         ...editedArchitecture,
-        system_components: updatedComponents
+        system_components: updatedComponents,
       });
       setUnsavedChanges(true);
     }
@@ -238,36 +238,43 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
 
   const deleteTechnology = (componentIndex: number, techIndex: number) => {
     if (!editedArchitecture || !editedArchitecture.system_components) return;
-    
+
     const updatedComponents = [...editedArchitecture.system_components];
-    const technologies = [...(updatedComponents[componentIndex].technologies || [])];
-    
+    const technologies = [
+      ...(updatedComponents[componentIndex].technologies || []),
+    ];
+
     technologies.splice(techIndex, 1);
     updatedComponents[componentIndex].technologies = technologies;
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      system_components: updatedComponents
+      system_components: updatedComponents,
     });
     setUnsavedChanges(true);
   };
 
   // Responsibility Management
-  const addResponsibility = (componentIndex: number, responsibility: string) => {
+  const addResponsibility = (
+    componentIndex: number,
+    responsibility: string
+  ) => {
     if (!editedArchitecture || !editedArchitecture.system_components) return;
     if (!responsibility.trim()) return;
-    
+
     const updatedComponents = [...editedArchitecture.system_components];
-    const responsibilities = [...(updatedComponents[componentIndex].responsibilities || [])];
-    
+    const responsibilities = [
+      ...(updatedComponents[componentIndex].responsibilities || []),
+    ];
+
     if (!responsibilities.includes(responsibility)) {
       responsibilities.push(responsibility);
-      
+
       updatedComponents[componentIndex].responsibilities = responsibilities;
-      
+
       setEditedArchitecture({
         ...editedArchitecture,
-        system_components: updatedComponents
+        system_components: updatedComponents,
       });
       setUnsavedChanges(true);
     }
@@ -275,111 +282,125 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
 
   const deleteResponsibility = (componentIndex: number, respIndex: number) => {
     if (!editedArchitecture || !editedArchitecture.system_components) return;
-    
+
     const updatedComponents = [...editedArchitecture.system_components];
-    const responsibilities = [...(updatedComponents[componentIndex].responsibilities || [])];
-    
+    const responsibilities = [
+      ...(updatedComponents[componentIndex].responsibilities || []),
+    ];
+
     responsibilities.splice(respIndex, 1);
     updatedComponents[componentIndex].responsibilities = responsibilities;
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      system_components: updatedComponents
+      system_components: updatedComponents,
     });
     setUnsavedChanges(true);
   };
 
   // Communication Patterns Update Functions
-  const updateCommunicationPattern = (index: number, field: string, value: any) => {
-    if (!editedArchitecture || !editedArchitecture.communication_patterns) return;
-    
+  const updateCommunicationPattern = (
+    index: number,
+    field: string,
+    value: any
+  ) => {
+    if (!editedArchitecture || !editedArchitecture.communication_patterns)
+      return;
+
     const updatedPatterns = [...editedArchitecture.communication_patterns];
     // @ts-ignore
     updatedPatterns[index][field] = value;
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      communication_patterns: updatedPatterns
+      communication_patterns: updatedPatterns,
     });
     setUnsavedChanges(true);
   };
 
   const addCommunicationPattern = () => {
     if (!editedArchitecture) return;
-    
+
     const newPattern = {
       source: "Source Component",
       target: "Target Component",
       protocol: "HTTP",
       pattern: "Request-Response",
-      description: "Description of the communication pattern"
+      description: "Description of the communication pattern",
     };
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
       communication_patterns: [
         ...(editedArchitecture.communication_patterns || []),
-        newPattern
-      ]
+        newPattern,
+      ],
     });
     setUnsavedChanges(true);
   };
 
   const deleteCommunicationPattern = (index: number) => {
-    if (!editedArchitecture || !editedArchitecture.communication_patterns) return;
-    
+    if (!editedArchitecture || !editedArchitecture.communication_patterns)
+      return;
+
     const updatedPatterns = [...editedArchitecture.communication_patterns];
     updatedPatterns.splice(index, 1);
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      communication_patterns: updatedPatterns
+      communication_patterns: updatedPatterns,
     });
     setUnsavedChanges(true);
   };
 
   // Architecture Patterns Update Functions
-  const updateArchitecturePattern = (index: number, field: string, value: any) => {
-    if (!editedArchitecture || !editedArchitecture.architecture_patterns) return;
-    
+  const updateArchitecturePattern = (
+    index: number,
+    field: string,
+    value: any
+  ) => {
+    if (!editedArchitecture || !editedArchitecture.architecture_patterns)
+      return;
+
     const updatedPatterns = [...editedArchitecture.architecture_patterns];
     // @ts-ignore
     updatedPatterns[index][field] = value;
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      architecture_patterns: updatedPatterns
+      architecture_patterns: updatedPatterns,
     });
     setUnsavedChanges(true);
   };
 
   const addArchitecturePattern = () => {
     if (!editedArchitecture) return;
-    
+
     const newPattern = {
       name: "New Pattern",
-      description: "Description of the architecture pattern"
+      description: "Description of the architecture pattern",
     };
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
       architecture_patterns: [
         ...(editedArchitecture.architecture_patterns || []),
-        newPattern
-      ]
+        newPattern,
+      ],
     });
     setUnsavedChanges(true);
   };
 
   const deleteArchitecturePattern = (index: number) => {
-    if (!editedArchitecture || !editedArchitecture.architecture_patterns) return;
-    
+    if (!editedArchitecture || !editedArchitecture.architecture_patterns)
+      return;
+
     const updatedPatterns = [...editedArchitecture.architecture_patterns];
     updatedPatterns.splice(index, 1);
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      architecture_patterns: updatedPatterns
+      architecture_patterns: updatedPatterns,
     });
     setUnsavedChanges(true);
   };
@@ -387,54 +408,55 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
   // Infrastructure Update Functions
   const updateInfrastructure = (field: string, value: any) => {
     if (!editedArchitecture) return;
-    
+
     const updatedInfrastructure = {
       ...(editedArchitecture.infrastructure || {}),
-      [field]: value
+      [field]: value,
     };
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      infrastructure: updatedInfrastructure
+      infrastructure: updatedInfrastructure,
     });
     setUnsavedChanges(true);
   };
 
   const addInfrastructureService = (service: string) => {
     if (!editedArchitecture || !service.trim()) return;
-    
+
     const currentServices = editedArchitecture.infrastructure?.services || [];
-    
+
     if (!currentServices.includes(service)) {
       const updatedServices = [...currentServices, service];
-      
+
       const updatedInfrastructure = {
         ...(editedArchitecture.infrastructure || {}),
-        services: updatedServices
+        services: updatedServices,
       };
-      
+
       setEditedArchitecture({
         ...editedArchitecture,
-        infrastructure: updatedInfrastructure
+        infrastructure: updatedInfrastructure,
       });
       setUnsavedChanges(true);
     }
   };
 
   const deleteInfrastructureService = (index: number) => {
-    if (!editedArchitecture || !editedArchitecture.infrastructure?.services) return;
-    
+    if (!editedArchitecture || !editedArchitecture.infrastructure?.services)
+      return;
+
     const updatedServices = [...editedArchitecture.infrastructure.services];
     updatedServices.splice(index, 1);
-    
+
     const updatedInfrastructure = {
       ...editedArchitecture.infrastructure,
-      services: updatedServices
+      services: updatedServices,
     };
-    
+
     setEditedArchitecture({
       ...editedArchitecture,
-      infrastructure: updatedInfrastructure
+      infrastructure: updatedInfrastructure,
     });
     setUnsavedChanges(true);
   };
@@ -458,7 +480,7 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
                   Navigate through the components and structure of your system
                 </p>
               </div>
-              
+
               {/* Edit Controls */}
               <div className="flex items-center gap-2">
                 {isEditing ? (
@@ -493,11 +515,9 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-4">
-              {Object.entries(sectionStatus).map(([key, isComplete]) => {
-                const Icon = getSectionIcon(key);
-                const StatusIcon = getStatusIcon(isComplete);
+              {Object.entries(sections).map(([key, string]) => {
                 const label = getSectionLabel(key);
-
+                const Icon = getSectionIcon(key);
                 return (
                   <button
                     key={key}
@@ -510,16 +530,15 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
                     )}
                     onClick={() => setSelectedSection(key)}
                   >
-                    <div
+                    <Icon
                       className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center",
-                        isComplete
-                          ? "bg-green-600/20 text-green-400"
-                          : "bg-amber-600/20 text-amber-400"
+                        "h-4 w-4",
+                        selectedSection === key
+                          ? "text-primary-cta"
+                          : "text-primary-text"
                       )}
-                    >
-                      <StatusIcon className="h-4 w-4" />
-                    </div>
+                    />
+                    {/* <StatusIcon className="h-4 w-4 " /> */}
                     <div className="flex-1 truncate text-sm font-medium">
                       {label}
                     </div>
@@ -588,7 +607,7 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
             )}
           </AnimatePresence>
         </div>
-        
+
         {/* Toast */}
         {toast.open && (
           <Toast
@@ -601,7 +620,7 @@ export function ArchitectureTab({ project: initialProject }: ArchitectureTabProp
             )}
           </Toast>
         )}
-        
+
         <ToastViewport />
       </div>
     </ToastProvider>

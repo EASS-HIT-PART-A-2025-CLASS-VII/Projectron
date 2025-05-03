@@ -27,10 +27,10 @@ import { OverviewSection } from "./components/section-overview";
 // Import types and helpers
 import { HighLevelPlanTabProps, HighLevelPlan, ToastState } from "./types";
 import {
-  calculateSectionStatus,
   getSectionIcon,
   getSectionLabel,
   getStatusIcon,
+  sections,
 } from "./helpers";
 
 export function HighLevelPlanTab({
@@ -60,9 +60,6 @@ export function HighLevelPlanTab({
     ? editedPlan || ({} as HighLevelPlan)
     : (currentProject.high_level_plan as HighLevelPlan) ||
       ({} as HighLevelPlan);
-
-  // Calculate section completion status
-  const sectionStatus = calculateSectionStatus(plan);
 
   // If plan is not available yet
   if (!plan || Object.keys(plan).length === 0) {
@@ -653,9 +650,9 @@ export function HighLevelPlanTab({
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mt-4">
-              {Object.entries(sectionStatus).map(([key, isComplete]) => {
+              {Object.entries(sections).map(([key, string]) => {
                 const Icon = getSectionIcon(key);
-                const StatusIcon = getStatusIcon(isComplete);
+                const StatusIcon = getSectionIcon(key);
                 const label = getSectionLabel(key);
 
                 return (
@@ -670,16 +667,14 @@ export function HighLevelPlanTab({
                     )}
                     onClick={() => setSelectedSection(key)}
                   >
-                    <div
+                    <StatusIcon
                       className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center",
-                        isComplete
-                          ? "bg-green-600/20 text-green-400"
-                          : "bg-amber-600/20 text-amber-400"
+                        "h-4 w-4",
+                        selectedSection === key
+                          ? "text-primary-cta"
+                          : "text-primary-text"
                       )}
-                    >
-                      <StatusIcon className="h-4 w-4" />
-                    </div>
+                    />
                     <div className="flex-1 truncate text-sm font-medium">
                       {label}
                     </div>

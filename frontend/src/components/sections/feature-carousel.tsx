@@ -172,9 +172,9 @@ const TabFeatureItem = ({
           </div>
 
           {/* Placeholder image - replace with actual images later */}
-          <div className="absolute inset-0 flex items-center justify-center text-secondary-text">
+          <div className="absolute inset-0 flex items-center justify-center text-secondary-text border-0">
             <img
-              src={`/api/placeholder/800/600`}
+              src={`/high-level.png`}
               alt={feature.imageAlt}
               className="w-full h-full object-cover"
             />

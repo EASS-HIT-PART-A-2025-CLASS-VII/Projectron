@@ -64,7 +64,6 @@ export function ProjectHeader({ project, setProject }: ProjectHeaderProps) {
         return "bg-gray-500/20 text-gray-500 hover:bg-gray-500/30";
     }
   };
-  console.log(project, "@@3@@");
   // Handle input changes in edit dialog
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -77,12 +76,10 @@ export function ProjectHeader({ project, setProject }: ProjectHeaderProps) {
   // Handle project update
   const handleUpdateProject = async () => {
     try {
-      console.log(project, "@@1@@");
       setIsUpdating(true);
       if (!project) return;
       let data = await updateProject(project.id, editFormData);
       setProject(data);
-      console.log(project, "@@2@@");
       toast({
         title: "Project updated",
         description: "Project details have been updated successfully.",
