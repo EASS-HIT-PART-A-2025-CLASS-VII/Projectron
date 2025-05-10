@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from mongoengine.queryset.visitor import Q
 from app.api.deps import get_current_user
 from app.db.models.auth import User
-from app.db.models.project import Project, Milestone, Task, Subtask
+from app.db.models.project import Project
 from app.utils.mongo_encoder import serialize_mongodb_doc
 from mongoengine.errors import DoesNotExist, InvalidQueryError
 
-from app.utils.serializers import get_structured_project
+from app.utils.serializers import calculate_plan_metrics, get_structured_project
 
 router = APIRouter()
 
@@ -24,6 +24,7 @@ async def list_projects(current_user: User = Depends(get_current_user)):
     # Convert projects to dictionaries without nested data
     result = []
     for project in projects:
+        metrics = calculate_plan_metrics(project.implementation_plan.get("milestones", []))
         # Only include needed fields
         project_dict = {
             'id': str(project.id),
@@ -33,16 +34,12 @@ async def list_projects(current_user: User = Depends(get_current_user)):
             'created_at': project.created_at,
             'updated_at': project.updated_at,
             'owner_id': str(project.owner_id.id) if project.owner_id else None,
-            'collaborator_ids': [str(collab_id) for collab_id in project.collaborator_ids] if project.collaborator_ids else []
-        }
-        
-        # Count milestones, tasks, subtasks for summary info
-        milestone_count = Milestone.objects(project_id=project.id).count()
-        task_count = Task.objects(project_id=project.id).count()
-        
-        # Add counts to project data
-        project_dict['milestone_count'] = milestone_count
-        project_dict['task_count'] = task_count
+            'collaborator_ids': [str(collab_id) for collab_id in project.collaborator_ids] if project.collaborator_ids else [],
+            'milestone_count': metrics["milestone_count"],
+            'task_count': metrics["task_count"],
+            'subtask_count': metrics["subtask_count"],
+            'completion_percentage': metrics["completion_percentage"],
+        }     
         
         result.append(project_dict)
     
@@ -84,8 +81,7 @@ async def get_complete_project(project_id: str, current_user: User = Depends(get
 @router.put("/{project_id}", response_description="Update a project")
 async def update_project(project_id: str, project_data: dict, current_user: User = Depends(get_current_user)):
     """
-    Update basic project information.
-    Does not affect milestones, tasks, or subtasks.
+    Update all project information.
     """
     try:
         project = Project.objects.get(id=project_id)

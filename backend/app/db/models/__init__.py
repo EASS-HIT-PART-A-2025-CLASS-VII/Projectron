@@ -1,10 +1,7 @@
 from .auth import User
-from .project import Project, Milestone, Task, Subtask
+from .project import Project
 
 __all__ = [
     'User', 
-    'Project', 
-    'Milestone', 
-    'Task', 
-    'Subtask', 
+    'Project'
 ]

@@ -6,7 +6,7 @@ from app.db.models.project import Project
 from app.services.ai.project_ai_service import ProjectAIService
 from app.db.models.auth import User
 from app.api.deps import get_current_user
-from app.utils.serializers import create_or_update_project_from_plan, get_milestones_from_db
+from app.utils.serializers import create_or_update_project_from_plan
 
 router = APIRouter()
 ai_service = ProjectAIService()
@@ -88,8 +88,7 @@ async def refine_project_plan(
             "api_endpoints": project.api_endpoints,
             "data_models": project.data_models,
             "ui_components": project.ui_components,
-            # Get milestones from DB
-            "milestones": await get_milestones_from_db(project.id)
+            "implementation_plan": project.implementation_plan.get("milestones", []),
         }
 
         # Generate refined plan

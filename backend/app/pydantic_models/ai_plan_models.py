@@ -195,4 +195,4 @@ class ComprehensiveProjectPlan(BaseModel):
     api_endpoints: Dict[str, Any]
     data_models: Dict[str, Any]
     ui_components: Dict[str, Any]
-    implementation_plan: List[Dict[str, Any]]
+    implementation_plan: Dict[str, Any]

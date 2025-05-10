@@ -397,7 +397,7 @@ class ProjectAIService:
             "api_endpoints": api_endpoints,
             "data_models": data_models,
             "ui_components": ui_components,
-            "implementation_plan": detailed_plan.get("milestones", [])
+            "implementation_plan": detailed_plan
         }
         
         # Validate the comprehensive plan (optional)

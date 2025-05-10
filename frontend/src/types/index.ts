@@ -37,7 +37,7 @@ export interface Project extends ProjectListItem {
   api_endpoints: Record<string, any>;
   data_models: Record<string, any>;
   ui_components: Record<string, any>;
-
+  implementation_plan: Record<string, any>;
   // Statistics
   task_count: number;
   completed_task_count: number;

@@ -4,7 +4,6 @@ from app.db.models.auth import User
 from app.db.models.project import Project
 from bson.objectid import ObjectId
 from mongoengine.errors import InvalidQueryError, DoesNotExist
-from app.db.models.project import Milestone, Task, Subtask
 from app.pydantic_models.project_http_models import PlanGenerationInput
 from app.utils.mongo_encoder import serialize_mongodb_doc
 
@@ -43,76 +42,19 @@ async def get_structured_project(project_id: str, current_user=None):
         if owner_id_str != current_user_id_str and current_user_id_str not in collaborator_ids_str:
             raise PermissionError("Not authorized to access this project")
     
+
+    
     # Build the basic project structure
     project_dict = project.to_mongo().to_dict()
     project_dict['id'] = str(project.id)
     if '_id' in project_dict:
         del project_dict['_id']
     
-    # Get all milestones for this project
-    milestones = Milestone.objects(project_id=project.id).order_by('order')
-    
-    # Build complete structure
-    milestones_list = []
-    
-    for milestone in milestones:
-        milestone_dict = milestone.to_mongo().to_dict()
-        milestone_dict['id'] = str(milestone.id)
-        if '_id' in milestone_dict:
-            del milestone_dict['_id']
-        
-        # Get tasks for this milestone
-        tasks = Task.objects(milestone_id=milestone.id).order_by('order')
-        tasks_list = []
-        
-        for task in tasks:
-            task_dict = task.to_mongo().to_dict()
-            task_dict['id'] = str(task.id)
-            if '_id' in task_dict:
-                del task_dict['_id']
-            
-            # Convert dependency IDs to strings
-            if 'dependency_ids' in task_dict and task_dict['dependency_ids']:
-                task_dict['dependency_ids'] = [str(dep_id) for dep_id in task_dict['dependency_ids']]
-            
-            # Get subtasks for this task
-            subtasks = Subtask.objects(task_id=task.id).order_by('order')
-            subtasks_list = []
-            
-            for subtask in subtasks:
-                subtask_dict = subtask.to_mongo().to_dict()
-                subtask_dict['id'] = str(subtask.id)
-                if '_id' in subtask_dict:
-                    del subtask_dict['_id']
-                subtasks_list.append(subtask_dict)
-            
-            # Add subtasks to task
-            task_dict['subtasks'] = subtasks_list
-            tasks_list.append(task_dict)
-        
-        # Add tasks to milestone
-        milestone_dict['tasks'] = tasks_list
-        milestones_list.append(milestone_dict)
-    
-    # Add milestones to project
-    project_dict['milestones'] = milestones_list
-    
-    # Calculate overall project statistics
-    total_tasks = sum(len(milestone_dict['tasks']) for milestone_dict in milestones_list)
-    completed_tasks = sum(
-        sum(1 for task in milestone_dict['tasks'] if task.get('status') == 'completed')
-        for milestone_dict in milestones_list
-    )
-    
-    project_dict['task_count'] = total_tasks
-    project_dict['completed_task_count'] = completed_tasks
-    project_dict['milestone_count'] = len(milestones_list)
-    
-    if total_tasks > 0:
-        project_dict['completion_percentage'] = round((completed_tasks / total_tasks) * 100, 2)
-    else:
-        project_dict['completion_percentage'] = 0
-    
+    metrics = calculate_plan_metrics(project_dict.get("implementation_plan", {}).get("milestones", []))
+    project_dict['milestone_count'] = metrics["milestone_count"]
+    project_dict['task_count'] = metrics["task_count"]
+    project_dict['subtask_count'] = metrics["subtask_count"]
+    project_dict['completion_percentage'] = metrics["completion_percentage"]
     # Serialize all MongoDB objects to avoid JSON encoding issues
     return serialize_mongodb_doc(project_dict)
 
@@ -128,8 +70,6 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
             if not project:
                 raise Exception(f"Project with ID {existing_project_id} not found")
             
-            # Clean up existing milestones, tasks, and subtasks
-            await clean_project_data(project.id)
             
             # Update the project with new plan data
             project.name = input_data.get("name", project_data.get("name", "Untitled Project"))
@@ -146,6 +86,7 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
             project.api_endpoints = project_data.get("api_endpoints", {})
             project.data_models = project_data.get("data_models", {})
             project.ui_components = project_data.get("ui_components", {})
+            project.implementation_plan = project_data.get("implementation_plan", {})
             
             project.updated_at = datetime.now(tz=timezone.utc)
             project.save()
@@ -167,6 +108,7 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
                 api_endpoints=project_data.get("api_endpoints", {}),
                 data_models=project_data.get("data_models", {}),
                 ui_components=project_data.get("ui_components", {}),
+                implementation_plan=project_data.get("implementation_plan", {}),
                 created_at=datetime.now(tz=timezone.utc),
                 updated_at=datetime.now(tz=timezone.utc)
             )
@@ -174,166 +116,72 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
         
         project_id = str(project.id)
         
-        # Create milestones from the plan
-        milestones_data = project_data.get("implementation_plan", [])
-        milestones_dict = {}  # Store milestone objects for reference
-        
-        for i, milestone_data in enumerate(milestones_data):
-            # Calculate due date if due_date_offset is provided
-            due_date = None
-            if "due_date_offset" in milestone_data:
-                due_date = datetime.now(tz=timezone.utc) + timedelta(days=milestone_data["due_date_offset"])
-            
-            milestone = Milestone(
-                project_id=project.id,
-                name=milestone_data.get("name", f"Milestone {i+1}"),
-                description=milestone_data.get("description", ""),
-                status=milestone_data.get("status", "not_started"),
-                due_date=due_date,
-                order=i
-            )
-            milestone.save()
-            
-            # Store the milestone for reference when creating tasks
-            milestones_dict[milestone_data.get("name")] = milestone
-            
-            # Create tasks for this milestone
-            tasks_dict = {}  # Store task objects for reference
-            
-            for j, task_data in enumerate(milestone_data.get("tasks", [])):
-                # Calculate due date if due_date_offset is provided
-                task_due_date = None
-                if "due_date_offset" in task_data:
-                    task_due_date = datetime.now(tz=timezone.utc) + timedelta(days=task_data["due_date_offset"])
-                elif due_date:
-                    # If task has no due date but milestone does, use milestone's due date
-                    task_due_date = due_date
-                
-                task = Task(
-                    project_id=project.id,
-                    milestone_id=milestone.id,
-                    name=task_data.get("name", f"Task {j+1}"),
-                    description=task_data.get("description", ""),
-                    status=task_data.get("status", "not_started"),
-                    priority=task_data.get("priority", "medium"),
-                    estimated_hours=task_data.get("estimated_hours", 0),
-                    components_affected=task_data.get("components_affected", []),
-                    apis_affected=task_data.get("apis_affected", []),
-                    due_date=task_due_date,
-                    order=j
-                )
-                task.save()
-                
-                # Store the task for reference when creating subtasks or dependencies
-                tasks_dict[task_data.get("name")] = task
-                
-                # Create subtasks
-                for k, subtask_data in enumerate(task_data.get("subtasks", [])):
-                    subtask = Subtask(
-                        task_id=task.id,
-                        name=subtask_data.get("name", f"Subtask {k+1}"),
-                        status=subtask_data.get("status", "not_started"),
-                        description=subtask_data.get("description", ""),
-                        order=k
-                    )
-                    subtask.save()
-            
-            # Set up task dependencies after all tasks are created
-            for j, task_data in enumerate(milestone_data.get("tasks", [])):
-                if "dependencies" in task_data and task_data["dependencies"]:
-                    task = tasks_dict.get(task_data.get("name"))
-                    if task:
-                        dependency_ids = []
-                        for dep_name in task_data["dependencies"]:
-                            if dep_name in tasks_dict:
-                                dependency_ids.append(tasks_dict[dep_name].id)
-                        
-                        if dependency_ids:
-                            # Update the task with dependencies
-                            task.dependency_ids = dependency_ids
-                            task.save()
         
         return project_id
         
     except Exception as e:
         # If anything fails during creation of a new project, clean up
         if not existing_project_id and 'project' in locals() and project:
-            await clean_project_data(project.id)
             project.delete()
             
         # Re-raise the exception
         raise Exception(f"Failed to create/update project from plan: {str(e)}")
 
 
-
-async def get_milestones_from_db(project_id):
-    """Convert milestones, tasks, and subtasks from DB into JSON format for AI processing"""
-    milestones = []
+def calculate_plan_metrics(milestones):
+    """
+    Count milestones, tasks, and subtasks and calculate completion percentage.
     
-    for milestone in Milestone.objects(project_id=project_id):
-        milestone_dict = {
-            "name": milestone.name,
-            "description": milestone.description,
-            "status": milestone.status,
-            "due_date_offset": (milestone.due_date - datetime.now(tz=timezone.utc)).days if milestone.due_date else 30,
-            "tasks": []
-        }
+    Args:
+        milestones: List of milestone objects
         
-        for task in Task.objects(milestone_id=milestone.id):
-            task_dict = {
-                "name": task.name,
-                "description": task.description,
-                "status": task.status,
-                "priority": task.priority,
-                "estimated_hours": task.estimated_hours,
-                "dependencies": [],
-                "components_affected": task.components_affected,
-                "apis_affected": task.apis_affected,
-                "subtasks": []
-            }
-            
-            # Get task dependencies
-            if task.dependency_ids:
-                for dep_id in task.dependency_ids:
-                    dep_task = Task.objects(id=dep_id).first()
-                    if dep_task:
-                        task_dict["dependencies"].append(dep_task.name)
-            
-            # Get subtasks
-            for subtask in Subtask.objects(task_id=task.id):
-                subtask_dict = {
-                    "name": subtask.name,
-                    "status": subtask.status,
-                    "description": subtask.description
-                }
-                task_dict["subtasks"].append(subtask_dict)
-            
-            milestone_dict["tasks"].append(task_dict)
-        
-        milestones.append(milestone_dict)
+    Returns:
+        dict: Counts and completion percentage
+    """
+    # Initialize counters
+    milestone_count = len(milestones)
+    task_count = 0
+    subtask_count = 0
     
-    return milestones
-
-
-async def clean_project_data(project_id: str):
-    """Delete all milestones, tasks, and subtasks for a project"""
-    try:
-        # Get all milestones for this project
-        milestones = Milestone.objects(project_id=project_id)
-        
-        # For each milestone, get and delete tasks and subtasks
-        for milestone in milestones:
-            tasks = Task.objects(milestone_id=milestone.id)
-            for task in tasks:
-                # Delete subtasks
-                Subtask.objects(task_id=task.id).delete()
+    # Track completed items
+    completed_items = 0
+    total_items = milestone_count  # Start with milestones
+    
+    # Process all milestones
+    for milestone in milestones:
+        # Check if milestone is completed
+        if milestone.get("status") == "completed":
+            completed_items += 1
             
-            # Delete tasks for this milestone
-            Task.objects(milestone_id=milestone.id).delete()
+        # Count tasks
+        tasks = milestone.get("tasks", [])
+        task_count += len(tasks)
+        total_items += len(tasks)
         
-        # Delete all milestones
-        Milestone.objects(project_id=project_id).delete()
-        
-    except Exception as e:
-        raise Exception(f"Failed to clean project data: {str(e)}")
-
+        # Process tasks
+        for task in tasks:
+            # Check if task is completed
+            if task.get("status") == "completed":
+                completed_items += 1
+                
+            # Count subtasks
+            subtasks = task.get("subtasks", [])
+            subtask_count += len(subtasks)
+            total_items += len(subtasks)
+            
+            # Check completed subtasks
+            for subtask in subtasks:
+                if subtask.get("status") == "completed":
+                    completed_items += 1
+    
+    # Calculate completion percentage
+    completion_percentage = 0
+    if total_items > 0:
+        completion_percentage = (completed_items / total_items) * 100
+    
+    return {
+        "milestone_count": milestone_count,
+        "task_count": task_count,
+        "subtask_count": subtask_count,
+        "completion_percentage": round(completion_percentage, 2)
+    }

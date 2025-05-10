@@ -61,7 +61,7 @@ export function HeroSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative pt-24 pb-16 md:pt-20 md:pb-24 md:px-12 overflow-hidden bg-background"
+      className="relative py-40 sm:pt-24 sm:pb-16 md:pt-20 md:pb-24 md:px-12 overflow-hidden bg-background"
     >
       {/* Background effects - static version */}
       <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-secondary-background to-transparent z-0"></div>
@@ -123,7 +123,7 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.8 }}
-              className="mb-4 inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-text text-sm font-medium"
+              className="mb-4 items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary-text text-sm font-medium inline-flex mx-auto"
             >
               <motion.span
                 initial={{ scale: 0.8 }}
@@ -140,7 +140,7 @@ export function HeroSection() {
               {headlineWords.map((word, index) => (
                 <motion.span
                   key={index}
-                  className="mr-4 inline-block"
+                  className="mr-4 inline-block leading-[3rem] sm:leading-snugger"
                   initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
                   animate={
                     isInView
@@ -151,7 +151,7 @@ export function HeroSection() {
                           transition: {
                             delay: 0.6 + index * 0.08,
                             duration: 0.5,
-                            type: "spring",
+                            type: "fade",
                             stiffness:
                               index === headlineWords.length - 1 ? 500 : 300,
                             damping:
@@ -173,7 +173,7 @@ export function HeroSection() {
             </h1>
 
             <motion.p
-              className="text-xl text-muted-foreground mb-8 leading-relaxed"
+              className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed"
               initial={{ opacity: 0, y: 10 }}
               animate={
                 isInView
@@ -189,7 +189,7 @@ export function HeroSection() {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4"
+              className="flex sm:flex-row items-center justify-center lg:justify-start gap-4 sm:space-y-0 sm:space-x-4"
               initial={{ opacity: 0, y: 10 }}
               animate={
                 isInView
@@ -210,7 +210,7 @@ export function HeroSection() {
                   <Button
                     variant="outlineGradient"
                     size="lg"
-                    className="w-full sm:w-auto space-x-2 relative overflow-hidden group"
+                    className="sm:w-full w-[10rem] text-xs px-0 sm:px-6 sm:space-x-2 relative overflow-hidden group"
                   >
                     <motion.span
                       className="absolute inset-0 bg-white/10"
@@ -236,7 +236,7 @@ export function HeroSection() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="w-full sm:w-auto group bg-white text-primary-background font-semibold hover:bg-gradient-cta"
+                    className="sm:w-full w-[10rem] text-xs px-0 sm:px-6 sm:space-x-2 group bg-white text-primary-background font-semibold hover:bg-gradient-cta"
                   >
                     <span>Explore Features</span>
                     <motion.span
@@ -426,13 +426,13 @@ function EnhancedBlueprintPipeline({
                   offsetDistance: {
                     from: "0%",
                     to: "100%",
-                    duration: 4,
+                    duration: 3,
                     repeat: Infinity,
                     delay: 0,
                     repeatDelay: 1,
                   },
                   opacity: {
-                    duration: 4,
+                    duration: 3,
                     repeat: Infinity,
                     delay: 0,
                     repeatDelay: 1,
@@ -457,13 +457,13 @@ function EnhancedBlueprintPipeline({
                   offsetDistance: {
                     from: "0%",
                     to: "100%",
-                    duration: 4,
+                    duration: 3,
                     repeat: Infinity,
                     delay: 2,
                     repeatDelay: 1,
                   },
                   opacity: {
-                    duration: 4,
+                    duration: 3,
                     repeat: Infinity,
                     delay: 2,
                     repeatDelay: 1,
@@ -488,9 +488,9 @@ function EnhancedBlueprintPipeline({
                           filter:
                             "drop-shadow(0 8px 12px rgba(18, 232, 143, 0.2))",
                           transition: {
-                            delay: 2 + stage.delay, // Start sooner after path completes
+                            delay: 1 + stage.delay, // Start sooner after path completes
                             duration: 0.5,
-                            type: "spring",
+                            type: "fade",
                             stiffness: 200,
                           },
                         }

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ScreenshotDisplay } from "@/components/ui/screenshot-display";
 
 // Feature data for each tab
 const tabFeatures = [
@@ -13,6 +14,7 @@ const tabFeatures = [
       "Automatically generate comprehensive project overviews that articulate the strategic approach, core technologies, and implementation philosophy. The plan provides stakeholders with a clear vision of project goals and execution strategies.",
     imagePosition: "right", // Image position relative to text
     imageAlt: "High-level project plan overview",
+    imageSrc: "/high-level.png", // Update with your image paths
   },
   {
     id: 2,
@@ -21,6 +23,7 @@ const tabFeatures = [
       "Visualize your system's technical structure with auto-generated architecture diagrams that map component relationships, data flows, and system boundaries. Define clear separation of concerns and establish robust architectural patterns.",
     imagePosition: "left",
     imageAlt: "System architecture diagram",
+    imageSrc: "/architecture.png",
   },
   {
     id: 3,
@@ -29,6 +32,7 @@ const tabFeatures = [
       "Generate comprehensive API documentation with endpoint definitions, request/response schemas, authentication requirements, and error handling specifications. Ensure consistent interfaces between frontend and backend systems.",
     imagePosition: "right",
     imageAlt: "API endpoints documentation",
+    imageSrc: "/api-endpoints.png",
   },
   {
     id: 4,
@@ -37,6 +41,7 @@ const tabFeatures = [
       "Automatically create normalized database schemas with properly defined relationships, constraints, and indexing strategies. Visualize entity relationships and ensure data integrity across your application.",
     imagePosition: "left",
     imageAlt: "Database schema and relationships",
+    imageSrc: "/data-models.png",
   },
   {
     id: 5,
@@ -45,6 +50,7 @@ const tabFeatures = [
       "Define reusable interface elements with detailed specifications for behavior, styling, and state management. Build consistent user experiences with a structured component hierarchy and clear design patterns.",
     imagePosition: "right",
     imageAlt: "UI component specifications",
+    imageSrc: "/ui-components.png",
   },
   {
     id: 6,
@@ -53,6 +59,7 @@ const tabFeatures = [
       "Track development progress with milestone-based planning that breaks down complex projects into manageable tasks. Monitor velocity, identify dependencies, and maintain clear visibility into project status.",
     imagePosition: "left",
     imageAlt: "Implementation milestones and tasks",
+    imageSrc: "/implementation-plan.png",
   },
   {
     id: 7,
@@ -61,6 +68,7 @@ const tabFeatures = [
       "Generate technical visualizations including sequence diagrams, class hierarchies, and activity flows. Communicate complex system behaviors through standardized visual representations that improve team understanding.",
     imagePosition: "right",
     imageAlt: "Technical sequence diagram",
+    imageSrc: "/diagrams.png",
   },
 ];
 
@@ -145,15 +153,15 @@ const TabFeatureItem = ({
         </motion.div>
       </div>
 
-      {/* Feature image/placeholder */}
+      {/* Feature screenshot - using the updated ScreenshotDisplay component */}
       <div
         className={cn(
           isImageLeft ? "md:order-1" : "md:order-2",
-          "px-6 md:px-12"
+          "px-6 md:px-12 flex items-center justify-center"
         )}
       >
         <motion.div
-          className="relative rounded-lg overflow-hidden bg-secondary-background border border-divider aspect-[4/3]"
+          className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300"
           variants={{
             hidden: { opacity: 0, y: 30 },
             visible: {
@@ -166,24 +174,11 @@ const TabFeatureItem = ({
             },
           }}
         >
-          {/* Image border effect */}
-          <div className="absolute inset-0 p-[1px]">
-            <div className="absolute inset-0 rounded-lg p-[1px] bg-gradient-cta opacity-40"></div>
-          </div>
-
-          {/* Placeholder image - replace with actual images later */}
-          <div className="absolute inset-0 flex items-center justify-center text-secondary-text border-0">
-            <img
-              src={`/high-level.png`}
-              alt={feature.imageAlt}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Feature number in corner */}
-          <div className="absolute top-3 right-3 bg-background/70 backdrop-blur-sm p-1 px-2 rounded text-xs font-mono text-secondary-text">
-            TAB {String(feature.id).padStart(2, "0")}
-          </div>
+          <ScreenshotDisplay
+            src={feature.imageSrc}
+            alt={feature.imageAlt}
+            className="overflow-visible"
+          />
         </motion.div>
       </div>
     </motion.div>

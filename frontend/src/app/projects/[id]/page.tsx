@@ -49,7 +49,7 @@ export default function ProjectPage() {
 
   return (
     <AppLayout>
-      <div className="container px-4 py-6 mx-auto">
+      <div className="container sm:px-4 px-[0.15rem] py-6 mx-auto">
         {isLoading || isLoadingProject ? (
           <ProjectLoadingSkeleton />
         ) : error ? (

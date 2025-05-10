@@ -51,16 +51,19 @@ export function LandingHeader() {
     <>
       {/* Fixed header that changes style on scroll */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-4 md:px-6 py-2 transition-all duration-300"
+        className="fixed top-0 left-0 right-0 z-50 sm:px-4 md:px-6 py-2 transition-all duration-300"
         style={{
           backgroundColor: `rgba(var(--background-rgb, 255, 255, 255), ${opacity})`,
           backdropFilter: `blur(${blur}px)`,
         }}
       >
-        <div className="container mx-auto flex items-center justify-between">
+        <div className="px-2 sm:px-0 sm:container mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Logo className="h-16 w-auto" aria-label="Projectron" />
+            <Logo
+              className="sm:h-14 h-[3.4rem] w-auto"
+              aria-label="Projectron"
+            />
           </Link>
 
           {/* Desktop Navigation */}
