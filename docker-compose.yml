@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   backend:
     build: ./backend
@@ -9,10 +7,8 @@ services:
       - ./backend:/app
     depends_on:
       - selenium
-    environment:
-      - MONGODB_URI=mongodb+srv://edencohendev:l7pYtAy14Zsqjnnh@projectron.42amkpo.mongodb.net/?retryWrites=true&w=majority&appName=projectron
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - SELENIUM_URL=http://selenium:4444
+    env_file:
+      ./backend/.env
 
   selenium:
     image: selenium/standalone-chrome:4.19.1-20240402
@@ -24,4 +20,15 @@ services:
       - SE_NODE_SESSION_TIMEOUT=30
     shm_size: 2g
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
 # No mongo service needed since we're using Atlas

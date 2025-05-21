@@ -59,7 +59,7 @@ async def get_structured_project(project_id: str, current_user=None):
     return serialize_mongodb_doc(project_dict)
 
 
-async def create_or_update_project_from_plan(project_data:Dict[Any, Any], current_user:User, input_data:PlanGenerationInput, existing_project_id: str = None):
+async def create_or_update_project_from_plan(project_data:Dict[Any, Any], current_user:User, existing_project_id: str = None):
     """Create a new project or update an existing project from AI-generated plan"""
     try:
         project = None
@@ -69,14 +69,13 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
             project = Project.objects(id=ObjectId(existing_project_id)).first()
             if not project:
                 raise Exception(f"Project with ID {existing_project_id} not found")
-            
-            
+              
             # Update the project with new plan data
-            project.name = input_data.get("name", project_data.get("name", "Untitled Project"))
+            project.name = project_data.get("name", project_data.get("name", "Untitled Project"))
             project.description = project_data.get("description", project.description)
             project.tech_stack = project_data.get("tech_stack", project.tech_stack)
-            project.experience_level = input_data.get("experience_level", project.experience_level)
-            project.team_size = input_data.get("team_size", project.team_size)
+            project.experience_level = project_data.get("experience_level", project.experience_level)
+            project.team_size = project_data.get("team_size", project.team_size)
             project.status = project_data.get("status", project.status)
             
             # Update with enhanced plan data
@@ -94,15 +93,14 @@ async def create_or_update_project_from_plan(project_data:Dict[Any, Any], curren
         else:
             # Create a new project
             project = Project(
-                name=input_data.get("name", project_data.get("name", "Untitled Project")),
+                name=project_data.get("name", project_data.get("name", "Untitled Project")),
                 description=project_data.get("description", ""),
                 tech_stack=project_data.get("tech_stack", []),
                 experience_level=project_data.get("experience_level", "junior"),
-                team_size=input_data.get("team_size", 1),
+                team_size=project_data.get("team_size", 1),
                 status=project_data.get("status", "draft"),
                 owner_id=current_user.id,
 
-                
                 high_level_plan=project_data.get("high_level_plan", {}),
                 technical_architecture=project_data.get("technical_architecture", {}),
                 api_endpoints=project_data.get("api_endpoints", {}),

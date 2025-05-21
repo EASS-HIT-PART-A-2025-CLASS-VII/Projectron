@@ -56,7 +56,7 @@ async def create_sequence_diagram(
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
         # Create the LLM with the configured settings
-        llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE)
+        llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE, model='gpt-4.1-mini')
         
         # Generate the sequence diagram
         plan = project.description + "\n" + compact_json(project.technical_architecture)

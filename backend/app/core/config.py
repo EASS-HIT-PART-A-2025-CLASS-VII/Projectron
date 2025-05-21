@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Projectron"
     API_V1_STR: str = "/api/endpoints"
 
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    FRONTEND_URL: str = "http://localhost:3000" #os.getenv("FRONTEND_URL", "http://localhost:3000")
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
         "http://localhost:3000",  # Frontend DEV URL
@@ -22,29 +22,29 @@ class Settings(BaseSettings):
     ]
 
     # MongoDB
-    MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    MONGODB_URI: str #= os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     MONGODB_DB_NAME: str = "projectron"
     
     # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-for-jwt")
+    SECRET_KEY: str #= os.getenv("SECRET_KEY", "your-secret-key-for-jwt")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 48 * 60
     
     # EMAIL SERVICE
-    SMTP_SERVER: str = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
-    SMTP_USER: str = os.getenv("SMTP_USER", "travel7450@gmail.com")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "rmcx lfdo olyb dhdm")
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int =  587
+    SMTP_USER: str #= os.getenv("SMTP_USER", "travel7450@gmail.com")
+    SMTP_PASSWORD: str #= os.getenv("SMTP_PASSWORD", "rmcx lfdo olyb dhdm")
     
     # OPENAI SERVICE
-    AI_MODEL_STRONG: str = "gpt-4.1-mini"
+    AI_MODEL_STRONG: str = "gpt-4o-mini"
     AI_MODEL_FAST: str = "gpt-4.1-nano"
 
     DIAGRAM_TEMPERATURE: float = 0.2
     openai_api_key: str = ""
 
     # ANTHROPIC SERVICE
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "your-anthropic-api-key")
+    ANTHROPIC_API_KEY: str #= os.getenv("ANTHROPIC_API_KEY", "your-anthropic-api-key")
     # AI_MODEL_NAME: str = "claude-3-opus-20240229"
 
     # SELENIUM

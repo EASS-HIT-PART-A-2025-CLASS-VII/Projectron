@@ -61,3 +61,5 @@ graphviz
 selenium
 webdriver-manager
 langchain-anthropic
+langgraph
+langgraph-prebuilt

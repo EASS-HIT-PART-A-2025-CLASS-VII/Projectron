@@ -1,23 +1,23 @@
 {
-    "python.analysis.extraPaths": [
-        "/mnt/c/Users/eden7/Projectron",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend",
-        "./backend"
-    ],
-    "css.validate": false,
-    "scss.validate": false
+  "python.analysis.extraPaths": [
+    "/mnt/c/Users/eden7/Projectron",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend",
+    "./backend"
+  ],
+  "css.validate": false,
+  "scss.validate": false
 }
-
