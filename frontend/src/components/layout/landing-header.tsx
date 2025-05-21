@@ -124,25 +124,20 @@ function NavLinks() {
     <>
       <Link
         href="#features"
-        className="text-foreground hover:text-primary transition-colors duration-200"
+        className="text-foreground hover:text-primary-cta transition-colors duration-200"
       >
         Features
       </Link>
       <Link
         href="#how-it-works"
-        className="text-foreground hover:text-primary transition-colors duration-200"
+        className="text-foreground hover:text-primary-cta transition-colors duration-200"
       >
         How It Works
       </Link>
-      <Link
-        href="#pricing"
-        className="text-foreground hover:text-primary transition-colors duration-200"
-      >
-        Pricing
-      </Link>
+
       <Link
         href="/auth/login"
-        className="text-foreground hover:text-primary transition-colors duration-200"
+        className="text-foreground hover:text-primary-cta transition-colors duration-200"
       >
         Login
       </Link>
@@ -167,13 +162,6 @@ function MobileNavLinks({ closeMenu }: { closeMenu: () => void }) {
         onClick={closeMenu}
       >
         How It Works
-      </Link>
-      <Link
-        href="#pricing"
-        className="text-xl font-medium text-foreground hover:text-primary transition-colors duration-200 w-full text-center py-3"
-        onClick={closeMenu}
-      >
-        Pricing
       </Link>
       <Link
         href="/auth/login"

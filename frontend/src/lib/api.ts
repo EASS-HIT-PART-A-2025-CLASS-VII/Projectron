@@ -4,11 +4,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 interface FetchOptions extends RequestInit {
   token?: string;
   body?: any;
+  responseType?: "json" | "text" | "blob"; // Add responseType option
 }
 
 export async function apiClient<T>(
   endpoint: string,
-  { token, ...customConfig }: FetchOptions = {}
+  { token, responseType = "json", ...customConfig }: FetchOptions = {}
 ): Promise<T> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -42,13 +43,33 @@ export async function apiClient<T>(
       throw new Error("Unauthorized");
     }
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.detail || "API request failed");
+      // For error responses, try to parse as JSON if possible
+      try {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "API request failed");
+      } catch (jsonError) {
+        // If JSON parsing fails, just throw with status
+        throw new Error(`API request failed with status ${response.status}`);
+      }
     }
 
-    return data;
+    // Handle different response types
+    let data;
+    switch (responseType) {
+      case "text":
+        data = await response.text();
+        break;
+      case "blob":
+        data = await response.blob();
+        break;
+      case "json":
+      default:
+        data = await response.json();
+        break;
+    }
+
+    return data as T;
   } catch (error) {
     console.error("API request failed:", error);
     throw error;

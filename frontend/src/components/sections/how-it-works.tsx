@@ -153,7 +153,10 @@ const ProcessStep = ({
 
 export const HowItWorks = () => {
   return (
-    <section className="py-24 relative overflow-hidden bg-secondary-background">
+    <section
+      id="how-it-works"
+      className="py-24 relative overflow-hidden bg-secondary-background"
+    >
       {/* Subtle background elements */}
       <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-secondary-background to-transparent"></div>
       <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-secondary-background to-transparent"></div>

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, LogOut, Menu, Settings, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,7 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const router = useRouter();
   const navItems = [
     {
       name: "My Projects",
@@ -46,7 +46,10 @@ export function Navbar() {
       <header className="sticky top-0 z-40 border-b border-divider bg-secondary-background">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center my-auto h-fit">
-            <Logo className="left-0 h-12 w-fit" />
+            <Logo
+              className="left-0 h-12 w-fit cursor-pointer hover:scale-105 transition-transform duration-400"
+              onClick={() => router.push("/")}
+            />
           </div>
 
           <div className="flex items-center gap-3">

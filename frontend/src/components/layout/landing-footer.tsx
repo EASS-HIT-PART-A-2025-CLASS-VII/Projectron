@@ -32,7 +32,6 @@ export function LandingFooter() {
             <ul className="space-y-2">
               <FooterLink href="#features">Features</FooterLink>
               <FooterLink href="#how-it-works">How It Works</FooterLink>
-              <FooterLink href="#pricing">Pricing</FooterLink>
               <FooterLink href="#use-cases">Use Cases</FooterLink>
             </ul>
           </div>

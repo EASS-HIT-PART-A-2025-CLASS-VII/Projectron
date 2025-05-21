@@ -22,6 +22,8 @@ import { ApiEndpointsTab } from "./tabs/api-endpoints-tab/index";
 import { DataModelsTab } from "./tabs/data-models-tab/index";
 import { UIComponentsTab } from "./tabs/ui_components-tab/index";
 import { ImplementationPlanTab } from "./tabs/implementation_plan_tab/index";
+import { DiagramsTab } from "./tabs/diagrams-tab/index";
+
 interface ProjectTabsProps {
   project: Project;
 }
@@ -107,15 +109,7 @@ export function ProjectTabs({ project }: ProjectTabsProps) {
       id: "diagrams",
       label: "Diagrams",
       icon: <GitBranch className="h-4 w-4" />,
-      content: (
-        <div className="p-6 border border-divider rounded-lg bg-secondary-background">
-          <h3 className="text-xl font-semibold mb-4">Technical Diagrams</h3>
-          <p className="text-secondary-text">
-            This will display sequence, class, and activity diagrams. The
-            detailed implementation will be added in a separate component.
-          </p>
-        </div>
-      ),
+      content: <DiagramsTab project={project} />,
     },
   ];
 

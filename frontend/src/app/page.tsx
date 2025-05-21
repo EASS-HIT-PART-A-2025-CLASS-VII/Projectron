@@ -9,7 +9,7 @@ export default function HomePage() {
     <LandingLayout>
       <HeroSection />
       {/* <ProblemSolutionSection /> */}
-      <HowItWorks />
+      <HowItWorks  />
       <PainPointCards />
       <TabFeatures />
 

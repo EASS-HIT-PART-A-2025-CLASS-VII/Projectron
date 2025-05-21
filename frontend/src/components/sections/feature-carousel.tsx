@@ -95,6 +95,7 @@ const TabFeatureItem = ({
 
   return (
     <motion.div
+      id="features"
       ref={ref}
       className={cn(
         "grid gap-8 mb-24 relative",
