@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api";
 import { getToken } from "@/lib/auth";
@@ -8,6 +8,17 @@ import { Card } from "@/components/ui/card";
 import { PlanGenerationInput } from "@/components/projects/new/types";
 import { PlanGenerationForm } from "@/components/projects/new/components/plan-generation-form";
 import { ClarificationQuestionsSection } from "@/components/projects/new/components/clarification-questions-section";
+
+interface PlanStatus {
+  task_id: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  current_step: string;
+  step_number: number;
+  total_steps: number;
+  error_message?: string;
+  project_id?: string;
+  result?: any;
+}
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -22,6 +33,68 @@ export default function NewProjectPage() {
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // New states for progress tracking
+  const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
+
+  // Poll for plan status
+  const pollPlanStatus = async (taskId: string) => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const status = await apiClient<PlanStatus>(`/plan/status/${taskId}`, {
+        method: "GET",
+        token,
+      });
+
+      setPlanStatus(status);
+
+      if (status.status === "completed" && status.project_id) {
+        // Stop polling and redirect
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        router.push(`/projects/${status.project_id}`);
+      } else if (status.status === "failed") {
+        // Stop polling and show error
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+        setError(status.error_message || "Plan generation failed");
+        setIsGeneratingPlan(false);
+        setStep("clarification");
+      }
+    } catch (err) {
+      console.error("Error polling status:", err);
+    }
+  };
+
+  // Start polling when task starts
+  const startPolling = (taskId: string) => {
+    setTaskId(taskId);
+
+    // Poll immediately
+    pollPlanStatus(taskId);
+
+    // Then poll every 2 seconds
+    pollingRef.current = setInterval(() => {
+      pollPlanStatus(taskId);
+    }, 2000);
+  };
 
   // Handle form submission to generate clarification questions
   const handleGenerateQuestions = async (formData: PlanGenerationInput) => {
@@ -67,29 +140,17 @@ export default function NewProjectPage() {
     setIsGeneratingPlan(true);
     setError(null);
     setStep("generating");
+    setPlanStatus(null);
 
     try {
       const token = getToken();
       if (!token) {
         throw new Error("Not authenticated");
       }
-      const requestBody = {
-        name: projectInput.name,
-        description: projectInput.description,
-        tech_stack: projectInput.tech_stack,
-        experience_level: projectInput.experience_level,
-        team_size: projectInput.team_size,
-        time_scale: projectInput.time_scale,
-        custom_hours:
-          projectInput.time_scale === "custom"
-            ? projectInput.custom_hours
-            : null,
-        clarification_qa: questionAnswers,
-      };
-      console.log(requestBody);
+
       const response = await apiClient<{
-        structured_plan: any;
-        project_id: string;
+        task_id: string;
+        status: string;
       }>("/plan/generate-plan", {
         method: "POST",
         body: {
@@ -99,8 +160,8 @@ export default function NewProjectPage() {
         token,
       });
 
-      // Redirect to the newly created project
-      router.push(`/projects/${response.project_id}`);
+      // Start polling for status
+      startPolling(response.task_id);
     } catch (err) {
       console.error("Error generating plan:", err);
       setError(
@@ -108,8 +169,7 @@ export default function NewProjectPage() {
           ? err.message
           : "Failed to generate plan. Please try again."
       );
-      setStep("clarification"); // Stay on the clarification step
-    } finally {
+      setStep("clarification");
       setIsGeneratingPlan(false);
     }
   };
@@ -145,11 +205,35 @@ export default function NewProjectPage() {
         {step === "generating" && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 border-4 border-t-primary-cta rounded-full animate-spin mb-4"></div>
-            <p className="text-lg">Generating your project plan...</p>
-            <p className="text-sm text-secondary-text mt-2">
-              This may take a minute or two. We're crafting a comprehensive
-              project plan for you.
-            </p>
+
+            {planStatus ? (
+              <>
+                <p className="text-lg font-medium mb-2">
+                  {planStatus.current_step}
+                </p>
+                <div className="w-full max-w-md bg-gray-200 rounded-full h-2 mb-4">
+                  <div
+                    className="bg-primary-cta h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${
+                        (planStatus.step_number / planStatus.total_steps) * 100
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+                <p className="text-sm text-secondary-text">
+                  Step {planStatus.step_number} of {planStatus.total_steps}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg">Starting plan generation...</p>
+                <p className="text-sm text-secondary-text mt-2">
+                  This may take a minute or two. We're crafting a comprehensive
+                  project plan for you.
+                </p>
+              </>
+            )}
           </div>
         )}
       </Card>

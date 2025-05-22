@@ -1,5 +1,5 @@
-
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, TypedDict, Optional
+from contextvars import ContextVar
 from app.core.config import get_settings
 from app.pydantic_models.ai_plan_models import APIEndpoints, ClarificationQuestions, DataModels, DetailedImplementationPlan, HighLevelPlan, TechnicalArchitecture, UIComponents
 from app.pydantic_models.project_http_models import PlanGenerationInput
@@ -20,6 +20,19 @@ from app.utils.timing import timed
 
 settings = get_settings()
 
+# Context variable for progress tracking (thread-safe and isolated per request)
+_progress_context: ContextVar[Optional[Any]] = ContextVar('progress_context', default=None)
+
+def set_current_progress(progress):
+    """Set the current progress tracker for this request context"""
+    _progress_context.set(progress)
+
+def update_progress(step: str, step_number: int, status: str = 'processing'):
+    """Update progress if available in current context"""
+    progress = _progress_context.get()
+    if progress:
+        progress.update_progress(step, step_number, status)
+
 class PlanState(TypedDict):
     name: str
     description: str
@@ -35,6 +48,7 @@ class PlanState(TypedDict):
     data_models: DataModels
     ui_components: UIComponents
     implementation_plan:DetailedImplementationPlan
+    # Remove progress from state to avoid serialization issues
 
 llm_4o_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4o-mini")
 llm_41_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-mini")
@@ -59,10 +73,13 @@ async def generate_clarifying_questions(project_info: PlanGenerationInput) -> Di
     return result.model_dump()
 
 @timed 
-async def generate_plan(clarification_qa: Dict[str, str], project_info: PlanGenerationInput, user_id:str) -> Dict[str, Any]:
+async def generate_plan(clarification_qa: Dict[str, str], project_info: PlanGenerationInput, user_id: str, progress: Optional[Any] = None) -> Dict[str, Any]:
     """
     Generate a complete project plan based on the description and answers to clarification questions.
     """
+    # Set global progress tracker
+    set_current_progress(progress)
+    
     # Create the graph
     graph = create_graph()
     clarification_qa_str = "\n".join([
@@ -74,7 +91,7 @@ async def generate_plan(clarification_qa: Dict[str, str], project_info: PlanGene
         "thread_id": user_id
         }
     }
-    # Set the initial state
+    # Set the initial state (without progress to avoid serialization issues)
     state = {
         "name": project_info.name,
         "description": project_info.description,
@@ -94,6 +111,9 @@ async def generate_plan(clarification_qa: Dict[str, str], project_info: PlanGene
     
     # Run the graph
     result = await graph.ainvoke(state, config=config)
+    
+    # Clear context progress tracker
+    set_current_progress(None)
 
     result = {
         "name": result["name"],
@@ -150,11 +170,15 @@ def create_graph():
     return graph.compile(checkpointer=checkpointer)
 
 
-async def generate_high_level_plan(state:PlanState):
+async def generate_high_level_plan(state: PlanState):
     """
     Generate a high-level plan for the project.
     """
     print("Generating high-level plan...")
+    
+    # Update progress using global tracker
+    update_progress("Generating high-level plan", 2)
+    
     # Calculate extended hours (1.5x) here
     extended_hours = int(state["total_hours"] * 1.5)
     
@@ -181,6 +205,10 @@ async def generate_technical_architecture(state: PlanState):
     Generate the technical architecture for the project.
     """
     print("Generating technical architecture...")
+    
+    # Update progress using global tracker
+    update_progress("Generating technical architecture", 3)
+    
     # Calculate extended hours (1.5x)
     extended_hours = int(state["total_hours"] * 1.5)
     
@@ -221,6 +249,10 @@ async def generate_api_endpoints(state: PlanState):
     Generate the API endpoints for the project.
     """
     print("Generating API endpoints...")
+    
+    # Update progress using global tracker
+    update_progress("Generating API endpoints", 4)
+    
     # Calculate extended hours (1.5x)
     extended_hours = int(state["total_hours"] * 1.5)
     
@@ -292,6 +324,10 @@ async def generate_data_models(state: PlanState):
     Generate the data models for the project.
     """
     print("Generating data models...")
+    
+    # Update progress using global tracker
+    update_progress("Generating data models", 5)
+    
     # Calculate extended hours (1.5x)
     extended_hours = int(state["total_hours"] * 1.5)
     
@@ -323,6 +359,10 @@ async def generate_ui_components(state: PlanState):
     Generate the UI components for the project.
     """
     print("Generating UI components...")
+    
+    # Update progress using global tracker
+    update_progress("Generating UI components", 6)
+    
     # Calculate extended hours (1.5x)
     extended_hours = int(state["total_hours"] * 1.5)
     
@@ -378,6 +418,10 @@ async def generate_implementation_plan(state: PlanState):
     Generate the detailed implementation plan for the project.
     """
     print("Generating detailed implementation plan...")
+    
+    # Update progress using global tracker
+    update_progress("Generating implementation plan", 7)
+    
     # Calculate extended hours (1.5x)
     extended_hours = int(state["total_hours"] * 1.5)
     
