@@ -1,7 +1,6 @@
 import json
 from langchain_openai import ChatOpenAI
 from app.core.config import get_settings
-from langchain_anthropic import ChatAnthropic
 
 settings = get_settings()
 
@@ -54,3 +53,4 @@ def create_llm(temperature=0.1, json_mode=True, model='gpt-4o-mini', max_tokens=
 def compact_json(obj) -> str:
     """Serialize obj without any whitespace – saves ≈25 % tokens."""
     return json.dumps(obj, separators=(",", ":"))
+

@@ -83,7 +83,7 @@ async def generate_project_plan(
             status='pending',
             current_step='starting',
             step_number=0,
-            total_steps=6
+            total_steps=7
         )
         progress.save()
         
