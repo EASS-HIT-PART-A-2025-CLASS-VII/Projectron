@@ -50,3 +50,12 @@ export const EDITABLE_FIELDS = {
   ],
   subtask: ["name", "description", "status"],
 };
+
+
+// Priority options for select dropdowns
+export const PRIORITY_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+];
+

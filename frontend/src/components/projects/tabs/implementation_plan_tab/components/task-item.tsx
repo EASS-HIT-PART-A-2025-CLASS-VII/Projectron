@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, ChevronDown, ChevronUp, Info, Clock } from "lucide-react";
+import { Edit, ChevronDown, ChevronUp, Info, Clock, Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +13,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { Task } from "../types";
+import { Task, Subtask } from "../types";
 import { SubtaskItem } from "./subtask-item";
 import { PRIORITY_COLORS } from "../constants";
 import { EditTaskDialog } from "./dialogs/edit-task-dialog";
+import { AddSubtaskDialog } from "./dialogs/add-subtask-dialog";
 
 interface TaskItemProps {
   task: Task;
@@ -26,6 +27,7 @@ interface TaskItemProps {
   onSubtaskStatusChange: (subtaskIndex: number, status: string) => void;
   onUpdate: (updatedTask: Task) => void;
   onSubtaskUpdate: (subtaskIndex: number, updatedSubtask: any) => void;
+  onSubtaskAdd: (subtask: Subtask) => void;
 }
 
 export function TaskItem({
@@ -36,9 +38,11 @@ export function TaskItem({
   onSubtaskStatusChange,
   onUpdate,
   onSubtaskUpdate,
+  onSubtaskAdd,
 }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showAddSubtaskDialog, setShowAddSubtaskDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
   const toggleExpanded = () => setExpanded(!expanded);
@@ -208,7 +212,7 @@ export function TaskItem({
       </Card>
 
       {/* Subtasks */}
-      {expanded && task.subtasks.length > 0 && (
+      {expanded && (
         <div className="ml-3 sm:ml-6 pl-2 sm:pl-4 border-l border-divider/30 mt-2 space-y-2">
           {task.subtasks.map((subtask, subtaskIndex) => (
             <SubtaskItem
@@ -225,6 +229,22 @@ export function TaskItem({
               }
             />
           ))}
+
+          {/* Add Subtask Button */}
+          <div className="mt-2 flex justify-start">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAddSubtaskDialog(true);
+              }}
+              className="h-7 text-xs text-secondary-text hover:text-primary-text hover:bg-secondary-background/70"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Subtask
+            </Button>
+          </div>
         </div>
       )}
 
@@ -234,6 +254,15 @@ export function TaskItem({
         onOpenChange={setShowEditDialog}
         task={task}
         onUpdate={onUpdate}
+        milestoneIndex={milestoneIndex}
+        taskIndex={taskIndex}
+      />
+
+      {/* Add Subtask Dialog */}
+      <AddSubtaskDialog
+        open={showAddSubtaskDialog}
+        onOpenChange={setShowAddSubtaskDialog}
+        onAdd={onSubtaskAdd}
         milestoneIndex={milestoneIndex}
         taskIndex={taskIndex}
       />

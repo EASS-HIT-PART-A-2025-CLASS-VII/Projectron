@@ -56,3 +56,10 @@ export interface EditItemPayload {
   subtaskIndex?: number;
   updatedItem: Milestone | Task | Subtask;
 }
+
+export interface AddItemPayload {
+  type: "milestone" | "task" | "subtask";
+  milestoneIndex?: number;
+  taskIndex?: number;
+  item: Milestone | Task | Subtask;
+}

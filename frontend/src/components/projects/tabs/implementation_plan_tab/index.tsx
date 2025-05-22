@@ -7,6 +7,7 @@ import {
   ChevronUp,
   Loader2,
   Check,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -19,9 +20,11 @@ import {
   Task,
   UpdateStatusPayload,
   EditItemPayload,
+  AddItemPayload,
 } from "./types";
 import { CompletionBar } from "./components/completion-bar";
 import { MilestoneItem } from "./components/milestone-item";
+import { AddMilestoneDialog } from "./components/dialogs/add-milestone-dialog";
 
 export function ImplementationPlanTab({
   project: initialProject,
@@ -36,12 +39,13 @@ export function ImplementationPlanTab({
   const [savingStatus, setSavingStatus] = useState<"idle" | "saving" | "saved">(
     "idle"
   );
+  const [showAddMilestoneDialog, setShowAddMilestoneDialog] = useState(false);
 
   // Queue for processing updates sequentially
   const updateQueue = useRef<
     Array<{
-      type: "status" | "edit";
-      payload: UpdateStatusPayload | EditItemPayload;
+      type: "status" | "edit" | "add";
+      payload: UpdateStatusPayload | EditItemPayload | AddItemPayload;
       projectSnapshot: ImplementationPlanTabProps["project"];
     }>
   >([]);
@@ -184,8 +188,8 @@ export function ImplementationPlanTab({
 
   // Queue update with immediate UI feedback
   const queueUpdate = (
-    type: "status" | "edit",
-    payload: UpdateStatusPayload | EditItemPayload,
+    type: "status" | "edit" | "add",
+    payload: UpdateStatusPayload | EditItemPayload | AddItemPayload,
     updatedProject: ImplementationPlanTabProps["project"]
   ) => {
     // Update UI immediately
@@ -337,11 +341,83 @@ export function ImplementationPlanTab({
     queueUpdate("edit", payload, updatedProject);
   };
 
-  // If implementation plan not available
+  // Add new milestone, task, or subtask
+  const addItem = (payload: AddItemPayload) => {
+    // Create a deep copy of the project
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    let updatedPlan =
+      updatedProject.implementation_plan as DetailedImplementationPlan;
+
+    // Initialize implementation_plan if it doesn't exist
+    if (!updatedPlan || !updatedPlan.milestones) {
+      updatedPlan = { milestones: [] };
+      updatedProject.implementation_plan = updatedPlan;
+    }
+
+    const { type, milestoneIndex, taskIndex, item } = payload;
+
+    if (type === "milestone") {
+      // Add new milestone
+      updatedPlan.milestones.push(item as Milestone);
+      // Expand the new milestone
+      setExpandedMilestones((prev) => [
+        ...prev,
+        updatedPlan.milestones.length - 1,
+      ]);
+    } else if (type === "task" && milestoneIndex !== undefined) {
+      // Add new task to milestone
+      updatedPlan.milestones[milestoneIndex].tasks.push(item as Task);
+    } else if (
+      type === "subtask" &&
+      milestoneIndex !== undefined &&
+      taskIndex !== undefined
+    ) {
+      // Add new subtask to task
+      updatedPlan.milestones[milestoneIndex].tasks[taskIndex].subtasks.push(
+        item as Subtask
+      );
+    }
+
+    // Queue update for processing
+    queueUpdate("add", payload, updatedProject);
+  };
+
+  // Handle adding a new milestone
+  const handleAddMilestone = (milestone: Milestone) => {
+    addItem({
+      type: "milestone",
+      item: milestone,
+    });
+  };
+
+  // Handle adding a new task
+  const handleAddTask = (milestoneIndex: number, task: Task) => {
+    addItem({
+      type: "task",
+      milestoneIndex,
+      item: task,
+    });
+  };
+
+  // Handle adding a new subtask
+  const handleAddSubtask = (
+    milestoneIndex: number,
+    taskIndex: number,
+    subtask: Subtask
+  ) => {
+    addItem({
+      type: "subtask",
+      milestoneIndex,
+      taskIndex,
+      item: subtask,
+    });
+  };
+
+  // If implementation plan not available, show empty state with option to add
   if (
-    !implementationPlan ||
-    !implementationPlan.milestones ||
-    implementationPlan.milestones.length === 0
+    !displayImplementationPlan ||
+    !displayImplementationPlan.milestones ||
+    displayImplementationPlan.milestones.length === 0
   ) {
     return (
       <div className="p-6 text-center">
@@ -349,12 +425,20 @@ export function ImplementationPlanTab({
           <AlertTriangle className="h-12 w-12 text-secondary-text" />
         </div>
         <h3 className="text-xl font-semibold mb-2">
-          Implementation Plan Not Available
+          No Implementation Plan Yet
         </h3>
-        <p className="text-secondary-text max-w-md mx-auto">
+        <p className="text-secondary-text max-w-md mx-auto mb-6">
           This project doesn't have an implementation plan defined yet. You can
-          generate one from the Plan Generation page.
+          start by adding milestones or generate one from the Plan Generation
+          page.
         </p>
+        <Button
+          onClick={() => setShowAddMilestoneDialog(true)}
+          className="bg-primary-cta hover:bg-primary-cta-hover"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add First Milestone
+        </Button>
       </div>
     );
   }
@@ -440,10 +524,32 @@ export function ImplementationPlanTab({
                   updatedItem: updatedSubtask,
                 })
               }
+              onTaskAdd={(task) => handleAddTask(milestoneIndex, task)}
+              onSubtaskAdd={(taskIndex, subtask) =>
+                handleAddSubtask(milestoneIndex, taskIndex, subtask)
+              }
             />
           )
         )}
       </div>
+
+      {/* Add Milestone Button */}
+      <div className="mt-6 flex justify-start">
+        <Button
+          onClick={() => setShowAddMilestoneDialog(true)}
+          className="bg-primary-cta hover:bg-hover-active hover:text-white text-black font-semibold"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Milestone
+        </Button>
+      </div>
+
+      {/* Add Milestone Dialog */}
+      <AddMilestoneDialog
+        open={showAddMilestoneDialog}
+        onOpenChange={setShowAddMilestoneDialog}
+        onAdd={handleAddMilestone}
+      />
 
       {/* Back to Top Button (fixed) */}
       {showBackToTop && (

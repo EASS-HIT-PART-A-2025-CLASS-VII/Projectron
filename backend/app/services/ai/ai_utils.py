@@ -42,7 +42,7 @@ def create_llm(temperature=0.1, json_mode=True, model='gpt-4o-mini', max_tokens=
             temperature=temperature,
             openai_api_key=api_key,
             max_tokens=max_tokens,
-            response_format={"type": "json_object"} if json_mode else None,
+            model_kwargs={"response_format": {"type": "json_object"}} if json_mode else {},
         )
 
     except Exception as e:

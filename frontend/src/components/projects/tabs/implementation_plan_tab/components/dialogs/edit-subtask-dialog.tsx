@@ -42,7 +42,9 @@ export function EditSubtaskDialog({
   taskIndex,
   subtaskIndex,
 }: EditSubtaskDialogProps) {
-  const [editedSubtask, setEditedSubtask] = useState<Subtask>({ ...subtask });
+  const [editedSubtask, setEditedSubtask] = useState<Subtask>({
+    ...subtask,
+  });
 
   const handleInputChange = (field: keyof Subtask, value: any) => {
     setEditedSubtask((prev) => ({

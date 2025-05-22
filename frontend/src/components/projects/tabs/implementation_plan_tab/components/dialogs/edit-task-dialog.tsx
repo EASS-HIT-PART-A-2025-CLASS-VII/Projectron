@@ -12,8 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -23,7 +21,7 @@ import {
 } from "@/components/ui/select";
 
 import { Task } from "../../types";
-import { STATUS_DISPLAY, PRIORITY_DISPLAY } from "../../constants";
+import { STATUS_DISPLAY, PRIORITY_OPTIONS } from "../../constants";
 
 interface EditTaskDialogProps {
   open: boolean;
@@ -42,81 +40,14 @@ export function EditTaskDialog({
   milestoneIndex,
   taskIndex,
 }: EditTaskDialogProps) {
-  const [editedTask, setEditedTask] = useState<Task>({ ...task });
-  const [newDependency, setNewDependency] = useState("");
-  const [newComponent, setNewComponent] = useState("");
-  const [newApi, setNewApi] = useState("");
+  const [editedTask, setEditedTask] = useState<Task>({
+    ...task,
+  });
 
   const handleInputChange = (field: keyof Task, value: any) => {
     setEditedTask((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const handleAddDependency = () => {
-    if (!newDependency.trim()) return;
-
-    const updatedDependencies = [
-      ...editedTask.dependencies,
-      newDependency.trim(),
-    ];
-    setEditedTask((prev) => ({
-      ...prev,
-      dependencies: updatedDependencies,
-    }));
-    setNewDependency("");
-  };
-
-  const handleRemoveDependency = (index: number) => {
-    const updatedDependencies = [...editedTask.dependencies];
-    updatedDependencies.splice(index, 1);
-    setEditedTask((prev) => ({
-      ...prev,
-      dependencies: updatedDependencies,
-    }));
-  };
-
-  const handleAddComponent = () => {
-    if (!newComponent.trim()) return;
-
-    const updatedComponents = [
-      ...editedTask.components_affected,
-      newComponent.trim(),
-    ];
-    setEditedTask((prev) => ({
-      ...prev,
-      components_affected: updatedComponents,
-    }));
-    setNewComponent("");
-  };
-
-  const handleRemoveComponent = (index: number) => {
-    const updatedComponents = [...editedTask.components_affected];
-    updatedComponents.splice(index, 1);
-    setEditedTask((prev) => ({
-      ...prev,
-      components_affected: updatedComponents,
-    }));
-  };
-
-  const handleAddApi = () => {
-    if (!newApi.trim()) return;
-
-    const updatedApis = [...editedTask.apis_affected, newApi.trim()];
-    setEditedTask((prev) => ({
-      ...prev,
-      apis_affected: updatedApis,
-    }));
-    setNewApi("");
-  };
-
-  const handleRemoveApi = (index: number) => {
-    const updatedApis = [...editedTask.apis_affected];
-    updatedApis.splice(index, 1);
-    setEditedTask((prev) => ({
-      ...prev,
-      apis_affected: updatedApis,
     }));
   };
 
@@ -132,7 +63,7 @@ export function EditTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg bg-secondary-background max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md bg-secondary-background">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
@@ -195,9 +126,9 @@ export function EditTaskDialog({
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(PRIORITY_DISPLAY).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -211,7 +142,7 @@ export function EditTaskDialog({
               id="task-hours"
               type="number"
               min={1}
-              max={300}
+              max={100}
               value={editedTask.estimated_hours}
               onChange={(e) =>
                 handleInputChange(
@@ -221,144 +152,6 @@ export function EditTaskDialog({
               }
               className="bg-primary-background"
             />
-          </div>
-
-          {/* Dependencies */}
-          <div className="space-y-2">
-            <Label>Dependencies</Label>
-            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[28px]">
-              {editedTask.dependencies.map((dep, idx) => (
-                <Badge
-                  key={idx}
-                  variant="outline"
-                  className="bg-primary-background text-secondary-text flex items-center gap-1"
-                >
-                  {dep}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:text-red-400"
-                    onClick={() => handleRemoveDependency(idx)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add dependency..."
-                value={newDependency}
-                onChange={(e) => setNewDependency(e.target.value)}
-                className="bg-primary-background"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddDependency();
-                  }
-                }}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddDependency}
-                className="shrink-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Components Affected */}
-          <div className="space-y-2">
-            <Label>Components Affected</Label>
-            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[28px]">
-              {editedTask.components_affected.map((comp, idx) => (
-                <Badge
-                  key={idx}
-                  variant="outline"
-                  className="bg-primary-background text-primary-cta flex items-center gap-1"
-                >
-                  {comp}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:text-red-400"
-                    onClick={() => handleRemoveComponent(idx)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add component..."
-                value={newComponent}
-                onChange={(e) => setNewComponent(e.target.value)}
-                className="bg-primary-background"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddComponent();
-                  }
-                }}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddComponent}
-                className="shrink-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* APIs Affected */}
-          <div className="space-y-2">
-            <Label>APIs Affected</Label>
-            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[28px]">
-              {editedTask.apis_affected.map((api, idx) => (
-                <Badge
-                  key={idx}
-                  variant="outline"
-                  className="bg-primary-background text-blue-500 flex items-center gap-1"
-                >
-                  {api}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:text-red-400"
-                    onClick={() => handleRemoveApi(idx)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add API..."
-                value={newApi}
-                onChange={(e) => setNewApi(e.target.value)}
-                className="bg-primary-background"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddApi();
-                  }
-                }}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddApi}
-                className="shrink-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
 

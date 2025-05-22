@@ -1,35 +1,28 @@
 "use client";
 
-import { CheckCircle } from "lucide-react";
-
 interface CompletionBarProps {
   completionPercentage: number;
 }
 
 export function CompletionBar({ completionPercentage }: CompletionBarProps) {
-  // Ensure percentage is between 0-100
-  const percentage = Math.min(Math.max(0, completionPercentage), 100);
-
   return (
-    <div className="bg-transparent mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-primary-cta opacity-80" />
-          Implementation Progress
-        </h2>
-        <span className="font-semibold text-xl">{percentage.toFixed(0)}%</span>
+    <div className="mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-2xl font-bold">Implementation Plan</h2>
+        <span className="text-sm text-secondary-text">
+          {completionPercentage.toFixed(0)}% Complete
+        </span>
       </div>
-
-      <div className="w-full bg-secondary-background h-2 rounded-full overflow-hidden backdrop-blur-sm">
+      <div className="w-full bg-primary-background h-2 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full ${
-            percentage === 100
-              ? "bg-green-500/70"
-              : percentage > 0
+          className={`h-full rounded-full transition-all duration-500 ${
+            completionPercentage === 100
+              ? "bg-green-500"
+              : completionPercentage > 0
               ? "bg-primary-cta"
-              : ""
+              : "bg-transparent"
           }`}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${completionPercentage}%` }}
         />
       </div>
     </div>

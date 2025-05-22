@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Edit, ChevronDown, ChevronUp, Calendar, Info } from "lucide-react";
+import {
+  Edit,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  Info,
+  Plus,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +23,7 @@ import {
 import { Milestone, Subtask, Task } from "../types";
 import { TaskItem } from "./task-item";
 import { EditMilestoneDialog } from "./dialogs/edit-milestone-dialog";
+import { AddTaskDialog } from "./dialogs/add-task-dialog";
 
 interface MilestoneItemProps {
   milestone: Milestone;
@@ -36,6 +44,8 @@ interface MilestoneItemProps {
     subtaskIndex: number,
     updatedSubtask: Subtask
   ) => void;
+  onTaskAdd: (task: Task) => void;
+  onSubtaskAdd: (taskIndex: number, subtask: Subtask) => void;
 }
 
 export function MilestoneItem({
@@ -49,8 +59,11 @@ export function MilestoneItem({
   onUpdate,
   onTaskUpdate,
   onSubtaskUpdate,
+  onTaskAdd,
+  onSubtaskAdd,
 }: MilestoneItemProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const milestoneRef = useRef<HTMLDivElement>(null);
 
@@ -236,7 +249,7 @@ export function MilestoneItem({
       </Card>
 
       {/* Tasks */}
-      {expanded && milestone.tasks.length > 0 && (
+      {expanded && (
         <div className="mt-2 ml-3 sm:ml-6 border-l border-divider/40 pl-2 sm:pl-4 space-y-3">
           {milestone.tasks.map((task, taskIndex) => (
             <TaskItem
@@ -252,8 +265,25 @@ export function MilestoneItem({
               onSubtaskUpdate={(subtaskIndex, updatedSubtask) =>
                 onSubtaskUpdate(taskIndex, subtaskIndex, updatedSubtask)
               }
+              onSubtaskAdd={(subtask) => onSubtaskAdd(taskIndex, subtask)}
             />
           ))}
+
+          {/* Add Task Button */}
+          <div className="mt-3 flex justify-start">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAddTaskDialog(true);
+              }}
+              className="h-8 text-secondary-text hover:text-primary-text hover:bg-secondary-background/70"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Task
+            </Button>
+          </div>
         </div>
       )}
 
@@ -263,6 +293,14 @@ export function MilestoneItem({
         onOpenChange={setShowEditDialog}
         milestone={milestone}
         onUpdate={onUpdate}
+        milestoneIndex={milestoneIndex}
+      />
+
+      {/* Add Task Dialog */}
+      <AddTaskDialog
+        open={showAddTaskDialog}
+        onOpenChange={setShowAddTaskDialog}
+        onAdd={onTaskAdd}
         milestoneIndex={milestoneIndex}
       />
     </div>
