@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, plan, projects, diagrams
+from app.api.endpoints import auth, plan, projects, diagrams, profile
 
 api_router = APIRouter()
 
@@ -15,3 +15,5 @@ api_router.include_router(plan.router, prefix="/plan", tags=["plan"])
 
 # Diagram routes
 api_router.include_router(diagrams.router, prefix="/diagrams", tags=["diagrams"])
+
+api_router.include_router(profile.router, prefix="/users", tags=["profile"])

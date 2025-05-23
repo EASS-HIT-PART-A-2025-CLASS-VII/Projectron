@@ -39,7 +39,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </Link>
       <div className="flex flex-1 flex-col justify-center px-6 pt-2 pb-10 lg:px-8">
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-secondary-background py-8 px-6 shadow-lg rounded-lg sm:px-10 border border-divider">
+          <div className="bg-secondary-background py-10 px-6 shadow-lg rounded-[2rem] sm:px-10 border border-divider">
             {children}
           </div>
         </div>

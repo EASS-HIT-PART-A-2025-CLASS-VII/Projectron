@@ -1,15 +1,19 @@
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 from pydantic import BaseModel, EmailStr, field_validator
-
+import requests
+from urllib.parse import urlencode
 from app.core.config import get_settings
 from app.core.jwt import create_access_token
 from app.db.models.auth import User
 from app.api.deps import get_current_user
 from app.services.email_service import EmailService
+
+
 
 router = APIRouter()
 settings = get_settings()
@@ -35,11 +39,6 @@ class UserResponse(BaseModel):
     last_login: Optional[datetime] = None
     created_at: datetime
     
-    class Config:
-        orm_mode = True
-        json_encoders = {
-            ObjectId: str  # Convert ObjectId to string
-        }
         
     @field_validator('id', mode='before')
     def objectid_to_str(cls, v):
@@ -187,3 +186,65 @@ async def read_users_me(current_user: User = Depends(get_current_user)) -> Any:
     This endpoint returns the currently authenticated user's information.
     """
     return current_user
+
+
+@router.get("/google")
+async def google_login():
+    """Redirect to Google OAuth"""
+    google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    params = {
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "scope": "openid email profile",
+        "response_type": "code",
+        "state": "random_state_string"  # Add CSRF protection in production
+    }
+    url = f"{google_auth_url}?{urlencode(params)}"
+    return {"auth_url": url}
+
+@router.get("/google/callback")
+async def google_callback(code: str):
+    """Handle Google OAuth callback"""
+    # Exchange code for token
+    try:
+        token_url = "https://oauth2.googleapis.com/token"
+        token_data = {
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "client_secret": settings.GOOGLE_CLIENT_SECRET,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        }
+        
+        token_response = requests.post(token_url, data=token_data)
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+        
+        # Get user info from Google
+        user_info_url = f"https://www.googleapis.com/oauth2/v2/userinfo?access_token={access_token}"
+        user_response = requests.get(user_info_url)
+        user_data = user_response.json()
+        
+        # Find or create user
+        user = User.objects(email=user_data["email"]).first()
+        if not user:
+            user = User.create_oauth_user(
+                email=user_data["email"],
+                full_name=user_data["name"],
+                oauth_provider="google",
+                oauth_id=user_data["id"]
+            )
+        
+        # Create JWT token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_token = create_access_token(
+            data={"sub": str(user.id)}, 
+            expires_delta=access_token_expires
+        )
+    
+        params = urlencode({"token": jwt_token})
+        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
+    
+    except Exception as e:
+        params = urlencode({"error": "oauth_failed"})
+        return RedirectResponse(f"http://localhost:3000/auth/login?{params}")

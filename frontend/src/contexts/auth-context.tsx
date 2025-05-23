@@ -9,6 +9,8 @@ import {
   RegisterCredentials,
   login as loginApi, 
   register as registerApi,
+  loginWithGoogle as loginWithGoogleApi,
+  registerWithGoogle as registerWithGoogleApi,
   getCurrentUser, 
   verifyEmail as verifyEmailApi,
   saveToken,
@@ -24,10 +26,14 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, full_name: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  registerWithGoogle: () => Promise<void>;
   logout: () => void;
   verifyEmail: (token: string) => Promise<boolean>;
   resendVerification: (email: string) => Promise<void>;
   error: string | null;
+  setUser: (user: User | null) => void;
+  setIsAuthenticated: (authenticated: boolean) => void;
 }
 
 // Create auth context
@@ -102,6 +108,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Google Login function
+  const loginWithGoogle = async () => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      await loginWithGoogleApi();
+      // Note: The redirect happens in the API function
+      // The actual login completion happens in the OAuth callback
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Google login failed';
+      setError(errorMessage);
+      console.error('Google login error:', errorMessage);
+      setIsLoading(false);
+    }
+  };
+
   // Register function
   const register = async (email: string, password: string, full_name: string) => {
     setIsLoading(true);
@@ -121,6 +144,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(errorMessage);
       console.error('Registration error:', errorMessage);
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Google Register function
+  const registerWithGoogle = async () => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      await registerWithGoogleApi();
+      // Note: The redirect happens in the API function
+      // The actual registration completion happens in the OAuth callback
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Google signup failed';
+      setError(errorMessage);
+      console.error('Google signup error:', errorMessage);
       setIsLoading(false);
     }
   };
@@ -174,6 +214,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Helper function to manually set authenticated state (for OAuth callbacks)
+  const setIsAuthenticated = (authenticated: boolean) => {
+    if (!authenticated) {
+      setUser(null);
+    }
+  };
+
   // Context value
   const value = {
     user,
@@ -181,10 +228,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     login,
     register,
+    loginWithGoogle,
+    registerWithGoogle,
     logout,
     verifyEmail,
     resendVerification,
     error,
+    setUser,
+    setIsAuthenticated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

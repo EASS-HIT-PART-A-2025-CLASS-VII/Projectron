@@ -50,3 +50,19 @@ class User(Document):
         self.save()
         
         return token
+    
+    oauth_provider = StringField()  # 'google', 'github', etc.
+    oauth_id = StringField()        # User's ID from OAuth provider
+
+    @classmethod
+    def create_oauth_user(cls, email, full_name, oauth_provider, oauth_id, roles=None):
+        """Create a new OAuth user (no password required)"""
+        return cls(
+            email=email,
+            hashed_password="",  # Empty for OAuth users
+            full_name=full_name,
+            oauth_provider=oauth_provider,
+            oauth_id=oauth_id,
+            roles=roles or ["user"],
+            is_email_verified=True  # OAuth emails are pre-verified
+        ).save()

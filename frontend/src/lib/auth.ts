@@ -23,6 +23,10 @@ export interface User {
   created_at: string;
 }
 
+export interface GoogleAuthResponse {
+  auth_url: string;
+}
+
 // Login function - sends credentials to your backend
 export async function login(
   credentials: LoginCredentials
@@ -56,6 +60,23 @@ export async function login(
   return response.json();
 }
 
+// Google Login - gets Google auth URL and redirects
+export async function loginWithGoogle(): Promise<void> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to get Google auth URL");
+  }
+
+  const data: GoogleAuthResponse = await response.json();
+
+  // Redirect to Google OAuth
+  window.location.href = data.auth_url;
+}
+
 // Register function - creates a new user
 export async function register(
   credentials: RegisterCredentials
@@ -75,6 +96,22 @@ export async function register(
     const error = await response.json();
     throw new Error(error.detail || "Registration failed");
   }
+}
+
+// Google Register - same as Google login for OAuth
+export async function registerWithGoogle(): Promise<void> {
+  // OAuth registration is the same flow as login
+  await loginWithGoogle();
+}
+
+// Handle OAuth success callback (called from your success page)
+export async function handleOAuthSuccess(token: string): Promise<User> {
+  // Save the token
+  saveToken(token);
+
+  // Get user data
+  const user = await getCurrentUser();
+  return user;
 }
 
 // Get current user information
@@ -121,7 +158,7 @@ export async function resendVerification(
   email: string
 ): Promise<{ message: string }> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/resend-verification`,
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification`,
     {
       method: "POST",
       headers: {
@@ -155,4 +192,30 @@ export function removeToken(): void {
 
 export function isAuthenticated(): boolean {
   return !!getToken();
+}
+
+export async function handleOAuthCallback(): Promise<User> {
+  // Get token from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  const error = urlParams.get('error');
+
+  if (error) {
+    throw new Error('OAuth authentication failed');
+  }
+
+  if (!token) {
+    throw new Error('No token received from OAuth');
+  }
+
+  // Save the token
+  saveToken(token);
+
+  // Get user data
+  const user = await getCurrentUser();
+  
+  // Clean up URL (remove token from URL for security)
+  window.history.replaceState({}, document.title, window.location.pathname);
+  
+  return user;
 }

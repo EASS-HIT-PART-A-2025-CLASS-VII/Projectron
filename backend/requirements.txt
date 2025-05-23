@@ -63,3 +63,4 @@ webdriver-manager
 langchain-anthropic
 langgraph
 langgraph-prebuilt
+authlib

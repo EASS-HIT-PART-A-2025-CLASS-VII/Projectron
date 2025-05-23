@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Projectron"
     API_V1_STR: str = "/api/endpoints"
 
-    FRONTEND_URL: str = "http://localhost:3000" #os.getenv("FRONTEND_URL", "http://localhost:3000")
+    FRONTEND_URL: str = "http://localhost:3000" 
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
         "http://localhost:3000",  # Frontend DEV URL
@@ -22,19 +22,19 @@ class Settings(BaseSettings):
     ]
 
     # MongoDB
-    MONGODB_URI: str #= os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    MONGODB_URI: str 
     MONGODB_DB_NAME: str = "projectron"
     
     # JWT
-    SECRET_KEY: str #= os.getenv("SECRET_KEY", "your-secret-key-for-jwt")
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 48 * 60
     
     # EMAIL SERVICE
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int =  587
-    SMTP_USER: str #= os.getenv("SMTP_USER", "travel7450@gmail.com")
-    SMTP_PASSWORD: str #= os.getenv("SMTP_PASSWORD", "rmcx lfdo olyb dhdm")
+    SMTP_USER: str 
+    SMTP_PASSWORD: str 
     
     # OPENAI SERVICE
     AI_MODEL_STRONG: str = "gpt-4o-mini"
@@ -44,8 +44,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
 
     # ANTHROPIC SERVICE
-    ANTHROPIC_API_KEY: str #= os.getenv("ANTHROPIC_API_KEY", "your-anthropic-api-key")
-    # AI_MODEL_NAME: str = "claude-3-opus-20240229"
+    ANTHROPIC_API_KEY: str 
 
     # SELENIUM
     # Settings related to the Sequence Diagram Generator
@@ -57,6 +56,10 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"  # "development", "staging", "production"
     ENABLE_MERMAID_CLI_VALIDATION: bool = True
 
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI:str 
+    
     model_config = {
         "env_file": ".env",
         "extra": "ignore"  # Allow extra fields in environment variables
