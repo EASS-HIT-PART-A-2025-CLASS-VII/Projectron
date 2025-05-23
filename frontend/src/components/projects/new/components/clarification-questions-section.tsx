@@ -195,7 +195,7 @@ export function ClarificationQuestionsSection({
               <Button
                 onClick={handleSubmitAnswers}
                 disabled={isLoading}
-                className="bg-primary-cta hover:bg-primary-cta/90"
+                className="bg-primary-cta hover:bg-hover-active hover:text-white text-black font-semi-bold"
               >
                 {isLoading ? (
                   <>

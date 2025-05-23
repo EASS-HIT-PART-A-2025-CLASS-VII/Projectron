@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { PlanGenerationInput } from "@/components/projects/new/types";
 import { PlanGenerationForm } from "@/components/projects/new/components/plan-generation-form";
 import { ClarificationQuestionsSection } from "@/components/projects/new/components/clarification-questions-section";
+import { PlanGenerationLoading } from "@/components/projects/new/components/plan-generation-loading";
 
 interface PlanStatus {
   task_id: string;
@@ -174,6 +175,11 @@ export default function NewProjectPage() {
     }
   };
 
+  // If we're in the generating step, show the full-screen loading component
+  if (step === "generating") {
+    return <PlanGenerationLoading planStatus={planStatus} />;
+  }
+
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-8 text-center">
@@ -200,41 +206,6 @@ export default function NewProjectPage() {
             onSubmit={handleGeneratePlan}
             isLoading={isGeneratingPlan}
           />
-        )}
-
-        {step === "generating" && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-16 h-16 border-4 border-t-primary-cta rounded-full animate-spin mb-4"></div>
-
-            {planStatus ? (
-              <>
-                <p className="text-lg font-medium mb-2">
-                  {planStatus.current_step}
-                </p>
-                <div className="w-full max-w-md bg-gray-200 rounded-full h-2 mb-4">
-                  <div
-                    className="bg-primary-cta h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${
-                        (planStatus.step_number / planStatus.total_steps) * 100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-                <p className="text-sm text-secondary-text">
-                  Step {planStatus.step_number} of {planStatus.total_steps}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-lg">Starting plan generation...</p>
-                <p className="text-sm text-secondary-text mt-2">
-                  This may take a minute or two. We're crafting a comprehensive
-                  project plan for you.
-                </p>
-              </>
-            )}
-          </div>
         )}
       </Card>
     </div>
