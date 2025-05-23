@@ -27,6 +27,10 @@ export interface GoogleAuthResponse {
   auth_url: string;
 }
 
+export interface GitHubAuthResponse {
+  auth_url: string;
+}
+
 // Login function - sends credentials to your backend
 export async function login(
   credentials: LoginCredentials
@@ -35,9 +39,6 @@ export async function login(
   const formData = new URLSearchParams();
   formData.append("username", credentials.username); // Backend uses username field for email
   formData.append("password", credentials.password);
-
-  console.log(credentials.username);
-  console.log(credentials.password);
   // Send request to backend
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/auth/token`,
@@ -77,6 +78,23 @@ export async function loginWithGoogle(): Promise<void> {
   window.location.href = data.auth_url;
 }
 
+// GitHub Login - gets GitHub auth URL and redirects
+export async function loginWithGithub(): Promise<void> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/github`
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to get GitHub auth URL");
+  }
+
+  const data: GitHubAuthResponse = await response.json();
+
+  // Redirect to GitHub OAuth
+  window.location.href = data.auth_url;
+}
+
 // Register function - creates a new user
 export async function register(
   credentials: RegisterCredentials
@@ -102,6 +120,12 @@ export async function register(
 export async function registerWithGoogle(): Promise<void> {
   // OAuth registration is the same flow as login
   await loginWithGoogle();
+}
+
+// GitHub Register - same as GitHub login for OAuth
+export async function registerWithGithub(): Promise<void> {
+  // OAuth registration is the same flow as login
+  await loginWithGithub();
 }
 
 // Handle OAuth success callback (called from your success page)
@@ -180,7 +204,6 @@ export function getToken(): string | null {
   // Check if we're running in a browser (not during server-side rendering)
   if (typeof window !== "undefined") {
     let token = localStorage.getItem("token");
-    console.log(token);
     return token;
   }
   return null;
@@ -197,15 +220,15 @@ export function isAuthenticated(): boolean {
 export async function handleOAuthCallback(): Promise<User> {
   // Get token from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-  const error = urlParams.get('error');
+  const token = urlParams.get("token");
+  const error = urlParams.get("error");
 
   if (error) {
-    throw new Error('OAuth authentication failed');
+    throw new Error("OAuth authentication failed");
   }
 
   if (!token) {
-    throw new Error('No token received from OAuth');
+    throw new Error("No token received from OAuth");
   }
 
   // Save the token
@@ -213,9 +236,9 @@ export async function handleOAuthCallback(): Promise<User> {
 
   // Get user data
   const user = await getCurrentUser();
-  
+
   // Clean up URL (remove token from URL for security)
   window.history.replaceState({}, document.title, window.location.pathname);
-  
+
   return user;
 }

@@ -55,7 +55,6 @@ export function EmailVerification({
   // Handle resend verification
   const handleResendVerification = async () => {
     if (email) {
-      console.log(email);
       try {
         setVerificationStatus("loading");
         await resendVerification(email);

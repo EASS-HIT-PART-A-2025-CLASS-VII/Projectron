@@ -56,7 +56,6 @@ export default function ProjectsPage() {
       try {
         setIsLoading(true);
         const projectsData = await getProjects();
-        console.log(projectsData);
         setProjects(projectsData);
         setFilteredProjects(projectsData);
       } catch (err) {

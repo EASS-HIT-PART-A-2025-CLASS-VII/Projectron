@@ -27,7 +27,6 @@ export async function apiClient<T>(
       ...customConfig.headers,
     },
   };
-  console.log(customConfig.body, "customConfig.body");
   if (customConfig.body) {
     config.body = JSON.stringify(customConfig.body);
   }

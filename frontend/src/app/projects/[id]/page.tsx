@@ -34,7 +34,6 @@ export default function ProjectPage() {
         console.log(`Fetching project with ID: ${id}`);
         setIsLoadingProject(true);
         const projectData = await getProjectById(id);
-        console.log(projectData);
         setProject(projectData);
       } catch (err) {
         console.error("Failed to fetch project:", err);

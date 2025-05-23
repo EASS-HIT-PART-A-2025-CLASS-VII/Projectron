@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI:str 
     
+
+    GITHUB_CLIENT_ID: str
+    GITHUB_CLIENT_SECRET: str
+    GITHUB_REDIRECT_URI: str
+
     model_config = {
         "env_file": ".env",
         "extra": "ignore"  # Allow extra fields in environment variables

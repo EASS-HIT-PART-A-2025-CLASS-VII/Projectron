@@ -248,3 +248,88 @@ async def google_callback(code: str):
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})
         return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
+
+
+# NEW: GitHub OAuth endpoints
+@router.get("/github")
+async def github_login():
+    """Redirect to GitHub OAuth"""
+    github_auth_url = "https://github.com/login/oauth/authorize"
+    params = {
+        "client_id": settings.GITHUB_CLIENT_ID,
+        "redirect_uri": settings.GITHUB_REDIRECT_URI,
+        "scope": "user:email",
+        "state": "random_state_string"  # Add CSRF protection in production
+    }
+    url = f"{github_auth_url}?{urlencode(params)}"
+    return {"auth_url": url}
+
+@router.get("/github/callback")
+async def github_callback(code: str):
+    """Handle GitHub OAuth callback"""
+    try:
+        # Exchange code for token
+        token_url = "https://github.com/login/oauth/access_token"
+        token_data = {
+            "client_id": settings.GITHUB_CLIENT_ID,
+            "client_secret": settings.GITHUB_CLIENT_SECRET,
+            "code": code,
+        }
+        
+        token_response = requests.post(
+            token_url, 
+            data=token_data,
+            headers={"Accept": "application/json"}
+        )
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+        
+        # Get user info from GitHub
+        user_info_url = "https://api.github.com/user"
+        user_response = requests.get(
+            user_info_url,
+            headers={"Authorization": f"token {access_token}"}
+        )
+        user_data = user_response.json()
+        
+        # Get user email from GitHub (if not public)
+        email = user_data.get("email")
+        if not email:
+            emails_response = requests.get(
+                "https://api.github.com/user/emails",
+                headers={"Authorization": f"token {access_token}"}
+            )
+            emails = emails_response.json()
+            # Get primary email
+            for email_obj in emails:
+                if email_obj.get("primary"):
+                    email = email_obj.get("email")
+                    break
+        
+        if not email:
+            params = urlencode({"error": "no_email"})
+            return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
+        
+        # Find or create user
+        user = User.objects(email=email).first()
+        if not user:
+            user = User.create_oauth_user(
+                email=email,
+                full_name=user_data.get("name") or user_data.get("login"),
+                oauth_provider="github",
+                oauth_id=str(user_data["id"])
+            )
+        
+        # Create JWT token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        jwt_token = create_access_token(
+            data={"sub": str(user.id)}, 
+            expires_delta=access_token_expires
+        )
+    
+        params = urlencode({"token": jwt_token})
+        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
+    
+    except Exception as e:
+        params = urlencode({"error": "oauth_failed"})
+        return RedirectResponse(f"http://localhost:3000/auth/login?{params}")

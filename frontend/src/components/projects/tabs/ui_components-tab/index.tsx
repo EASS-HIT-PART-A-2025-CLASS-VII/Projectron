@@ -102,8 +102,6 @@ export function UIComponentsTab({
     const currentScreens = isEditing
       ? editedUIComponents?.screens
       : uiComponents?.screens || [];
-    console.log(currentScreens);
-    console.log(isEditing);
     return currentScreens?.filter(
       (screen) =>
         screen.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,12 +169,10 @@ export function UIComponentsTab({
 
     // Update state
     setEditedUIComponents(newUIComponents);
-    console.log(editedUIComponents, "editedUIComponents");
     setUnsavedChanges(true);
 
     // If the deleted screen was active, set the first available screen as active
     if (activeScreen === screenName && newScreens.length > 0) {
-      console.log("newScreens", newScreens);
       setActiveScreen(newScreens[0].name);
     } else if (newScreens.length === 0) {
       setActiveScreen(null);
