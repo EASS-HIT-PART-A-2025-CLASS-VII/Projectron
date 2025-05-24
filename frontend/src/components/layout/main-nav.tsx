@@ -59,9 +59,9 @@ export function Navbar() {
                   <li key={item.name}>
                     <Link href={item.href}>
                       <Button
-                        variant="outline"
+                        variant="link"
                         className={cn(
-                          "flex items-center px-3 py-2 text-sm transition-colors hover:bg-hover-active"
+                          "flex items-center px-3 py-2 text-sm transition-colors text-white"
                         )}
                       >
                         <item.icon className="mr-2 h-4 w-4" />

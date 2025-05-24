@@ -10,6 +10,7 @@ import { ProjectTabs } from "@/components/projects/project-tabs";
 import { ProjectLoadingSkeleton } from "@/components/projects/project-loading-skeleton";
 import { ProjectError } from "@/components/projects/project-error";
 import { useAuth } from "@/contexts/auth-context";
+import { ContextFAB } from "@/components/projects/context-fab";
 
 export default function ProjectPage() {
   const { id } = useParams() as { id: string };
@@ -57,6 +58,7 @@ export default function ProjectPage() {
           <div className="space-y-6 animate-fade-in">
             <ProjectHeader project={project} setProject={setProject} />
             <ProjectTabs project={project} />
+            <ContextFAB projectId={project.id} />
           </div>
         ) : (
           <ProjectError message="Project not found" />

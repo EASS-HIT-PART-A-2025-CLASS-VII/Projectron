@@ -64,7 +64,7 @@ export function HeroSection() {
       className="relative py-40 sm:pt-24 sm:pb-16 md:pt-20 md:pb-24 md:px-12 overflow-hidden bg-background"
     >
       {/* Background effects - static version */}
-      <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-secondary-background to-transparent z-0"></div>
+      <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-primary-background to-transparent z-0"></div>
 
       <div className="absolute inset-0 opacity-70" />
       <div

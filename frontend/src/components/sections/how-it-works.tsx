@@ -39,7 +39,7 @@ const processSteps = [
       "Projectron's AI analyzes your requirements and produces a comprehensive development plan within minutes.",
     icon: Cpu,
     highlight: "90% reduction in planning time",
-    color: "from-primary-cta/30 to-emerald-400/30",
+    color: "from-green-500/30 to-emerald-400/30",
     shadowColor: "shadow-primary-cta/10",
   },
   {
@@ -147,12 +147,12 @@ const ProcessStep = ({
               )}
               animate={{
                 scale: isHovered ? 1.1 : 1,
-                opacity: isHovered ? 0.3 : 0.2,
+                opacity: isHovered ? 0.4 : 0.2,
               }}
               transition={{ duration: 0.3 }}
             />
 
-            {/* Icon container - cleaner design */}
+            {/* Icon container  */}
             <motion.div
               className={cn(
                 "relative w-20 h-20 rounded-xl flex items-center justify-center",
@@ -167,7 +167,7 @@ const ProcessStep = ({
               <Icon className={cn("h-7 w-7", `text-primary-cta/70`)} />
             </motion.div>
 
-            {/* Step number - minimal design */}
+            {/* Step number */}
             <motion.div
               className="absolute -top-1 -right-1"
               animate={{
@@ -249,7 +249,8 @@ export const HowItWorks = () => {
       className="py-32 relative overflow-hidden bg-primary-background"
     >
       {/* Fade transitions at section boundaries */}
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-secondary-background to-primary-background z-20 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary-background to-transparet z-20 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-primary-background to-transparent z-20 pointer-events-none" />
 
       {/* Background pattern - more subtle */}
       {/* Subtle animated background gradient */}
@@ -262,7 +263,7 @@ export const HowItWorks = () => {
 
       {/* Grid pattern overlay - more subtle */}
       <div
-        className="absolute inset-0 opacity-[0.1]"
+        className="absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage: `linear-gradient(to right, #12E88F 1px, transparent 1px),
                            linear-gradient(to bottom, #12E88F 1px, transparent 1px)`,
