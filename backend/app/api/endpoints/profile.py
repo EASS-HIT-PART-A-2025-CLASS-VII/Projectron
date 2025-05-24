@@ -1,4 +1,3 @@
-# app/api/endpoints/profile.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional

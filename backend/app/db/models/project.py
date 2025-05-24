@@ -30,7 +30,8 @@ class Project(Document):
     activity_diagram_svg = StringField(default="")
     sequence_diagram_source_code = StringField(default="")
     sequence_diagram_svg         = StringField(default="")
-
+    context_notes = StringField(default="")  # User's additional context notes
+    last_context_message = StringField(default="")  # Last generated context message
     created_at         = DateTimeField(default=lambda: datetime.now(tz=timezone.utc))
     updated_at         = DateTimeField(default=lambda: datetime.now(tz=timezone.utc))
     extra_meta         = DictField(default={})                   

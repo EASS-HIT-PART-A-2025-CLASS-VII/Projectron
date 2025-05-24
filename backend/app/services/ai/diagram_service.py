@@ -10,7 +10,7 @@ from langchain.schema import HumanMessage
 
 from app.core.config import get_settings
 from app.services.ai.ai_utils import compact_json, create_llm
-from app.services.ai.diagram_prompts import (
+from app.services.ai.prompts.diagram_prompts import (
     CLASS_DIAGRAM_JSON_TEMPLATE,
     ACTIVITY_DIAGRAM_JSON_TEMPLATE
 )

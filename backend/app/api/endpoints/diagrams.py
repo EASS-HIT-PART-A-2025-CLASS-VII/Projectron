@@ -1,4 +1,3 @@
-# backend/app/api/endpoints/diagrams.py
 from contextlib import asynccontextmanager
 import json
 from bson import ObjectId

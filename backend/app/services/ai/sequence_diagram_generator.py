@@ -9,7 +9,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException, TimeoutException, InvalidSessionIdException, StaleElementReferenceException
 from webdriver_manager.chrome import ChromeDriverManager
-from app.services.ai.diagram_prompts import (
+from app.services.ai.prompts.diagram_prompts import (
     SEQUENCE_DIAGRAM_PROMPT_TEMPLATE,
     SEQUENCE_DIAGRAM_JSON_TEMPLATE,
     SEQUENCE_DIAGRAM_DIRECT_TEMPLATE)

@@ -4,7 +4,7 @@ from app.core.config import get_settings
 from app.pydantic_models.ai_plan_models import APIEndpoints, ClarificationQuestions, DataModels, DetailedImplementationPlan, HighLevelPlan, TechnicalArchitecture, UIComponents
 from app.pydantic_models.project_http_models import PlanGenerationInput
 from app.services.ai.ai_utils import create_llm
-from app.services.ai.plan_prompts_copy import (
+from app.services.ai.prompts.plan_prompts import (
     CLARIFICATION_QUESTIONS_PROMPT,
     HIGH_LEVEL_PLAN_PROMPT,
     TECHNICAL_ARCHITECTURE_PROMPT,
