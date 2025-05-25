@@ -79,6 +79,9 @@ async def create_sequence_diagram(
         project.save() 
         return SVGResponse(content=svg_content)
     
+    except HTTPException:
+        raise
+    
     except Exception as e:
         print(f"Error generating sequence diagram: {str(e)}")
         raise HTTPException(

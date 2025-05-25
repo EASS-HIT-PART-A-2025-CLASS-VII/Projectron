@@ -12,7 +12,8 @@ def connect_to_mongo():
             db=settings.MONGODB_DB_NAME,
             alias='default',
             tz_aware=True,            # ← tell PyMongo to return aware datetimes
-            tzinfo=timezone.utc       
+            tzinfo=timezone.utc,
+            uuidRepresentation='standard'       
         )
         print(f"Connected to MongoDB")
         return True

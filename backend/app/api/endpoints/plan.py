@@ -38,6 +38,7 @@ async def get_plan_status(
 ):
     """Get the status of plan generation"""
     try:
+        # Query for the specific task belonging to the current user
         progress = PlanProgress.objects(task_id=task_id, user_id=str(current_user.id)).first()
         
         if not progress:
@@ -57,7 +58,11 @@ async def get_plan_status(
             "result": progress.result if progress.status == 'completed' else None
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
+        # Log unexpected errors and return 500
+        print(f"Error in get_plan_status: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get status: {str(e)}"

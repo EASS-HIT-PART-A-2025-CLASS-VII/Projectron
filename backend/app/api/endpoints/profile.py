@@ -125,7 +125,7 @@ async def update_user_profile(
             detail="Failed to update profile"
         )
     
-    
+
 @router.post("/change-password", response_model=PasswordChangeResponse)
 async def change_user_password(
     password_data: ChangePasswordRequest,
@@ -186,13 +186,13 @@ async def get_user_stats(current_user: User = Depends(get_current_user)):
         from app.db.models.project import Project
         
         # Get all projects for the user
-        user_projects = Project.objects(user_id=str(current_user.id))
+        user_projects = Project.objects(owner_id=str(current_user.id))
         
         # Count projects by status
         status_counts = {}
         for project in user_projects:
-            status = getattr(project, 'status', 'unknown')
-            status_counts[status] = status_counts.get(status, 0) + 1
+            project_status  = getattr(project, 'status', 'unknown')
+            status_counts[project_status ] = status_counts.get(project_status , 0) + 1
         
         # Get recent project activity (last 30 days)
         from datetime import timedelta
@@ -200,11 +200,17 @@ async def get_user_stats(current_user: User = Depends(get_current_user)):
         
         recent_projects = 0
         for project in user_projects:
-            if hasattr(project, 'created_at') and project.created_at >= thirty_days_ago:
-                recent_projects += 1
+            if hasattr(project, 'created_at'):
+                # Make project.created_at timezone-aware if it's naive
+                project_created_at = project.created_at
+                if project_created_at.tzinfo is None:
+                    project_created_at = project_created_at.replace(tzinfo=timezone.utc)
+                
+                if project_created_at >= thirty_days_ago:
+                    recent_projects += 1
         
         # Calculate account age
-        account_age_days = (datetime.now(timezone.utc) - current_user.created_at).days
+        account_age_days = (datetime.now(timezone.utc) - current_user.created_at.replace(tzinfo=timezone.utc)).days
         
         return {
             "total_projects": len(user_projects),

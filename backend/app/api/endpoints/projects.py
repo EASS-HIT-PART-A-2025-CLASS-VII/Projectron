@@ -53,25 +53,39 @@ async def get_complete_project(project_id: str, current_user: User = Depends(get
     This provides the complete project structure for detailed views.
     """
     try:
-        # Use the reusable function to get the structured project
-        return await get_structured_project(project_id, current_user)
-        
-    except ValueError as e:
+        ObjectId(project_id)
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail=f"Invalid project ID format: {project_id}"
         )
-    except DoesNotExist as e:
+    
+   # Check if project exists and user has access
+    try:
+        project = Project.objects.get(id=project_id)
+    except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
+            detail=f"Project with ID {project_id} not found"
         )
-    except PermissionError as e:
+    
+    # Check permissions
+    user_has_access = (
+        project.owner_id.id == current_user.id or 
+        (project.collaborator_ids and current_user.id in [collab.id for collab in project.collaborator_ids])
+    )
+    
+    if not user_has_access:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(e)
+            detail="Not authorized to access this project"
         )
+    
+    # safely call get_structured_project
+    try:
+        return await get_structured_project(project_id, current_user)
     except Exception as e:
+        print(f"Error in get_structured_project: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving project details: {str(e)}"
