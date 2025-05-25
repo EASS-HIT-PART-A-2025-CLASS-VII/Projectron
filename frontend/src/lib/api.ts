@@ -2,7 +2,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface FetchOptions extends RequestInit {
-  token?: string;
+  token?: string; // Deprecated - kept for backwards compatibility
   body?: any;
   responseType?: "json" | "text" | "blob"; // Add responseType option
 }
@@ -15,18 +15,25 @@ export async function apiClient<T>(
     "Content-Type": "application/json",
   };
 
+  // Legacy token support for backwards compatibility
+  // New cookie-based auth doesn't need manual headers
   if (token) {
+    console.warn(
+      "Manual token passing is deprecated - using cookie-based auth"
+    );
     headers.Authorization = `Bearer ${token}`;
   }
 
   const config: RequestInit = {
     method: customConfig.method || "GET",
+    credentials: "include", // IMPORTANT: Always include cookies
     ...customConfig,
     headers: {
       ...headers,
       ...customConfig.headers,
     },
   };
+
   if (customConfig.body) {
     config.body = JSON.stringify(customConfig.body);
   }
@@ -36,8 +43,8 @@ export async function apiClient<T>(
 
     // Handle 401 Unauthorized
     if (response.status === 401) {
-      // Handle unauthorized - clear token and redirect to login
-      localStorage.removeItem("token");
+      // Handle unauthorized - redirect to login
+      // Cookie will be cleared by browser automatically if expired
       window.location.href = "/auth/login";
       throw new Error("Unauthorized");
     }

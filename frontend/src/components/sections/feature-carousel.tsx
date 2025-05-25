@@ -386,8 +386,17 @@ const TabFeatureItem = ({
 };
 
 export const TabFeatures = () => {
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
   return (
-    <section className="py-24 relative overflow-hidden bg-primary-background">
+    <section
+      ref={sectionRef}
+      className="py-24 relative overflow-hidden bg-primary-background"
+      id="features"
+    >
       {/* Background gradient mesh - very subtle */}
       <div className="absolute inset-0 opacity-[0.01]">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-cta rounded-full blur-3xl" />
@@ -404,13 +413,15 @@ export const TabFeatures = () => {
           viewport={{ once: true }}
         >
           <motion.div
-            className="inline-block mb-4"
+            className="inline-flex items-center gap-2 mb-6"
             whileInView={{ scale: [0.8, 1] }}
             transition={{ duration: 0.5 }}
           >
-            <span className="text-xs font-mono text-primary-cta tracking-wider">
-              PROJECT WORKSPACE
+            <div className="h-px w-10 bg-gradient-to-r from-transparent to-white" />
+            <span className="text-white text-sm font-mono uppercase tracking-wider">
+              Workspace
             </span>
+            <div className="h-px w-10 bg-gradient-to-l from-transparent to-white" />
           </motion.div>
 
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-primary-text">

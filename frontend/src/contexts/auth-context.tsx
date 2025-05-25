@@ -21,9 +21,7 @@ import {
   registerWithGithub as registerWithGithubApi,
   getCurrentUser,
   verifyEmail as verifyEmailApi,
-  saveToken,
-  getToken,
-  removeToken,
+  logout as logoutApi,
   isAuthenticated as checkIsAuthenticated,
 } from "@/lib/auth";
 
@@ -42,7 +40,7 @@ interface AuthContextType {
   registerWithGoogle: () => Promise<void>;
   loginWithGithub: () => Promise<void>;
   registerWithGithub: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   verifyEmail: (token: string) => Promise<boolean>;
   resendVerification: (email: string) => Promise<void>;
   error: string | null;
@@ -74,18 +72,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Check if user is authenticated on initial load
   useEffect(() => {
     const checkAuth = async () => {
-      if (!checkIsAuthenticated()) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
+        // Try to get user data - this will fail if not authenticated
         const userData = await getCurrentUser();
         setUser(userData);
       } catch (err) {
-        console.error("Authentication check failed:", err);
-        // Token is invalid or expired
-        removeToken();
+        console.log("No valid authentication found");
+        // Not authenticated - this is normal, not an error
       } finally {
         setIsLoading(false);
       }
@@ -101,15 +94,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       // Use the login utility with the correct credential format
-      const authResponse = await loginApi({
+      await loginApi({
         username: email, // Backend expects username field for email
         password,
       });
 
-      // Store JWT token
-      saveToken(authResponse.access_token);
-
-      // Fetch user data
+      // Fetch user data (cookie is now set automatically)
       const userData = await getCurrentUser();
       setUser(userData);
 
@@ -225,11 +215,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Logout function
-  const logout = () => {
-    removeToken();
-    setUser(null);
-    router.push("/auth/login");
+  // Logout function - now calls backend and clears state
+  const logout = async () => {
+    try {
+      // Call backend logout to clear cookie
+      await logoutApi();
+    } catch (err) {
+      console.warn("Backend logout failed:", err);
+      // Continue with local logout even if backend fails
+    } finally {
+      // Clear local state
+      setUser(null);
+      router.push("/auth/login");
+    }
   };
 
   // Email verification function
@@ -257,8 +255,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setError(null);
 
     try {
-      // This would need to be implemented in the auth utilities
-      // For now, we'll assume it exists
       await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/auth/resend-verification`,
         {
@@ -266,6 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include", // Include cookies
           body: JSON.stringify({ email }),
         }
       );

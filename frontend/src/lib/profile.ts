@@ -1,6 +1,5 @@
 // src/lib/profile.ts
 import { apiClient } from "./api";
-import { getToken } from "./auth";
 
 export interface UserProfileData {
   id: string;
@@ -22,30 +21,19 @@ export interface ChangePasswordRequest {
 
 // Get user profile data
 export async function getUserProfile(): Promise<UserProfileData> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  return apiClient<UserProfileData>("/users/profile", { token });
+  // No token check needed - cookies sent automatically
+  // Server will return 401 if not authenticated, apiClient handles redirect
+  return apiClient<UserProfileData>("/users/profile");
 }
 
 // Update user profile information
 export async function updateUserProfile(
   profileData: UpdateProfileRequest
 ): Promise<UserProfileData> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
+  // No token check needed - cookies sent automatically
   return apiClient<UserProfileData>("/users/profile", {
-    token,
     method: "PUT",
-    body: profileData,
-    headers: {
-      "Content-Type": "application/json",
-    },
+    body: profileData, // apiClient will stringify and set Content-Type
   });
 }
 
@@ -53,17 +41,9 @@ export async function updateUserProfile(
 export async function changePassword(
   passwordData: ChangePasswordRequest
 ): Promise<{ message: string }> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
+  // No token check needed - cookies sent automatically
   return apiClient<{ message: string }>("/users/change-password", {
-    token,
     method: "POST",
-    body: passwordData,
-    headers: {
-      "Content-Type": "application/json",
-    },
+    body: passwordData, // apiClient will stringify and set Content-Type
   });
 }

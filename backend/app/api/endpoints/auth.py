@@ -1,5 +1,5 @@
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
@@ -13,23 +13,18 @@ from app.db.models.auth import User
 from app.api.deps import get_current_user
 from app.services.email_service import EmailService
 
-
-
 router = APIRouter()
 settings = get_settings()
-
 
 # Schemas for request/response validation
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     full_name: str
-
 
 class UserResponse(BaseModel):
     id: str
@@ -39,7 +34,6 @@ class UserResponse(BaseModel):
     last_login: Optional[datetime] = None
     created_at: datetime
     
-        
     @field_validator('id', mode='before')
     def objectid_to_str(cls, v):
         if isinstance(v, ObjectId):
@@ -49,13 +43,33 @@ class UserResponse(BaseModel):
 class ResendRequest(BaseModel):
     email: EmailStr
 
+def set_auth_cookie(response: Response, token: str) -> None:
+    """Helper function to set authentication cookie"""
+    response.set_cookie(
+        key=settings.COOKIE_NAME,
+        value=token,
+        max_age=settings.COOKIE_MAX_AGE,
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/"
+    )
+
+def clear_auth_cookie(response: Response) -> None:
+    """Helper function to clear authentication cookie"""
+    response.delete_cookie(
+        key=settings.COOKIE_NAME,
+        path="/",
+        httponly=settings.COOKIE_HTTPONLY,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE
+    )
+
 @router.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Dict[str, str]:
+async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends()) -> Dict[str, str]:
     """
     OAuth2 compatible token login, get an access token for future requests
-    
-    This endpoint is used to authenticate users and generate JWT tokens.
-    It follows the OAuth2 password flow standard.
+    Now sets httpOnly cookie in addition to returning token for backwards compatibility
     """
     # Get the user by email
     user = User.objects(email=form_data.username).first()
@@ -76,7 +90,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
     # Update last login time
     user.last_login = datetime.now(tz=timezone.utc)
-
     user.save()
     
     # Create access token with user ID as the subject
@@ -86,12 +99,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         expires_delta=access_token_expires
     )
     
-    # Return the token
+    # Set httpOnly cookie
+    set_auth_cookie(response, access_token)
+    
+    # Return the token (for backwards compatibility)
     return {
         "access_token": access_token,
         "token_type": "bearer"
     }
 
+@router.post("/logout")
+async def logout(response: Response, current_user: User = Depends(get_current_user)):
+    """
+    Logout endpoint - clears the authentication cookie
+    """
+    clear_auth_cookie(response)
+    return {"message": "Successfully logged out"}
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_in: UserCreate) -> Any:
@@ -121,7 +144,6 @@ async def register_user(user_in: UserCreate) -> Any:
     EmailService.send_verification_email(user.email, token)
 
     return user
-
 
 @router.get("/verify-email")
 def verify_email(token: str):
@@ -153,7 +175,6 @@ def verify_email(token: str):
     # Return success response
     return {"message": "Email successfully verified"}
 
-
 @router.post("/resend-verification")
 def resend_verification_email(request: ResendRequest):
     """
@@ -177,7 +198,6 @@ def resend_verification_email(request: ResendRequest):
     
     return {"message": "Verification email sent"}
 
-
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)) -> Any:
     """
@@ -186,7 +206,6 @@ async def read_users_me(current_user: User = Depends(get_current_user)) -> Any:
     This endpoint returns the currently authenticated user's information.
     """
     return current_user
-
 
 @router.get("/google")
 async def google_login():
@@ -203,9 +222,8 @@ async def google_login():
     return {"auth_url": url}
 
 @router.get("/google/callback")
-async def google_callback(code: str):
-    """Handle Google OAuth callback"""
-    # Exchange code for token
+async def google_callback(response: Response, code: str):
+    """Handle Google OAuth callback - now sets cookie"""
     try:
         token_url = "https://oauth2.googleapis.com/token"
         token_data = {
@@ -242,15 +260,16 @@ async def google_callback(code: str):
             expires_delta=access_token_expires
         )
     
-        params = urlencode({"token": jwt_token})
-        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
+        # Set httpOnly cookie
+        set_auth_cookie(response, jwt_token)
+        
+        # Redirect without token in URL (more secure)
+        return RedirectResponse(f"http://localhost:3000/auth/success")
     
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})
         return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
 
-
-# NEW: GitHub OAuth endpoints
 @router.get("/github")
 async def github_login():
     """Redirect to GitHub OAuth"""
@@ -265,8 +284,8 @@ async def github_login():
     return {"auth_url": url}
 
 @router.get("/github/callback")
-async def github_callback(code: str):
-    """Handle GitHub OAuth callback"""
+async def github_callback(response: Response, code: str):
+    """Handle GitHub OAuth callback - now sets cookie"""
     try:
         # Exchange code for token
         token_url = "https://github.com/login/oauth/access_token"
@@ -327,8 +346,11 @@ async def github_callback(code: str):
             expires_delta=access_token_expires
         )
     
-        params = urlencode({"token": jwt_token})
-        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
+        # Set httpOnly cookie
+        set_auth_cookie(response, jwt_token)
+        
+        # Redirect without token in URL (more secure)
+        return RedirectResponse(f"http://localhost:3000/auth/success")
     
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})

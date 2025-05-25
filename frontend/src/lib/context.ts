@@ -1,7 +1,5 @@
 // src/lib/context.ts
-
 import { apiClient } from "./api";
-import { getToken } from "./auth";
 
 export interface ContextGenerationRequest {
   project_id: string;
@@ -21,14 +19,9 @@ export interface UpdateContextNotesRequest {
 export async function getContextNotes(
   projectId: string
 ): Promise<{ context_notes: string }> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  return apiClient<{ context_notes: string }>(`/context/notes/${projectId}`, {
-    token,
-  });
+  // No token check needed - cookies sent automatically
+  // Server will return 401 if not authenticated, apiClient handles redirect
+  return apiClient<{ context_notes: string }>(`/context/notes/${projectId}`);
 }
 
 // Update context notes for a project
@@ -36,18 +29,10 @@ export async function updateContextNotes(
   projectId: string,
   contextNotes: string
 ): Promise<{ message: string }> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
+  // No token check needed - cookies sent automatically
   return apiClient<{ message: string }>(`/context/notes/${projectId}`, {
-    token,
     method: "PUT",
-    body: { context_notes: contextNotes },
-    headers: {
-      "Content-Type": "application/json",
-    },
+    body: { context_notes: contextNotes }, // apiClient will stringify and set Content-Type
   });
 }
 
@@ -55,20 +40,12 @@ export async function updateContextNotes(
 export async function generateContext(
   projectId: string
 ): Promise<ContextGenerationResponse> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
+  // No token check needed - cookies sent automatically
   return apiClient<ContextGenerationResponse>("/context/generate", {
-    token,
     method: "POST",
     body: {
       project_id: projectId,
-    },
-    headers: {
-      "Content-Type": "application/json",
-    },
+    }, // apiClient will stringify and set Content-Type
   });
 }
 
@@ -76,12 +53,6 @@ export async function generateContext(
 export async function getLatestContext(
   projectId: string
 ): Promise<ContextGenerationResponse> {
-  const token = getToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  return apiClient<ContextGenerationResponse>(`/context/latest/${projectId}`, {
-    token,
-  });
+  // No token check needed - cookies sent automatically
+  return apiClient<ContextGenerationResponse>(`/context/latest/${projectId}`);
 }

@@ -7,6 +7,7 @@ from functools import lru_cache
 
 # Load environment variables from .env file
 load_dotenv()
+
 class Settings(BaseSettings):
     """Application settings."""    
 
@@ -29,6 +30,13 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 48 * 60
+    
+    # Cookie Settings - NEW
+    COOKIE_NAME: str = "access_token"
+    COOKIE_HTTPONLY: bool = True
+    COOKIE_SECURE: bool = False  # Set to True in production with HTTPS
+    COOKIE_SAMESITE: str = "lax"  # "strict", "lax", or "none"
+    COOKIE_MAX_AGE: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60  # seconds
     
     # EMAIL SERVICE
     SMTP_SERVER: str = "smtp.gmail.com"

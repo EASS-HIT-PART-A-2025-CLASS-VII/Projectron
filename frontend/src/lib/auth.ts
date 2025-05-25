@@ -39,7 +39,8 @@ export async function login(
   const formData = new URLSearchParams();
   formData.append("username", credentials.username); // Backend uses username field for email
   formData.append("password", credentials.password);
-  // Send request to backend
+
+  // Send request to backend with credentials for cookies
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/auth/token`,
     {
@@ -47,6 +48,7 @@ export async function login(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
+      credentials: "include", // IMPORTANT: Include cookies
       body: formData,
     }
   );
@@ -57,14 +59,17 @@ export async function login(
     throw new Error(error.detail || "Login failed");
   }
 
-  // Return the token information
+  // Return the token information (cookie is set automatically)
   return response.json();
 }
 
 // Google Login - gets Google auth URL and redirects
 export async function loginWithGoogle(): Promise<void> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/google`,
+    {
+      credentials: "include", // Include cookies
+    }
   );
 
   if (!response.ok) {
@@ -81,7 +86,10 @@ export async function loginWithGoogle(): Promise<void> {
 // GitHub Login - gets GitHub auth URL and redirects
 export async function loginWithGithub(): Promise<void> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/github`
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/github`,
+    {
+      credentials: "include", // Include cookies
+    }
   );
 
   if (!response.ok) {
@@ -106,6 +114,7 @@ export async function register(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Include cookies
       body: JSON.stringify(credentials),
     }
   );
@@ -129,44 +138,49 @@ export async function registerWithGithub(): Promise<void> {
 }
 
 // Handle OAuth success callback (called from your success page)
-export async function handleOAuthSuccess(token: string): Promise<User> {
-  // Save the token
-  saveToken(token);
-
-  // Get user data
+export async function handleOAuthSuccess(): Promise<User> {
+  // No token extraction needed - cookie is already set
+  // Just get user data
   const user = await getCurrentUser();
   return user;
 }
 
 // Get current user information
 export async function getCurrentUser(): Promise<User> {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include", // Include cookies automatically
   });
 
   if (!response.ok) {
-    // If token is invalid, clear it
-    if (response.status === 401) {
-      removeToken();
-    }
     throw new Error("Failed to get user information");
   }
 
   return response.json();
 }
 
+// Logout function - calls backend logout endpoint
+export async function logout(): Promise<void> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`,
+    {
+      method: "POST",
+      credentials: "include", // Include cookies
+    }
+  );
+
+  if (!response.ok) {
+    // Even if logout fails on backend, we still want to clear local state
+    console.warn("Backend logout failed, but continuing with local logout");
+  }
+}
+
 // Verify email with token
 export async function verifyEmail(token: string): Promise<{ message: string }> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email?token=${token}`
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email?token=${token}`,
+    {
+      credentials: "include", // Include cookies
+    }
   );
 
   if (!response.ok) {
@@ -188,6 +202,7 @@ export async function resendVerification(
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include", // Include cookies
       body: JSON.stringify({ email }),
     }
   );
@@ -195,50 +210,51 @@ export async function resendVerification(
   return response.json();
 }
 
-// Helper functions for token management
-export function saveToken(token: string): void {
-  localStorage.setItem("token", token);
-}
-
-export function getToken(): string | null {
-  // Check if we're running in a browser (not during server-side rendering)
-  if (typeof window !== "undefined") {
-    let token = localStorage.getItem("token");
-    return token;
+// Check if user is authenticated by trying to get user info
+export async function isAuthenticated(): Promise<boolean> {
+  try {
+    await getCurrentUser();
+    return true;
+  } catch (error) {
+    return false;
   }
-  return null;
 }
 
-export function removeToken(): void {
-  localStorage.removeItem("token");
-}
-
-export function isAuthenticated(): boolean {
-  return !!getToken();
-}
-
+// OAuth callback handler - simplified since no token extraction needed
 export async function handleOAuthCallback(): Promise<User> {
-  // Get token from URL parameters
+  // Check for error in URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
   const error = urlParams.get("error");
 
   if (error) {
     throw new Error("OAuth authentication failed");
   }
 
-  if (!token) {
-    throw new Error("No token received from OAuth");
-  }
-
-  // Save the token
-  saveToken(token);
-
-  // Get user data
+  // Cookie should already be set by backend callback
+  // Just get user data
   const user = await getCurrentUser();
 
-  // Clean up URL (remove token from URL for security)
+  // Clean up URL (remove any query params for security)
   window.history.replaceState({}, document.title, window.location.pathname);
 
   return user;
+}
+
+// Legacy functions for backwards compatibility (now no-ops)
+export function saveToken(token: string): void {
+  // No-op: tokens are now in httpOnly cookies
+  console.warn("saveToken is deprecated - tokens are now in httpOnly cookies");
+}
+
+export function getToken(): string | null {
+  // No-op: tokens are now in httpOnly cookies
+  console.warn("getToken is deprecated - tokens are now in httpOnly cookies");
+  return null;
+}
+
+export function removeToken(): void {
+  // No-op: tokens are now in httpOnly cookies
+  console.warn(
+    "removeToken is deprecated - tokens are now in httpOnly cookies"
+  );
 }

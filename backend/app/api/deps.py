@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from typing import Optional
@@ -7,15 +7,36 @@ from app.core.config import get_settings
 from app.db.models.auth import User
 
 settings = get_settings()
-# OAuth2 scheme for token extraction
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/token")
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+# OAuth2 scheme for token extraction (fallback only)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/token", auto_error=False)
+
+def get_token_from_request(request: Request, token: Optional[str] = Depends(oauth2_scheme)) -> Optional[str]:
     """
-    Dependency to get the current user from a JWT token.
+    Get JWT token from cookies first, then fallback to Authorization header.
     
     Args:
-        token: The JWT token from the Authorization header
+        request: FastAPI Request object to access cookies
+        token: Optional token from Authorization header
+        
+    Returns:
+        str: The JWT token if found, None otherwise
+    """
+    # First try to get token from httpOnly cookie
+    cookie_token = request.cookies.get(settings.COOKIE_NAME)
+    if cookie_token:
+        return cookie_token
+    
+    # Fallback to Authorization header (for backwards compatibility)
+    return token
+
+async def get_current_user(request: Request, token: Optional[str] = Depends(get_token_from_request)) -> User:
+    """
+    Dependency to get the current user from a JWT token (cookie or header).
+    
+    Args:
+        request: FastAPI Request object
+        token: The JWT token from cookie or Authorization header
         
     Returns:
         User: The current user
@@ -28,6 +49,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
+    if not token:
+        raise credentials_exception
     
     try:
         # Decode the JWT token
@@ -46,7 +70,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
         raise credentials_exception
         
     # Get the user from the database
-    # user = user_repo.get(id=user_id)
     user = User.objects(id=user_id).first()
     if user is None:
         raise credentials_exception

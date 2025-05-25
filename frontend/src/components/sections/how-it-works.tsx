@@ -282,6 +282,7 @@ export const HowItWorks = () => {
         >
           <motion.div className="inline-flex items-center gap-2 mb-6">
             <div className="h-px w-10 bg-gradient-to-r from-transparent to-white" />
+
             <span className="text-white text-sm font-mono uppercase tracking-wider">
               Workflow
             </span>
