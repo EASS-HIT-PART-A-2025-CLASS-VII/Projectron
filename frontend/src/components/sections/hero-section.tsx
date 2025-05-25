@@ -479,6 +479,7 @@ function EnhancedBlueprintPipeline({
               <g key={index} className="cursor-pointer">
                 {/* Card and content */}
                 <motion.g
+                  className="relative"
                   initial={{ scale: 0, opacity: 0 }}
                   animate={
                     isInView

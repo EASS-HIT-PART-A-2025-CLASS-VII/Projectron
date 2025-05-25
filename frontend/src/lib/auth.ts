@@ -139,10 +139,18 @@ export async function registerWithGithub(): Promise<void> {
 
 // Handle OAuth success callback (called from your success page)
 export async function handleOAuthSuccess(): Promise<User> {
-  // No token extraction needed - cookie is already set
-  // Just get user data
-  const user = await getCurrentUser();
-  return user;
+  // Check for token in URL (OAuth flow)
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+
+  if (token) {
+    // This is an OAuth callback - exchange token for cookie
+    return await handleOAuthCallback();
+  } else {
+    // No token in URL - check if we already have a cookie
+    const user = await getCurrentUser();
+    return user;
+  }
 }
 
 // Get current user information
@@ -220,41 +228,42 @@ export async function isAuthenticated(): Promise<boolean> {
   }
 }
 
-// OAuth callback handler - simplified since no token extraction needed
 export async function handleOAuthCallback(): Promise<User> {
   // Check for error in URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const error = urlParams.get("error");
+  const token = urlParams.get("token");
 
   if (error) {
     throw new Error("OAuth authentication failed");
   }
 
-  // Cookie should already be set by backend callback
-  // Just get user data
+  if (!token) {
+    throw new Error("No token received from OAuth");
+  }
+
+  // Exchange OAuth token for httpOnly cookie
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/oauth/exchange`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Important for cookie setting
+      body: JSON.stringify({ token }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to exchange OAuth token");
+  }
+
+  // Now get user data using the cookie
   const user = await getCurrentUser();
 
-  // Clean up URL (remove any query params for security)
+  // Clean up URL (remove token from URL for security)
   window.history.replaceState({}, document.title, window.location.pathname);
 
   return user;
-}
-
-// Legacy functions for backwards compatibility (now no-ops)
-export function saveToken(token: string): void {
-  // No-op: tokens are now in httpOnly cookies
-  console.warn("saveToken is deprecated - tokens are now in httpOnly cookies");
-}
-
-export function getToken(): string | null {
-  // No-op: tokens are now in httpOnly cookies
-  console.warn("getToken is deprecated - tokens are now in httpOnly cookies");
-  return null;
-}
-
-export function removeToken(): void {
-  // No-op: tokens are now in httpOnly cookies
-  console.warn(
-    "removeToken is deprecated - tokens are now in httpOnly cookies"
-  );
 }

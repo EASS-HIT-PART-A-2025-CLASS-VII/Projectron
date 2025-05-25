@@ -7,6 +7,11 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, EmailStr, field_validator
 import requests
 from urllib.parse import urlencode
+
+# JWT imports - MAKE SURE THESE ARE CORRECT
+from jose import JWTError, jwt
+from jose.exceptions import ExpiredSignatureError
+
 from app.core.config import get_settings
 from app.core.jwt import create_access_token
 from app.db.models.auth import User
@@ -223,7 +228,7 @@ async def google_login():
 
 @router.get("/google/callback")
 async def google_callback(response: Response, code: str):
-    """Handle Google OAuth callback - now sets cookie"""
+    """Handle Google OAuth callback - now returns token for frontend to handle"""
     try:
         token_url = "https://oauth2.googleapis.com/token"
         token_data = {
@@ -260,11 +265,10 @@ async def google_callback(response: Response, code: str):
             expires_delta=access_token_expires
         )
     
-        # Set httpOnly cookie
-        set_auth_cookie(response, jwt_token)
-        
-        # Redirect without token in URL (more secure)
-        return RedirectResponse(f"http://localhost:3000/auth/success")
+        # For OAuth, pass token in URL for frontend to handle cookie setting
+        # This avoids cross-domain cookie issues
+        params = urlencode({"token": jwt_token})
+        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
     
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})
@@ -285,7 +289,7 @@ async def github_login():
 
 @router.get("/github/callback")
 async def github_callback(response: Response, code: str):
-    """Handle GitHub OAuth callback - now sets cookie"""
+    """Handle GitHub OAuth callback - now returns token for frontend to handle"""
     try:
         # Exchange code for token
         token_url = "https://github.com/login/oauth/access_token"
@@ -346,12 +350,64 @@ async def github_callback(response: Response, code: str):
             expires_delta=access_token_expires
         )
     
-        # Set httpOnly cookie
-        set_auth_cookie(response, jwt_token)
-        
-        # Redirect without token in URL (more secure)
-        return RedirectResponse(f"http://localhost:3000/auth/success")
+        # For OAuth, pass token in URL for frontend to handle cookie setting
+        # This avoids cross-domain cookie issues
+        params = urlencode({"token": jwt_token})
+        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
     
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})
         return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
+    
+
+class TokenExchangeRequest(BaseModel):
+    token: str
+
+@router.post("/oauth/exchange")
+async def exchange_oauth_token(response: Response, request: TokenExchangeRequest):
+    """Exchange OAuth token for httpOnly cookie"""
+    try:
+        token = request.token
+                
+        if not token:
+            raise HTTPException(status_code=400, detail="Token required")
+        
+        # Verify the token using jose jwt (same as in deps.py)
+        try:
+            payload = jwt.decode(
+                token, 
+                settings.SECRET_KEY, 
+                algorithms=[settings.ALGORITHM]
+            )
+            user_id = payload.get("sub")
+                        
+            if not user_id:
+                raise HTTPException(status_code=400, detail="Invalid token payload")
+            
+        except ExpiredSignatureError:
+            print("Token expired")  # Debug log
+            raise HTTPException(status_code=400, detail="Token expired")
+        except JWTError as e:
+            print(f"JWT decode error: {str(e)}")  # Debug log
+            raise HTTPException(status_code=400, detail="Invalid token format")
+        
+        # Verify user exists
+        user = User.objects(id=user_id).first()
+        if not user:
+            print(f"User not found for id: {user_id}")  # Debug log
+            raise HTTPException(status_code=400, detail="User not found")
+        
+        print(f"User found: {user.email}")  # Debug log
+        
+        # Set httpOnly cookie using the same function as login
+        set_auth_cookie(response, token)
+        
+        
+        return {"message": "Token exchanged successfully"}
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        print(f"Unexpected error in token exchange: {str(e)}")  # Debug log
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

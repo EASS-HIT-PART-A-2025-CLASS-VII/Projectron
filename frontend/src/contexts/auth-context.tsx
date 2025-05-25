@@ -116,6 +116,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Google Login function
+  // Update these functions in your auth-context.tsx
+
+  // Google Login function
   const loginWithGoogle = async () => {
     setError(null);
     setIsLoading(true);
@@ -123,7 +126,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await loginWithGoogleApi();
       // Note: The redirect happens in the API function
-      // The actual login completion happens in the OAuth callback
+      // The actual login completion happens in the OAuth success page
+      // Don't set isLoading to false here - let success page handle it
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Google login failed";
@@ -141,7 +145,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await loginWithGithubApi();
       // Note: The redirect happens in the API function
-      // The actual login completion happens in the OAuth callback
+      // The actual login completion happens in the OAuth success page
+      // Don't set isLoading to false here - let success page handle it
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "GitHub login failed";

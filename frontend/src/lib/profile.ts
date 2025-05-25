@@ -41,9 +41,32 @@ export async function updateUserProfile(
 export async function changePassword(
   passwordData: ChangePasswordRequest
 ): Promise<{ message: string }> {
-  // No token check needed - cookies sent automatically
-  return apiClient<{ message: string }>("/users/change-password", {
-    method: "POST",
-    body: passwordData, // apiClient will stringify and set Content-Type
-  });
+  try {
+    return await apiClient<{ message: string }>("/users/change-password", {
+      method: "POST",
+      body: passwordData,
+    });
+  } catch (error) {
+    // The error handling in apiClient should already extract the detail message
+    // but we can add specific handling here if needed
+    if (error instanceof Error) {
+      // Check for specific error patterns
+      if (error.message.includes("Current password is incorrect")) {
+        throw new Error(
+          "The current password you entered is incorrect. Please try again."
+        );
+      } else if (error.message.includes("must be different")) {
+        throw new Error(
+          "Your new password must be different from your current password."
+        );
+      } else if (error.message.includes("at least 8 characters")) {
+        throw new Error(
+          "Your new password must be at least 8 characters long."
+        );
+      }
+    }
+
+    // Re-throw the original error if no specific handling
+    throw error;
+  }
 }

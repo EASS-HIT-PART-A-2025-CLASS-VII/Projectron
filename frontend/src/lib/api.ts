@@ -1,4 +1,3 @@
-// src/lib/api.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface FetchOptions extends RequestInit {
@@ -50,13 +49,37 @@ export async function apiClient<T>(
     }
 
     if (!response.ok) {
-      // For error responses, try to parse as JSON if possible
+      // Always try to get the response body first
+      let responseText = "";
       try {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "API request failed");
-      } catch (jsonError) {
-        // If JSON parsing fails, just throw with status
+        responseText = await response.text();
+        console.log("API Error Response Text:", responseText);
+      } catch (textError) {
+        console.error("Could not read response text:", textError);
         throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      // Try to parse as JSON to extract error details
+      try {
+        const errorData = JSON.parse(responseText);
+        console.log("API Error Response JSON:", errorData);
+
+        // Extract error message from various possible fields
+        const errorMessage =
+          errorData.detail ||
+          errorData.message ||
+          errorData.error ||
+          (typeof errorData === "string" ? errorData : null) ||
+          responseText ||
+          `API request failed with status ${response.status}`;
+
+        throw new Error(errorMessage);
+      } catch (jsonError) {
+        // If it's not valid JSON, use the raw text as error message
+        console.log("Response is not JSON, using raw text");
+        const errorMessage =
+          responseText || `API request failed with status ${response.status}`;
+        throw new Error(errorMessage);
       }
     }
 

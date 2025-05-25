@@ -146,12 +146,14 @@ export default function ProjectsPage() {
             </Select>
           </div>
 
-          <Link href="/projects/new">
-            <Button variant="outline" className="gradient-border w-fit">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </Link>
+          <Button
+            variant="outlineGradient"
+            className="gradient-border w-fit bg-primary-background"
+            onClick={() => router.push("/projects/new")}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
         </div>
 
         {error && (

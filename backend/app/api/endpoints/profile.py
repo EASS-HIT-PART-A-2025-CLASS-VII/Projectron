@@ -124,7 +124,8 @@ async def update_user_profile(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update profile"
         )
-
+    
+    
 @router.post("/change-password", response_model=PasswordChangeResponse)
 async def change_user_password(
     password_data: ChangePasswordRequest,
@@ -132,38 +133,49 @@ async def change_user_password(
 ):
     """
     Change the current user's password.
+    Returns specific error messages for different failure scenarios.
     """
     try:
-        # Verify current password
+        # Verify current password first
         if not current_user.check_password(password_data.current_password):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Current password is incorrect"
             )
         
-        # Check if new password is different from current
-        new_hashed = get_password_hash(password_data.new_password)
-        if new_hashed == current_user.hashed_password:
+        # Check if new password is the same as current password
+        # Compare the plain text passwords, not hashed ones
+        if password_data.new_password == password_data.current_password:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="New password must be different from current password"
             )
         
-        # Update password
+        # Validate new password strength (optional)
+        if len(password_data.new_password) < 8:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be at least 8 characters long"
+            )
+        
+        # Update password with new hash
+        new_hashed = get_password_hash(password_data.new_password)
         current_user.hashed_password = new_hashed
         current_user.save()
         
         return PasswordChangeResponse(message="Password changed successfully")
     
     except HTTPException:
+        # Re-raise HTTP exceptions with their specific error messages
         raise
     except Exception as e:
-        print(f"Error changing password: {e}")
+        # Log the actual error for debugging
+        print(f"Unexpected error changing password for user {current_user.email}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to change password"
+            detail="An unexpected error occurred while changing password. Please try again."
         )
-
+    
 @router.get("/profile/stats")
 async def get_user_stats(current_user: User = Depends(get_current_user)):
     """

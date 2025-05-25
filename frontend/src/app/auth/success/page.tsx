@@ -1,56 +1,66 @@
-// app/auth/success/page.tsx (or pages/auth/success.tsx)
-
+// src/app/auth/success/page.tsx
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
-import { saveToken, getCurrentUser } from "@/lib/auth";
+import { handleOAuthSuccess } from "@/lib/auth";
 import { Loader2 } from "lucide-react";
 
 export default function AuthSuccessPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { setUser } = useAuth();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleToken = async () => {
-      const token = searchParams.get("token");
-      const error = searchParams.get("error");
+    const handleSuccess = async () => {
+      try {
+        // Handle OAuth token exchange and get user data
+        const user = await handleOAuthSuccess();
 
-      if (error) {
-        router.push("/auth/login?error=oauth_failed");
-        return;
-      }
+        // Update auth context
+        setUser(user);
 
-      if (token) {
-        try {
-          // Save token
-          saveToken(token);
+        // Redirect to projects
+        router.push("/projects");
+      } catch (err) {
+        console.error("OAuth success handling failed:", err);
+        setError(err instanceof Error ? err.message : "Authentication failed");
 
-          // Get user data
-          const userData = await getCurrentUser();
-          setUser(userData);
-
-          // Redirect to projects (same as regular login)
-          router.push("/projects");
-        } catch (error) {
-          console.error("OAuth completion failed:", error);
-          router.push("/auth/login?error=auth_failed");
-        }
-      } else {
-        router.push("/auth/login");
+        // Redirect to login on error
+        setTimeout(() => {
+          router.push("/auth/login");
+        }, 3000);
       }
     };
 
-    handleToken();
-  }, [searchParams, router, setUser]);
+    handleSuccess();
+  }, [router, setUser]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-primary-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-500 mb-4">
+            Authentication Error
+          </h1>
+          <p className="text-secondary-text mb-4">{error}</p>
+          <p className="text-sm text-disabled-text">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-primary-background">
       <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary-cta" />
-        <p className="mt-4 text-gray-600">Completing sign in...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary-cta mx-auto mb-4" />
+        <h1 className="text-2xl font-bold text-primary-text mb-2">
+          Completing Sign In
+        </h1>
+        <p className="text-secondary-text">
+          Please wait while we finish setting up your account...
+        </p>
       </div>
     </div>
   );

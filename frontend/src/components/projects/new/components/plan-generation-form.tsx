@@ -286,7 +286,7 @@ export function PlanGenerationForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-primary-cta hover:bg-primary-cta/90"
+          className="bg-primary-cta hover:bg-hover-active hover:text-white font-semibold text-black"
         >
           {isLoading ? (
             <>

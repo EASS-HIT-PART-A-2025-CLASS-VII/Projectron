@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api";
-import { getToken } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { PlanGenerationInput } from "@/components/projects/new/types";
 import { PlanGenerationForm } from "@/components/projects/new/components/plan-generation-form";
 import { ClarificationQuestionsSection } from "@/components/projects/new/components/clarification-questions-section";
 import { PlanGenerationLoading } from "@/components/projects/new/components/plan-generation-loading";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PlanStatus {
   task_id: string;
@@ -39,7 +40,6 @@ export default function NewProjectPage() {
   const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
-
   // Cleanup polling on unmount
   useEffect(() => {
     return () => {
@@ -52,12 +52,10 @@ export default function NewProjectPage() {
   // Poll for plan status
   const pollPlanStatus = async (taskId: string) => {
     try {
-      const token = getToken();
-      if (!token) return;
-
+      // No token check needed - cookies sent automatically
+      // If not authenticated, apiClient will handle 401 and redirect
       const status = await apiClient<PlanStatus>(`/plan/status/${taskId}`, {
         method: "GET",
-        token,
       });
 
       setPlanStatus(status);
@@ -81,6 +79,8 @@ export default function NewProjectPage() {
       }
     } catch (err) {
       console.error("Error polling status:", err);
+      // apiClient already handles 401 redirects, so this is likely a network error
+      setError("Failed to check plan status. Please refresh the page.");
     }
   };
 
@@ -103,17 +103,13 @@ export default function NewProjectPage() {
     setError(null);
 
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
-
+      // No token check needed - cookies sent automatically
+      // If not authenticated, apiClient will handle 401 and redirect to login
       const response = await apiClient<{ questions: string[] }>(
         "/plan/clarify",
         {
           method: "POST",
-          body: formData,
-          token,
+          body: formData, // apiClient will stringify this
         }
       );
 
@@ -144,11 +140,8 @@ export default function NewProjectPage() {
     setPlanStatus(null);
 
     try {
-      const token = getToken();
-      if (!token) {
-        throw new Error("Not authenticated");
-      }
-
+      // No token check needed - cookies sent automatically
+      // If not authenticated, apiClient will handle 401 and redirect to login
       const response = await apiClient<{
         task_id: string;
         status: string;
@@ -157,8 +150,7 @@ export default function NewProjectPage() {
         body: {
           input_data: { ...projectInput },
           clarification_qa: questionAnswers,
-        },
-        token,
+        }, // apiClient will stringify this
       });
 
       // Start polling for status
@@ -181,7 +173,18 @@ export default function NewProjectPage() {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
+    <div className="container max-w-4xl mx-auto py-16 px-4">
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/projects")}
+          className="text-secondary-text hover:text-primary-text"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Projects
+        </Button>
+      </div>
       <h1 className="text-3xl font-bold mb-8 text-center">
         Create New Project
       </h1>
