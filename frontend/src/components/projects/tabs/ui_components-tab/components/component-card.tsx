@@ -20,14 +20,12 @@ import { componentTypeIcons, componentTypes } from "../constants";
 
 interface ComponentCardProps {
   component: Component;
-  isEditing: boolean;
   onUpdate: (updatedComponent: Component) => void;
   onDelete: () => void;
 }
 
 export function ComponentCard({
   component,
-  isEditing,
   onUpdate,
   onDelete,
 }: ComponentCardProps) {
@@ -49,22 +47,7 @@ export function ComponentCard({
 
   // Get component color accent based on type
   const getComponentColorClass = () => {
-    switch (component.type) {
-      // case "form":
-      //   return "border-purple-600/30 bg-purple-950/10";
-      // case "table":
-      //   return "border-red-600/30 bg-red-950/10";
-      // case "chart":
-      //   return "border-orange-600/30 bg-orange-950/10";
-      // case "navigation":
-      //   return "border-green-600/30 bg-green-950/10";
-      // case "input":
-      //   return "border-yellow-600/30 bg-yellow-950/10";
-      // case "button":
-      //   return "border-blue-600/30 bg-blue-950/10 ";
-      default:
-        return "border-gray-600 gradient-border";
-    }
+    return "border-gray-600 gradient-border";
   };
 
   // Add new item (API endpoint or data item)
@@ -120,67 +103,6 @@ export function ComponentCard({
     setEditedComponent({ ...component });
     setEditing(false);
   };
-
-  if (!isEditing) {
-    // View mode
-    return (
-      <Card className={`border overflow-hidden`}>
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            {getComponentIcon()}
-            <h3 className="font-semibold">{component.name}</h3>
-            <Badge
-              variant="outline"
-              className={`ml-auto border ${getComponentColorClass()}`}
-            >
-              {component.type}
-            </Badge>
-          </div>
-
-          {component.description && (
-            <p className="text-sm text-secondary-text mb-3">
-              {component.description}
-            </p>
-          )}
-
-          <p className="text-sm text-secondary-text mb-3">
-            <span className="font-medium">Functionality:</span>{" "}
-            {component.functionality}
-          </p>
-
-          {component.api_endpoints.length > 0 && (
-            <div className="mb-3">
-              <h4 className="text-xs font-semibold mb-1">API Endpoints:</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {component.api_endpoints.map((endpoint, idx) => (
-                  <Badge key={idx} variant="outline" className="text-xs">
-                    {endpoint}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {component.data_displayed.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold mb-1">Data Displayed:</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {component.data_displayed.map((data, idx) => (
-                  <Badge
-                    key={idx}
-                    variant="outline"
-                    className="text-xs text-primary-text font-thin bg-primary-cta/5 border-gray-600"
-                  >
-                    {data}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
-    );
-  }
 
   if (editing) {
     // Edit mode
@@ -399,7 +321,7 @@ export function ComponentCard({
     );
   }
 
-  // View mode with edit buttons
+  // View mode
   return (
     <Card className={`border overflow-hidden`}>
       <div className="p-4">

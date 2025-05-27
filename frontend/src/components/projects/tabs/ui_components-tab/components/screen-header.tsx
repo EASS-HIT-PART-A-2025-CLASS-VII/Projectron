@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Layout, X } from "lucide-react";
+import { Layout, X, Edit, Save, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,16 @@ import { Screen } from "../types";
 
 interface ScreenHeaderProps {
   screen: Screen;
-  isEditing: boolean;
   onUpdateScreen: (updatedScreen: Screen) => void;
+  onDeleteScreen: () => void;
 }
 
 export function ScreenHeader({
   screen,
-  isEditing,
   onUpdateScreen,
+  onDeleteScreen,
 }: ScreenHeaderProps) {
+  const [editing, setEditing] = useState(false);
   const [editedScreen, setEditedScreen] = useState<Screen>({ ...screen });
   const [newUserType, setNewUserType] = useState("");
 
@@ -34,10 +35,12 @@ export function ScreenHeader({
 
   const handleSave = () => {
     onUpdateScreen(editedScreen);
+    setEditing(false);
   };
 
   const handleCancel = () => {
     setEditedScreen({ ...screen });
+    setEditing(false);
   };
 
   const handleAddUserType = () => {
@@ -60,7 +63,7 @@ export function ScreenHeader({
     }));
   };
 
-  if (isEditing) {
+  if (editing) {
     return (
       <div className="bg-secondary-background border border-divider rounded-md p-4 ">
         <div className="space-y-4">
@@ -142,7 +145,7 @@ export function ScreenHeader({
               Cancel
             </Button>
             <Button variant="default" size="sm" onClick={handleSave}>
-              Save
+              <Save className="h-3.5 w-3.5 mr-1" /> Save
             </Button>
           </div>
         </div>
@@ -152,27 +155,43 @@ export function ScreenHeader({
 
   return (
     <div className="bg-secondary-background border border-divider rounded-md p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Layout className="h-5 w-5 text-primary-cta" />
-          {screen.name}
-        </h2>
-        <Badge variant="outline" className="bg-hover-active/30">
-          {screen.route}
-        </Badge>
-      </div>
-      <p className="text-secondary-text mt-2">{screen.description}</p>
-      <div className="flex flex-wrap gap-2 mt-3">
-        <span className="text-xs text-secondary-text">Accessible by:</span>
-        {screen.user_types.map((type, idx) => (
-          <Badge
-            key={idx}
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <Layout className="h-5 w-5 text-primary-cta" />
+            <h2 className="text-xl font-semibold">{screen.name}</h2>
+            <Badge variant="outline" className="bg-hover-active/30">
+              {screen.route}
+            </Badge>
+          </div>
+          <p className="text-secondary-text mt-2">{screen.description}</p>
+          <div className="flex flex-wrap gap-2 mt-3">
+            <span className="text-xs text-secondary-text">Accessible by:</span>
+            {screen.user_types.map((type, idx) => (
+              <Badge
+                key={idx}
+                variant="outline"
+                className="text-primary-text bg-primary-cta/5 border font-thin rounded-sm"
+              >
+                {type}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 ml-4">
+          <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+            <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+          </Button>
+          <Button
             variant="outline"
-            className="text-primary-text bg-primary-cta/5 border font-thin rounded-sm"
+            size="sm"
+            className="text-red-400 hover:bg-red-950/20"
+            onClick={onDeleteScreen}
           >
-            {type}
-          </Badge>
-        ))}
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+          </Button>
+        </div>
       </div>
     </div>
   );
