@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Database,
   AlertTriangle,
   Search,
   Link2,
-  Edit,
   PlusCircle,
   X,
+  Loader2,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -38,24 +39,39 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
   // Keep track of the most up to date project version
   const [currentProject, setCurrentProject] =
     useState<DataModelsTabProps["project"]>(initialProject);
+  const [displayProject, setDisplayProject] =
+    useState<DataModelsTabProps["project"]>(initialProject);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedDataModels, setEditedDataModels] = useState<DataModels | null>(
-    null
-  );
   const [showNewEntityDialog, setShowNewEntityDialog] = useState(false);
   const [showNewRelationshipDialog, setShowNewRelationshipDialog] =
     useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [toast, setToast] = useState<ToastState>({ open: false, title: "" });
+  const [savingStatus, setSavingStatus] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
 
-  // Initialize edited data models from project data
+  // Queue for processing updates sequentially
+  const updateQueue = useRef<
+    Array<{
+      type: "update" | "add" | "delete";
+      payload: any;
+      projectSnapshot: DataModelsTabProps["project"];
+    }>
+  >([]);
+  const isProcessingRef = useRef(false);
+
+  // Reset saving status after showing "saved"
   useEffect(() => {
-    if (currentProject.data_models) {
-      setEditedDataModels(currentProject.data_models as DataModels);
+    if (savingStatus === "saved") {
+      const timer = setTimeout(() => {
+        if (updateQueue.current.length === 0) {
+          setSavingStatus("idle");
+        }
+      }, 1500);
+
+      return () => clearTimeout(timer);
     }
-  }, [currentProject.data_models]);
+  }, [savingStatus]);
 
   // Show toast function
   const showToast = (
@@ -77,9 +93,7 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
   };
 
   // Get data models to display
-  const dataModels = isEditing
-    ? editedDataModels
-    : (currentProject.data_models as DataModels | undefined);
+  const dataModels = displayProject.data_models as DataModels | undefined;
 
   // Filter entities based on search term
   const filteredEntities =
@@ -101,60 +115,136 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
             )
         );
 
+  // Process queue sequentially
+  const processQueue = async () => {
+    if (updateQueue.current.length === 0) {
+      isProcessingRef.current = false;
+      return;
+    }
+
+    isProcessingRef.current = true;
+    setSavingStatus("saving");
+
+    const nextUpdate = updateQueue.current.shift();
+
+    try {
+      if (!nextUpdate) {
+        throw new Error("Update is undefined");
+      }
+
+      const result = await apiClient<DataModelsTabProps["project"]>(
+        `/projects/${currentProject.id}`,
+        {
+          method: "PUT",
+          body: nextUpdate.projectSnapshot,
+          token: localStorage.getItem("token") || undefined,
+        }
+      );
+
+      setCurrentProject(result);
+      setSavingStatus("saved");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      setSavingStatus("idle");
+      showToast("Failed to save changes", "Please try again", "destructive");
+
+      if (updateQueue.current.length === 0) {
+        setDisplayProject(currentProject);
+      }
+    } finally {
+      if (updateQueue.current.length > 0) {
+        processQueue();
+      } else {
+        isProcessingRef.current = false;
+      }
+    }
+  };
+
+  // Queue update with immediate UI feedback
+  const queueUpdate = (
+    type: "update" | "add" | "delete",
+    payload: any,
+    updatedProject: DataModelsTabProps["project"]
+  ) => {
+    setDisplayProject(updatedProject);
+
+    const projectSnapshot = JSON.parse(JSON.stringify(updatedProject));
+
+    updateQueue.current.push({
+      type,
+      payload,
+      projectSnapshot,
+    });
+
+    if (!isProcessingRef.current) {
+      processQueue();
+    }
+  };
+
   // Update entity data
   const handleUpdateEntity = (entityName: string, updatedEntity: Entity) => {
-    if (!editedDataModels) return;
+    if (!dataModels) return;
 
-    // Make a deep copy to ensure state updates properly
-    const newDataModels = {
-      ...editedDataModels,
-      entities: [...editedDataModels.entities],
-    };
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedDataModels = updatedProject.data_models as DataModels;
 
-    const index = newDataModels.entities.findIndex(
+    const index = updatedDataModels.entities.findIndex(
       (e) => e.name === entityName
     );
 
     if (index !== -1) {
-      // Replace entity with updated version
-      newDataModels.entities[index] = updatedEntity;
+      // Update relationships if entity name changed
+      if (entityName !== updatedEntity.name) {
+        updatedDataModels.relationships = updatedDataModels.relationships.map(
+          (rel) => ({
+            ...rel,
+            source_entity:
+              rel.source_entity === entityName
+                ? updatedEntity.name
+                : rel.source_entity,
+            target_entity:
+              rel.target_entity === entityName
+                ? updatedEntity.name
+                : rel.target_entity,
+          })
+        );
+      }
 
-      // Update state
-      setEditedDataModels(newDataModels);
-      setUnsavedChanges(true);
+      updatedDataModels.entities[index] = updatedEntity;
+      updatedProject.data_models = updatedDataModels;
+
+      queueUpdate("update", { entityName, updatedEntity }, updatedProject);
     }
   };
 
   // Delete entity
   const handleDeleteEntity = (entityName: string) => {
-    if (!editedDataModels) return;
+    if (!dataModels) return;
+
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedDataModels = updatedProject.data_models as DataModels;
 
     // Remove entity
-    const newEntities = editedDataModels.entities.filter(
+    updatedDataModels.entities = updatedDataModels.entities.filter(
       (e) => e.name !== entityName
     );
 
     // Remove relationships involving this entity
-    const newRelationships = editedDataModels.relationships.filter(
+    updatedDataModels.relationships = updatedDataModels.relationships.filter(
       (r) => r.source_entity !== entityName && r.target_entity !== entityName
     );
 
-    const newDataModels = {
-      entities: newEntities,
-      relationships: newRelationships,
-    };
+    updatedProject.data_models = updatedDataModels;
 
-    // Update state
-    setEditedDataModels(newDataModels);
-    setUnsavedChanges(true);
+    queueUpdate("delete", { entityName }, updatedProject);
   };
 
   // Add new entity
   const handleAddEntity = (newEntity: Entity) => {
-    if (!editedDataModels) return;
+    if (!dataModels) return;
 
     // Check if entity name already exists
-    if (editedDataModels.entities.some((e) => e.name === newEntity.name)) {
+    if (dataModels.entities.some((e) => e.name === newEntity.name)) {
       showToast(
         "Entity name already exists",
         "Please choose a different name",
@@ -163,76 +253,77 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
       return;
     }
 
-    // Create a new data models object with the new entity
-    const newDataModels = {
-      ...editedDataModels,
-      entities: [...editedDataModels.entities, newEntity],
-    };
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedDataModels = updatedProject.data_models as DataModels;
 
-    // Update state
-    setEditedDataModels(newDataModels);
-    setUnsavedChanges(true);
+    updatedDataModels.entities.push(newEntity);
+    updatedProject.data_models = updatedDataModels;
+
+    queueUpdate("add", { entity: newEntity }, updatedProject);
   };
 
   // Add new relationship
   const handleAddRelationship = (newRelationship: Relationship) => {
-    if (!editedDataModels) return;
+    if (!dataModels) return;
 
-    // Create a new data models object with the new relationship
-    const newDataModels = {
-      ...editedDataModels,
-      relationships: [...editedDataModels.relationships, newRelationship],
-    };
+    // Check for duplicate relationships
+    const isDuplicate = dataModels.relationships.some(
+      (rel) =>
+        rel.source_entity === newRelationship.source_entity &&
+        rel.target_entity === newRelationship.target_entity &&
+        rel.type === newRelationship.type
+    );
 
-    // Update state
-    setEditedDataModels(newDataModels);
-    setUnsavedChanges(true);
-  };
+    // Also check for reverse relationship (bidirectional check)
+    const isReverseDuplicate = dataModels.relationships.some(
+      (rel) =>
+        rel.source_entity === newRelationship.target_entity &&
+        rel.target_entity === newRelationship.source_entity &&
+        rel.type === newRelationship.type
+    );
 
-  // Save changes to the database
-  const saveChanges = async () => {
-    if (!editedDataModels) return;
-
-    setIsSaving(true);
-
-    try {
-      // Create a copy of the project object
-      const updatedProject = { ...currentProject };
-
-      // Update the data_models field
-      updatedProject.data_models = editedDataModels;
-
-      // Make the API call using apiClient
-      const result = await apiClient<DataModelsTabProps["project"]>(
-        `/projects/${currentProject.id}`,
-        {
-          method: "PUT",
-          body: updatedProject,
-          token: localStorage.getItem("token") || undefined,
-        }
+    if (isDuplicate || isReverseDuplicate) {
+      showToast(
+        "Relationship already exists",
+        "This relationship between these entities already exists",
+        "destructive"
       );
-
-      // Update the local project state with the result
-      setCurrentProject(result);
-
-      // Exit editing mode
-      setIsEditing(false);
-      setUnsavedChanges(false);
-
-      showToast("Changes saved successfully");
-    } catch (error) {
-      console.error("Error saving changes:", error);
-      showToast("Failed to save changes", "Please try again", "destructive");
-    } finally {
-      setIsSaving(false);
+      return;
     }
+
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedDataModels = updatedProject.data_models as DataModels;
+
+    updatedDataModels.relationships.push(newRelationship);
+    updatedProject.data_models = updatedDataModels;
+
+    queueUpdate("add", { relationship: newRelationship }, updatedProject);
   };
 
-  // Cancel editing and revert changes
-  const cancelEditing = () => {
-    setEditedDataModels(currentProject.data_models as DataModels);
-    setIsEditing(false);
-    setUnsavedChanges(false);
+  // Delete relationship
+  const handleDeleteRelationship = (relationshipToDelete: Relationship) => {
+    if (!dataModels) return;
+
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedDataModels = updatedProject.data_models as DataModels;
+
+    // Remove the specific relationship
+    updatedDataModels.relationships = updatedDataModels.relationships.filter(
+      (rel) =>
+        !(
+          rel.source_entity === relationshipToDelete.source_entity &&
+          rel.target_entity === relationshipToDelete.target_entity &&
+          rel.type === relationshipToDelete.type
+        )
+    );
+
+    updatedProject.data_models = updatedDataModels;
+
+    queueUpdate(
+      "delete",
+      { relationship: relationshipToDelete },
+      updatedProject
+    );
   };
 
   // If data models not available yet
@@ -256,7 +347,7 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
   return (
     <ToastProvider>
       <div className="space-y-8">
-        {/* Header with Search and Edit Controls */}
+        {/* Header with Search */}
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex items-center gap-2">
             <Database className="h-6 w-6 text-primary-cta" />
@@ -266,77 +357,42 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
             </Badge>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 items-end md:items-center w-full md:w-auto">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-text h-4 w-4" />
-              <Input
-                placeholder="Search entities or properties..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-secondary-background border-divider"
-              />
-              {searchTerm && (
-                <button
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                  onClick={() => setSearchTerm("")}
-                >
-                  <X className="h-4 w-4 text-secondary-text hover:text-primary-text" />
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {isEditing ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={cancelEditing}
-                    disabled={isSaving}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant={unsavedChanges ? "default" : "outline"}
-                    size="sm"
-                    onClick={saveChanges}
-                    disabled={isSaving || !unsavedChanges}
-                  >
-                    {isSaving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit className="h-4 w-4 mr-1" /> Edit Models
-                </Button>
-              )}
-            </div>
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-text h-4 w-4" />
+            <Input
+              placeholder="Search entities or properties..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-secondary-background border-divider"
+            />
+            {searchTerm && (
+              <button
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                onClick={() => setSearchTerm("")}
+              >
+                <X className="h-4 w-4 text-secondary-text hover:text-primary-text" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Edit mode controls */}
-        {isEditing && (
-          <div className="flex items-center gap-3 justify-end bg-secondary-background p-3 rounded-md border border-divider">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNewEntityDialog(true)}
-            >
-              <PlusCircle className="h-4 w-4 mr-1" /> Add Entity
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNewRelationshipDialog(true)}
-            >
-              <Link2 className="h-4 w-4 mr-1" /> Add Relationship
-            </Button>
-          </div>
-        )}
+        {/* Add controls */}
+        <div className="flex items-center gap-3 justify-end bg-secondary-background p-3 rounded-md border border-divider">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNewEntityDialog(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-1" /> Add Entity
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNewRelationshipDialog(true)}
+          >
+            <Link2 className="h-4 w-4 mr-1" /> Add Relationship
+          </Button>
+        </div>
 
         {/* Entity Cards Grid */}
         {filteredEntities.length > 0 ? (
@@ -346,10 +402,9 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
                 key={`${entity.name}-${idx}`}
                 entity={entity}
                 relationships={dataModels.relationships}
-                isEditing={isEditing}
                 onUpdateEntity={handleUpdateEntity}
                 onDeleteEntity={handleDeleteEntity}
-                onCardChange={() => setUnsavedChanges(true)}
+                onDeleteRelationship={handleDeleteRelationship}
               />
             ))}
           </div>
@@ -382,6 +437,23 @@ export function DataModelsTab({ project: initialProject }: DataModelsTabProps) {
           onAddRelationship={handleAddRelationship}
           entities={dataModels.entities}
         />
+
+        {/* Saving Status Indicator */}
+        {savingStatus !== "idle" && (
+          <div className="fixed bottom-6 left-6 bg-transparent backdrop-blur-sm rounded-full p-2 shadow-sm">
+            {savingStatus === "saving" ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 text-primary-cta animate-spin" />
+                <span className="text-xs text-secondary-text">Saving...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" />
+                <span className="text-xs text-secondary-text">Saved</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Toast */}
         {toast.open && (

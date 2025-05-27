@@ -26,19 +26,17 @@ import { ExpandableText } from "./expandable-text";
 interface EntityCardProps {
   entity: Entity;
   relationships: Relationship[];
-  isEditing: boolean;
   onUpdateEntity: (entityName: string, updatedEntity: Entity) => void;
   onDeleteEntity: (entityName: string) => void;
-  onCardChange: () => void;
+  onDeleteRelationship?: (relationship: Relationship) => void;
 }
 
 export function EntityCard({
   entity,
   relationships,
-  isEditing,
   onUpdateEntity,
   onDeleteEntity,
-  onCardChange,
+  onDeleteRelationship,
 }: EntityCardProps) {
   const [editingEntity, setEditingEntity] = useState(false);
   const [editedEntity, setEditedEntity] = useState<Entity>({ ...entity });
@@ -70,7 +68,6 @@ export function EntityCard({
   const saveEntityChanges = () => {
     onUpdateEntity(entity.name, editedEntity);
     setEditingEntity(false);
-    onCardChange();
   };
 
   // Handle property updates
@@ -78,7 +75,11 @@ export function EntityCard({
     const newProperties = [...editedEntity.properties];
     newProperties[index] = updatedProperty;
 
-    setEditedEntity({ ...editedEntity, properties: newProperties });
+    const updatedEntity = { ...editedEntity, properties: newProperties };
+    setEditedEntity(updatedEntity);
+
+    // Save immediately
+    onUpdateEntity(entity.name, updatedEntity);
   };
 
   // Handle property deletion
@@ -86,7 +87,11 @@ export function EntityCard({
     const newProperties = [...editedEntity.properties];
     newProperties.splice(index, 1);
 
-    setEditedEntity({ ...editedEntity, properties: newProperties });
+    const updatedEntity = { ...editedEntity, properties: newProperties };
+    setEditedEntity(updatedEntity);
+
+    // Save immediately
+    onUpdateEntity(entity.name, updatedEntity);
   };
 
   // Add new property
@@ -96,7 +101,11 @@ export function EntityCard({
     }
 
     const updatedProperties = [...editedEntity.properties, { ...newProperty }];
-    setEditedEntity({ ...editedEntity, properties: updatedProperties });
+    const updatedEntity = { ...editedEntity, properties: updatedProperties };
+    setEditedEntity(updatedEntity);
+
+    // Save immediately
+    onUpdateEntity(entity.name, updatedEntity);
 
     setNewProperty({
       name: "",
@@ -150,49 +159,48 @@ export function EntityCard({
             {entity.properties.length}
           </Badge>
 
-          {isEditing && (
-            <>
-              {editingEntity ? (
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setEditingEntity(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={saveEntityChanges}
-                  >
-                    <Save className="h-3.5 w-3.5 mr-1" />
-                    Save
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => setEditingEntity(true)}
-                  >
-                    <Edit className="h-3.5 w-3.5 text-secondary-text" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 hover:text-red-400"
-                    onClick={() => onDeleteEntity(entity.name)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
-                  </Button>
-                </div>
-              )}
-            </>
+          {editingEntity ? (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  setEditedEntity({ ...entity });
+                  setEditingEntity(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={saveEntityChanges}
+              >
+                <Save className="h-3.5 w-3.5 mr-1" />
+                Save
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => setEditingEntity(true)}
+              >
+                <Edit className="h-3.5 w-3.5 text-secondary-text" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 hover:text-red-400"
+                onClick={() => onDeleteEntity(entity.name)}
+              >
+                <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -206,16 +214,10 @@ export function EntityCard({
           <PropertyItem
             key={idx}
             property={property}
-            isEditing={editingEntity}
-            onEdit={
-              editingEntity
-                ? (updatedProperty) =>
-                    handlePropertyUpdate(idx, updatedProperty)
-                : undefined
+            onEdit={(updatedProperty) =>
+              handlePropertyUpdate(idx, updatedProperty)
             }
-            onDelete={
-              editingEntity ? () => handlePropertyDelete(idx) : undefined
-            }
+            onDelete={() => handlePropertyDelete(idx)}
           />
         ))}
 
@@ -227,7 +229,7 @@ export function EntityCard({
         )}
 
         {/* Add property form */}
-        {isEditing && editingEntity && addingProperty && (
+        {addingProperty && (
           <div className="p-3 border-b border-divider bg-hover-active/10">
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
@@ -332,8 +334,8 @@ export function EntityCard({
           </div>
         )}
 
-        {/* Add property button */}
-        {isEditing && editingEntity && !addingProperty && (
+        {/* Add property button - always visible */}
+        {!addingProperty && (
           <div className="p-2 flex justify-center">
             <Button
               variant="ghost"
@@ -356,6 +358,7 @@ export function EntityCard({
                 key={idx}
                 relationship={rel}
                 entityName={entity.name}
+                onDelete={onDeleteRelationship}
               />
             ))}
           </div>

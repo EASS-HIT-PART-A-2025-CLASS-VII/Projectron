@@ -22,14 +22,12 @@ import { ExpandableText } from "./expandable-text";
 
 interface PropertyItemProps {
   property: Property;
-  isEditing: boolean;
   onEdit?: (updatedProperty: Property) => void;
   onDelete?: () => void;
 }
 
 export function PropertyItem({
   property,
-  isEditing,
   onEdit,
   onDelete,
 }: PropertyItemProps) {
@@ -89,30 +87,28 @@ export function PropertyItem({
           {property.type}
         </code>
 
-        {isEditing && (
-          <div className="flex items-center gap-1">
-            {onEdit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={() => setEditMode(true)}
-              >
-                <Edit className="h-3.5 w-3.5 text-secondary-text" />
-              </Button>
-            )}
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:text-red-400"
-                onClick={onDelete}
-              >
-                <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-1">
+          {onEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => setEditMode(true)}
+            >
+              <Edit className="h-3.5 w-3.5 text-secondary-text" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:text-red-400"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
