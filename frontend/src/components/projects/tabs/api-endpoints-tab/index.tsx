@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ServerCrash,
   Shield,
@@ -12,6 +12,8 @@ import {
   PlusCircle,
   Plus,
   Trash2,
+  Loader2,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,36 +44,59 @@ export function ApiEndpointsTab({
   // Keep track of the most up to date project version
   const [currentProject, setCurrentProject] =
     useState<ApiEndpointsTabProps["project"]>(initialProject);
+  const [displayProject, setDisplayProject] =
+    useState<ApiEndpointsTabProps["project"]>(initialProject);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedApiEndpoints, setEditedApiEndpoints] =
-    useState<APIEndpoints | null>(null);
   const [showNewResourceDialog, setShowNewResourceDialog] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [toast, setToast] = useState<ToastState>({ open: false, title: "" });
   const [showAllPrinciples, setShowAllPrinciples] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
+
+  // Individual edit states
+  const [editingBaseUrl, setEditingBaseUrl] = useState(false);
+  const [editingAuthType, setEditingAuthType] = useState(false);
+  const [editingAuthDescription, setEditingAuthDescription] = useState(false);
+  const [editingPrinciples, setEditingPrinciples] = useState(false);
+
+  // Queue for processing updates sequentially
+  const updateQueue = useRef<
+    Array<{
+      type: "update";
+      payload: any;
+      projectSnapshot: ApiEndpointsTabProps["project"];
+    }>
+  >([]);
+  const isProcessingRef = useRef(false);
 
   // Extract API endpoints data from project
   const apiEndpoints = currentProject.api_endpoints as APIEndpoints;
+  const displayApiEndpoints = displayProject.api_endpoints as APIEndpoints;
 
-  // Initialize edited API endpoints from project data
+  // Reset saving status after showing "saved"
   useEffect(() => {
-    if (currentProject.api_endpoints) {
-      setEditedApiEndpoints(currentProject.api_endpoints as APIEndpoints);
+    if (savingStatus === "saved") {
+      const timer = setTimeout(() => {
+        if (updateQueue.current.length === 0) {
+          setSavingStatus("idle");
+        }
+      }, 1500);
+
+      return () => clearTimeout(timer);
     }
-  }, [currentProject.api_endpoints]);
+  }, [savingStatus]);
 
   // Filter endpoints based on search term
   useEffect(() => {
-    if (!apiEndpoints || !searchTerm.trim()) {
+    if (!displayApiEndpoints || !searchTerm.trim()) {
       setFilteredResources([]);
       return;
     }
 
     const term = searchTerm.toLowerCase();
-    const filtered = apiEndpoints.resources
+    const filtered = displayApiEndpoints.resources
       .map((resource: Resource) => {
         const matchingEndpoints = resource.endpoints.filter(
           (endpoint) =>
@@ -88,7 +113,7 @@ export function ApiEndpointsTab({
       .filter(Boolean) as Resource[];
 
     setFilteredResources(filtered);
-  }, [searchTerm, apiEndpoints]);
+  }, [searchTerm, displayApiEndpoints]);
 
   // Show toast function
   const showToast = (
@@ -109,50 +134,174 @@ export function ApiEndpointsTab({
     }, 3000);
   };
 
+  // Process queue sequentially
+  const processQueue = async () => {
+    if (updateQueue.current.length === 0) {
+      isProcessingRef.current = false;
+      return;
+    }
+
+    isProcessingRef.current = true;
+    setSavingStatus("saving");
+
+    const nextUpdate = updateQueue.current.shift();
+
+    try {
+      if (!nextUpdate) {
+        throw new Error("Update is undefined");
+      }
+
+      const result = await apiClient<ApiEndpointsTabProps["project"]>(
+        `/projects/${currentProject.id}`,
+        {
+          method: "PUT",
+          body: nextUpdate.projectSnapshot,
+          token: localStorage.getItem("token") || undefined,
+        }
+      );
+
+      setCurrentProject(result);
+      setSavingStatus("saved");
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      setSavingStatus("idle");
+      showToast("Failed to save changes", "Please try again", "destructive");
+
+      if (updateQueue.current.length === 0) {
+        setDisplayProject(currentProject);
+      }
+    } finally {
+      if (updateQueue.current.length > 0) {
+        processQueue();
+      } else {
+        isProcessingRef.current = false;
+      }
+    }
+  };
+
+  // Queue update with immediate UI feedback
+  const queueUpdate = (
+    type: "update",
+    payload: any,
+    updatedProject: ApiEndpointsTabProps["project"]
+  ) => {
+    setDisplayProject(updatedProject);
+
+    const projectSnapshot = JSON.parse(JSON.stringify(updatedProject));
+
+    updateQueue.current.push({
+      type,
+      payload,
+      projectSnapshot,
+    });
+
+    if (!isProcessingRef.current) {
+      processQueue();
+    }
+  };
+
+  // Update base URL
+  const updateBaseUrl = (newBaseUrl: string) => {
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.base_url = newBaseUrl;
+    updatedProject.api_endpoints = updatedApiEndpoints;
+
+    queueUpdate(
+      "update",
+      { field: "base_url", value: newBaseUrl },
+      updatedProject
+    );
+    setEditingBaseUrl(false);
+  };
+
+  // Update authentication type
+  const updateAuthType = (newAuthType: string) => {
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.authentication.type = newAuthType;
+    updatedProject.api_endpoints = updatedApiEndpoints;
+
+    queueUpdate(
+      "update",
+      { field: "auth_type", value: newAuthType },
+      updatedProject
+    );
+    setEditingAuthType(false);
+  };
+
+  // Update authentication description
+  const updateAuthDescription = (newAuthDescription: string) => {
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.authentication.description = newAuthDescription;
+    updatedProject.api_endpoints = updatedApiEndpoints;
+
+    queueUpdate(
+      "update",
+      { field: "auth_description", value: newAuthDescription },
+      updatedProject
+    );
+    setEditingAuthDescription(false);
+  };
+
+  // Update design principles
+  const updatePrinciples = (newPrinciples: string[]) => {
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.api_design_principles = newPrinciples;
+    updatedProject.api_endpoints = updatedApiEndpoints;
+
+    queueUpdate(
+      "update",
+      { field: "principles", value: newPrinciples },
+      updatedProject
+    );
+    setEditingPrinciples(false);
+  };
+
   // Get resources to display (either filtered or all)
   const resourcesToDisplay =
     searchTerm.trim() !== ""
       ? filteredResources
-      : editedApiEndpoints?.resources || apiEndpoints?.resources || [];
+      : displayApiEndpoints?.resources || apiEndpoints?.resources || [];
 
   // Update resource
   const handleUpdateResource = (index: number, updatedResource: Resource) => {
-    if (!editedApiEndpoints) return;
+    if (!displayApiEndpoints) return;
 
-    const newResources = [...editedApiEndpoints.resources];
-    newResources[index] = updatedResource;
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.resources[index] = updatedResource;
+    updatedProject.api_endpoints = updatedApiEndpoints;
 
-    const newApiEndpoints = {
-      ...editedApiEndpoints,
-      resources: newResources,
-    };
-
-    setEditedApiEndpoints(newApiEndpoints);
-    setUnsavedChanges(true);
+    queueUpdate(
+      "update",
+      { field: "resource", index, value: updatedResource },
+      updatedProject
+    );
   };
 
   // Delete resource
   const handleDeleteResource = (index: number) => {
-    if (!editedApiEndpoints) return;
+    if (!displayApiEndpoints) return;
 
-    const newResources = [...editedApiEndpoints.resources];
-    newResources.splice(index, 1);
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.resources.splice(index, 1);
+    updatedProject.api_endpoints = updatedApiEndpoints;
 
-    const newApiEndpoints = {
-      ...editedApiEndpoints,
-      resources: newResources,
-    };
-
-    setEditedApiEndpoints(newApiEndpoints);
-    setUnsavedChanges(true);
+    queueUpdate("update", { field: "delete_resource", index }, updatedProject);
   };
 
   // Add new resource
   const handleAddResource = (newResource: Resource) => {
-    if (!editedApiEndpoints) return;
+    if (!displayApiEndpoints) return;
 
     // Check if resource name already exists
-    if (editedApiEndpoints.resources.some((r) => r.name === newResource.name)) {
+    if (
+      displayApiEndpoints.resources.some((r) => r.name === newResource.name)
+    ) {
       showToast(
         "Resource name already exists",
         "Please choose a different name",
@@ -161,59 +310,16 @@ export function ApiEndpointsTab({
       return;
     }
 
-    const newApiEndpoints = {
-      ...editedApiEndpoints,
-      resources: [...editedApiEndpoints.resources, newResource],
-    };
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedApiEndpoints = updatedProject.api_endpoints as APIEndpoints;
+    updatedApiEndpoints.resources.push(newResource);
+    updatedProject.api_endpoints = updatedApiEndpoints;
 
-    setEditedApiEndpoints(newApiEndpoints);
-    setUnsavedChanges(true);
-  };
-
-  // Save changes to the database
-  const saveChanges = async () => {
-    if (!editedApiEndpoints) return;
-
-    setIsSaving(true);
-
-    try {
-      // Create a copy of the project object
-      const updatedProject = { ...currentProject };
-
-      // Update the api_endpoints field
-      updatedProject.api_endpoints = editedApiEndpoints;
-
-      // Make the API call using apiClient
-      const result = await apiClient<ApiEndpointsTabProps["project"]>(
-        `/projects/${currentProject.id}`,
-        {
-          method: "PUT",
-          body: updatedProject,
-          token: localStorage.getItem("token") || undefined,
-        }
-      );
-
-      // Update the local project state with the result
-      setCurrentProject(result);
-
-      // Exit editing mode
-      setIsEditing(false);
-      setUnsavedChanges(false);
-
-      showToast("Changes saved successfully");
-    } catch (error) {
-      console.error("Error saving changes:", error);
-      showToast("Failed to save changes", "Please try again", "destructive");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Cancel editing and revert changes
-  const cancelEditing = () => {
-    setEditedApiEndpoints(currentProject.api_endpoints as APIEndpoints);
-    setIsEditing(false);
-    setUnsavedChanges(false);
+    queueUpdate(
+      "update",
+      { field: "add_resource", value: newResource },
+      updatedProject
+    );
   };
 
   // If API endpoints data is not available yet
@@ -237,43 +343,10 @@ export function ApiEndpointsTab({
   return (
     <ToastProvider>
       <div className="space-y-6">
-        {/* Header with Edit Controls */}
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ServerCrash className="h-6 w-6 text-primary-cta" />
-            <h2 className="text-xl font-semibold">API Documentation</h2>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-3 items-end md:items-center w-full md:w-auto">
-            {isEditing ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={cancelEditing}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant={unsavedChanges ? "default" : "outline"}
-                  size="sm"
-                  onClick={saveChanges}
-                  disabled={isSaving || !unsavedChanges}
-                >
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit className="h-4 w-4 mr-1" /> Edit API
-              </Button>
-            )}
-          </div>
+        {/* Header */}
+        <div className="flex items-center gap-2">
+          <ServerCrash className="h-6 w-6 text-primary-cta" />
+          <h2 className="text-xl font-semibold">API Documentation</h2>
         </div>
 
         {/* API Overview Card */}
@@ -288,94 +361,184 @@ export function ApiEndpointsTab({
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                {isEditing ? (
-                  <Input
-                    value={editedApiEndpoints?.base_url}
-                    onChange={(e) => {
-                      if (!editedApiEndpoints) return;
-                      setEditedApiEndpoints({
-                        ...editedApiEndpoints,
-                        base_url: e.target.value,
-                      });
-                      setUnsavedChanges(true);
-                    }}
-                    className="h-7 w-full sm:w-64 text-sm bg-primary-background"
-                  />
+                {editingBaseUrl ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={displayApiEndpoints?.base_url}
+                      onChange={(e) => {
+                        const updatedProject = { ...displayProject };
+                        const updatedApiEndpoints =
+                          updatedProject.api_endpoints as APIEndpoints;
+                        updatedApiEndpoints.base_url = e.target.value;
+                        setDisplayProject(updatedProject);
+                      }}
+                      className="h-7 w-full sm:w-64 text-sm bg-primary-background"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() =>
+                        updateBaseUrl(displayApiEndpoints?.base_url || "")
+                      }
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => {
+                        setDisplayProject({ ...displayProject });
+                        setEditingBaseUrl(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 ) : (
-                  <Badge className="bg-hover-active text-primary-text text-xs py-1">
-                    {apiEndpoints.base_url}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-hover-active text-primary-text text-xs py-1">
+                      {displayApiEndpoints.base_url}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      onClick={() => setEditingBaseUrl(true)}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          displayApiEndpoints.base_url
+                        )
+                      }
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copy
+                    </Button>
+                  </div>
                 )}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={() =>
-                    navigator.clipboard.writeText(apiEndpoints.base_url)
-                  }
-                >
-                  <Copy className="h-3 w-3 mr-1" />
-                  Copy
-                </Button>
               </div>
             </div>
 
             <div className="flex flex-col gap-5">
-              {/* Auth Info - simplified for mobile */}
+              {/* Auth Info */}
               <div className="bg-primary-background border border-divider p-3 rounded-md">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="h-3.5 w-3.5 text-amber-400" />
-                  <span className="font-medium text-sm">
-                    Authentication:{" "}
-                    {isEditing ? (
+                  <span className="font-medium text-sm">Authentication:</span>
+                  {editingAuthType ? (
+                    <div className="flex items-center gap-2 ml-2">
                       <Input
-                        value={editedApiEndpoints?.authentication.type}
+                        value={displayApiEndpoints?.authentication.type}
                         onChange={(e) => {
-                          if (!editedApiEndpoints) return;
-                          setEditedApiEndpoints({
-                            ...editedApiEndpoints,
-                            authentication: {
-                              ...editedApiEndpoints.authentication,
-                              type: e.target.value,
-                            },
-                          });
-                          setUnsavedChanges(true);
+                          const updatedProject = { ...displayProject };
+                          const updatedApiEndpoints =
+                            updatedProject.api_endpoints as APIEndpoints;
+                          updatedApiEndpoints.authentication.type =
+                            e.target.value;
+                          setDisplayProject(updatedProject);
                         }}
-                        className="h-7 w-full sm:w-48 text-xs bg-hover-active/30 mt-2 mb-2 sm:mt-0 sm:inline-block sm:ml-2"
+                        className="h-7 w-48 text-xs bg-hover-active/30"
                       />
-                    ) : (
+                      <Button
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() =>
+                          updateAuthType(
+                            displayApiEndpoints?.authentication.type || ""
+                          )
+                        }
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setEditingAuthType(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
                       <span className="text-primary-text">
-                        {apiEndpoints.authentication.type}
+                        {displayApiEndpoints.authentication.type}
                       </span>
-                    )}
-                  </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => setEditingAuthType(true)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                {isEditing ? (
-                  <Textarea
-                    value={editedApiEndpoints?.authentication.description}
-                    onChange={(e) => {
-                      if (!editedApiEndpoints) return;
-                      setEditedApiEndpoints({
-                        ...editedApiEndpoints,
-                        authentication: {
-                          ...editedApiEndpoints.authentication,
-                          description: e.target.value,
-                        },
-                      });
-                      setUnsavedChanges(true);
-                    }}
-                    className="text-xs bg-hover-active/30 resize-none min-h-[80px] p-2"
-                    rows={4}
-                  />
+
+                {editingAuthDescription ? (
+                  <div className="flex flex-col gap-2">
+                    <Textarea
+                      value={displayApiEndpoints?.authentication.description}
+                      onChange={(e) => {
+                        const updatedProject = { ...displayProject };
+                        const updatedApiEndpoints =
+                          updatedProject.api_endpoints as APIEndpoints;
+                        updatedApiEndpoints.authentication.description =
+                          e.target.value;
+                        setDisplayProject(updatedProject);
+                      }}
+                      className="text-xs bg-hover-active/30 resize-none min-h-[80px] p-2"
+                      rows={4}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setEditingAuthDescription(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() =>
+                          updateAuthDescription(
+                            displayApiEndpoints?.authentication.description ||
+                              ""
+                          )
+                        }
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-secondary-text text-xs leading-relaxed">
-                    {apiEndpoints.authentication.description}
-                  </p>
+                  <div className="flex justify-between items-start">
+                    <p className="text-secondary-text text-xs leading-relaxed flex-1">
+                      {displayApiEndpoints.authentication.description}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 ml-2"
+                      onClick={() => setEditingAuthDescription(true)}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
                 )}
               </div>
 
-              {/* API Principles - simplified for mobile */}
+              {/* API Principles */}
               <div className="bg-primary-background border border-divider p-3 rounded-md">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
@@ -384,93 +547,55 @@ export function ApiEndpointsTab({
                       API Design Principles
                     </span>
                   </div>
+                  {!editingPrinciples && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => setEditingPrinciples(true)}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
+
                 <div
                   className={`overflow-y-auto scrollbar-thin ${
                     showAllPrinciples ? "max-h-48 sm:max-h-96" : "max-h-24"
                   }`}
                 >
-                  {isEditing ? (
-                    <div className="space-y-2">
-                      {editedApiEndpoints?.api_design_principles.map(
-                        (principle, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5">
-                            <Input
-                              value={principle}
-                              onChange={(e) => {
-                                if (!editedApiEndpoints) return;
-                                const newPrinciples = [
-                                  ...editedApiEndpoints.api_design_principles,
-                                ];
-                                newPrinciples[idx] = e.target.value;
-                                setEditedApiEndpoints({
-                                  ...editedApiEndpoints,
-                                  api_design_principles: newPrinciples,
-                                });
-                                setUnsavedChanges(true);
-                              }}
-                              className="h-7 bg-hover-active/30 text-xs flex-1"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0 hover:text-red-400"
-                              onClick={() => {
-                                if (!editedApiEndpoints) return;
-                                const newPrinciples = [
-                                  ...editedApiEndpoints.api_design_principles,
-                                ];
-                                newPrinciples.splice(idx, 1);
-                                setEditedApiEndpoints({
-                                  ...editedApiEndpoints,
-                                  api_design_principles: newPrinciples,
-                                });
-                                setUnsavedChanges(true);
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-primary-cta text-xs h-7"
-                        onClick={() => {
-                          if (!editedApiEndpoints) return;
-                          setEditedApiEndpoints({
-                            ...editedApiEndpoints,
-                            api_design_principles: [
-                              ...editedApiEndpoints.api_design_principles,
-                              "",
-                            ],
-                          });
-                          setUnsavedChanges(true);
-                        }}
-                      >
-                        <Plus className="h-3 w-3 mr-1" /> Add Principle
-                      </Button>
-                    </div>
+                  {editingPrinciples ? (
+                    <PrinciplesEditor
+                      principles={
+                        displayApiEndpoints?.api_design_principles || []
+                      }
+                      onSave={(newPrinciples) =>
+                        updatePrinciples(newPrinciples)
+                      }
+                      onCancel={() => setEditingPrinciples(false)}
+                    />
                   ) : (
                     <ul className="text-xs leading-relaxed space-y-1 pl-4 marker:text-primary-cta list-disc scrollbar-thin">
                       {(showAllPrinciples
-                        ? apiEndpoints.api_design_principles
-                        : apiEndpoints.api_design_principles.slice(0, 3)
+                        ? displayApiEndpoints.api_design_principles
+                        : displayApiEndpoints.api_design_principles.slice(0, 3)
                       ).map((principle: any, idx: any) => (
                         <li key={idx} className="text-secondary-text">
                           {principle}
                         </li>
                       ))}
                       {!showAllPrinciples &&
-                        apiEndpoints.api_design_principles.length > 3 && (
+                        displayApiEndpoints.api_design_principles.length >
+                          3 && (
                           <li
                             className="text-primary-cta text-xs cursor-pointer hover:text-white"
                             onClick={() =>
                               setShowAllPrinciples(!showAllPrinciples)
                             }
                           >
-                            +{apiEndpoints.api_design_principles.length - 3}{" "}
+                            +
+                            {displayApiEndpoints.api_design_principles.length -
+                              3}{" "}
                             more
                           </li>
                         )}
@@ -492,18 +617,16 @@ export function ApiEndpointsTab({
           </div>
         </Card>
 
-        {/* Edit mode controls */}
-        {isEditing && (
-          <div className="flex items-center gap-3 justify-end bg-secondary-background p-3 rounded-md border border-divider">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNewResourceDialog(true)}
-            >
-              <PlusCircle className="h-4 w-4 mr-1" /> Add Resource
-            </Button>
-          </div>
-        )}
+        {/* Add Resource Button */}
+        <div className="flex items-center gap-3 justify-end bg-secondary-background p-3 rounded-md border border-divider">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNewResourceDialog(true)}
+          >
+            <PlusCircle className="h-4 w-4 mr-1" /> Add Resource
+          </Button>
+        </div>
 
         {/* Endpoint Search */}
         <div className="relative">
@@ -543,17 +666,11 @@ export function ApiEndpointsTab({
             <ResourceSection
               key={idx}
               resource={resource}
-              baseUrl={editedApiEndpoints?.base_url || apiEndpoints.base_url}
-              isEditing={isEditing}
-              onUpdateResource={
-                isEditing
-                  ? (updatedResource) =>
-                      handleUpdateResource(idx, updatedResource)
-                  : undefined
+              baseUrl={displayApiEndpoints?.base_url || apiEndpoints.base_url}
+              onUpdateResource={(updatedResource) =>
+                handleUpdateResource(idx, updatedResource)
               }
-              onDeleteResource={
-                isEditing ? () => handleDeleteResource(idx) : undefined
-              }
+              onDeleteResource={() => handleDeleteResource(idx)}
             />
           ))}
         </div>
@@ -564,6 +681,23 @@ export function ApiEndpointsTab({
           onOpenChange={setShowNewResourceDialog}
           onAddResource={handleAddResource}
         />
+
+        {/* Saving Status Indicator */}
+        {savingStatus !== "idle" && (
+          <div className="fixed bottom-6 left-6 bg-transparent backdrop-blur-sm rounded-full p-2 shadow-sm">
+            {savingStatus === "saving" ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 text-primary-cta animate-spin" />
+                <span className="text-xs text-secondary-text">Saving...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-500" />
+                <span className="text-xs text-secondary-text">Saved</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Toast */}
         {toast.open && (
@@ -581,5 +715,81 @@ export function ApiEndpointsTab({
         <ToastViewport />
       </div>
     </ToastProvider>
+  );
+}
+
+// Principles Editor Component
+function PrinciplesEditor({
+  principles,
+  onSave,
+  onCancel,
+}: {
+  principles: string[];
+  onSave: (principles: string[]) => void;
+  onCancel: () => void;
+}) {
+  const [editedPrinciples, setEditedPrinciples] = useState([...principles]);
+
+  const updatePrinciple = (index: number, value: string) => {
+    const newPrinciples = [...editedPrinciples];
+    newPrinciples[index] = value;
+    setEditedPrinciples(newPrinciples);
+  };
+
+  const deletePrinciple = (index: number) => {
+    const newPrinciples = [...editedPrinciples];
+    newPrinciples.splice(index, 1);
+    setEditedPrinciples(newPrinciples);
+  };
+
+  const addPrinciple = () => {
+    setEditedPrinciples([...editedPrinciples, ""]);
+  };
+
+  return (
+    <div className="space-y-2">
+      {editedPrinciples.map((principle, idx) => (
+        <div key={idx} className="flex items-center gap-1.5">
+          <Input
+            value={principle}
+            onChange={(e) => updatePrinciple(idx, e.target.value)}
+            className="h-7 bg-hover-active/30 text-xs flex-1"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 hover:text-red-400"
+            onClick={() => deletePrinciple(idx)}
+          >
+            <Trash2 className="h-3 w-3 " />
+          </Button>
+        </div>
+      ))}
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full text-primary-cta text-xs h-7"
+        onClick={addPrinciple}
+      >
+        <Plus className="h-3 w-3 mr-1" /> Add Principle
+      </Button>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          className="h-7 px-2 text-xs"
+          onClick={() => onSave(editedPrinciples)}
+        >
+          Save
+        </Button>
+      </div>
+    </div>
   );
 }

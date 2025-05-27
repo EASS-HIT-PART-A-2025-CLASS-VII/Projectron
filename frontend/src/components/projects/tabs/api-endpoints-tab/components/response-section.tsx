@@ -27,13 +27,11 @@ import { ResponseErrorItem } from "./response-error-item";
 
 interface ResponseSectionProps {
   response: Response;
-  isEditing?: boolean;
   onUpdateResponse?: (updatedResponse: Response) => void;
 }
 
 export function ResponseSection({
   response,
-  isEditing = false,
   onUpdateResponse,
 }: ResponseSectionProps) {
   const [addingError, setAddingError] = useState(false);
@@ -143,64 +141,43 @@ export function ResponseSection({
 
       <TabsContent value="success" className="space-y-4 mt-0">
         <div className="flex gap-2 items-center p-2 bg-primary-background rounded-t-md border border-divider border-b-0">
-          {isEditing ? (
-            <>
-              <Select
-                value={response.success.status.toString()}
-                onValueChange={(value) => handleStatusUpdate(parseInt(value))}
-              >
-                <SelectTrigger className="h-8 w-24 bg-hover-active">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {successCodes.map((code) => (
-                    <SelectItem key={code} value={code.toString()}>
-                      {code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <Select
+            value={response.success.status.toString()}
+            onValueChange={(value) => handleStatusUpdate(parseInt(value))}
+          >
+            <SelectTrigger className="h-8 w-24 bg-hover-active">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {successCodes.map((code) => (
+                <SelectItem key={code} value={code.toString()}>
+                  {code}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-              <Select
-                value={response.success.content_type}
-                onValueChange={handleContentTypeUpdate}
-              >
-                <SelectTrigger className="h-8 bg-hover-active">
-                  <SelectValue placeholder="Content-Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {contentTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          ) : (
-            <>
-              <Badge
-                className={`${
-                  statusColors[
-                    Math.floor(
-                      response.success.status / 100
-                    ) as keyof typeof statusColors
-                  ]
-                }`}
-              >
-                {response.success.status}
-              </Badge>
-              <span className="text-secondary-text">
-                {response.success.content_type}
-              </span>
-            </>
-          )}
+          <Select
+            value={response.success.content_type}
+            onValueChange={handleContentTypeUpdate}
+          >
+            <SelectTrigger className="h-8 bg-hover-active">
+              <SelectValue placeholder="Content-Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {contentTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="border border-divider rounded-b-md overflow-hidden">
           <JsonDisplay
             data={response.success.schema_data}
             maxHeight="96"
-            editable={isEditing}
+            editable={true}
             onEdit={handleSuccessUpdate}
           />
         </div>
@@ -208,7 +185,7 @@ export function ResponseSection({
 
       <TabsContent value="errors" className="space-y-4 mt-0">
         {/* Add error button */}
-        {isEditing && !addingError && (
+        {!addingError && (
           <div className="flex justify-end mb-2">
             <Button
               variant="outline"
@@ -222,7 +199,7 @@ export function ResponseSection({
         )}
 
         {/* New error form */}
-        {isEditing && addingError && (
+        {addingError && (
           <div className="border border-divider rounded-md overflow-hidden mb-4 bg-hover-active/10">
             <div className="p-3">
               <div className="grid grid-cols-2 gap-3 mb-3">
@@ -297,13 +274,9 @@ export function ResponseSection({
           <ResponseErrorItem
             key={idx}
             error={error}
-            isEditing={isEditing}
-            onEdit={
-              isEditing
-                ? (updatedError) => handleErrorUpdate(idx, updatedError)
-                : undefined
-            }
-            onDelete={isEditing ? () => handleErrorDelete(idx) : undefined}
+            isEditing={true}
+            onEdit={(updatedError) => handleErrorUpdate(idx, updatedError)}
+            onDelete={() => handleErrorDelete(idx)}
           />
         ))}
 

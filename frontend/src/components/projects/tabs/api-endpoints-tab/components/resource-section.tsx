@@ -14,7 +14,6 @@ import { NewEndpointDialog } from "./dialogs/new-endpoint-dialog";
 interface ResourceSectionProps {
   resource: Resource;
   baseUrl: string;
-  isEditing?: boolean;
   onUpdateResource?: (updatedResource: Resource) => void;
   onDeleteResource?: () => void;
 }
@@ -22,7 +21,6 @@ interface ResourceSectionProps {
 export function ResourceSection({
   resource,
   baseUrl,
-  isEditing = false,
   onUpdateResource,
   onDeleteResource,
 }: ResourceSectionProps) {
@@ -94,20 +92,24 @@ export function ResourceSection({
     <div className="border border-divider rounded-md overflow-hidden bg-secondary-background">
       {/* Resource Header */}
       <div
-        className="p-3 flex items-center justify-between cursor-pointer hover:bg-hover-active"
+        className="p-3 flex items-center justify-between cursor-pointer hover:bg-hover-active "
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-2">
+        <div
+          className={`flex items-center gap-2 w-fit ${
+            editingName ? "w-full" : "w-fit"
+          }`}
+        >
           <Badge className="bg-hover-active">{resource.endpoints.length}</Badge>
 
           {editingName ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col justify-around gap-4 w-full">
               <Input
                 value={editedResource.name}
                 onChange={(e) =>
                   setEditedResource({ ...editedResource, name: e.target.value })
                 }
-                className="h-8 w-48 bg-primary-background"
+                className="h-8 w-fit bg-primary-background"
                 onClick={(e) => e.stopPropagation()}
               />
               <Textarea
@@ -118,13 +120,13 @@ export function ResourceSection({
                     description: e.target.value,
                   })
                 }
-                className="h-8 w-48 bg-primary-background resize-none"
+                className="h-8 w-full bg-primary-background resize-none"
                 placeholder="Resource description"
                 onClick={(e) => e.stopPropagation()}
               />
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className="h-7"
                   onClick={(e) => {
@@ -148,17 +150,16 @@ export function ResourceSection({
               </div>
             </div>
           ) : (
-            <h3 className="text-lg font-medium">{resource.name}</h3>
+            <h3 className="text-lg font-medium w-fit">{resource.name}</h3>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-secondary-text text-sm hidden md:inline-block">
-            {resource.description}
-          </span>
-
-          {isEditing && !editingName && (
+          {!editingName && (
             <div className="flex items-center gap-1">
+              <span className="text-secondary-text text-sm hidden md:inline-block w-fit">
+                {resource.description}
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -168,7 +169,7 @@ export function ResourceSection({
                   setEditingName(true);
                 }}
               >
-                <Edit className="h-3.5 w-3.5 text-secondary-text" />
+                <Edit className="h-3.5 w-3.5 text-secondary-text hover:text-blue-500" />
               </Button>
               {onDeleteResource && (
                 <Button
@@ -180,7 +181,7 @@ export function ResourceSection({
                     onDeleteResource();
                   }}
                 >
-                  <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
+                  <Trash2 className="h-3.5 w-3.5 text-secondary-text hover:text-red-500" />
                 </Button>
               )}
             </div>
@@ -197,35 +198,15 @@ export function ResourceSection({
       {/* Endpoints List */}
       {isOpen && (
         <div className="border-t border-divider">
-          {/* Add Endpoint Button */}
-          {isEditing && (
-            <div className="p-2 border-b border-divider bg-hover-active/10">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-primary-cta"
-                onClick={() => setShowNewEndpointDialog(true)}
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" /> Add Endpoint
-              </Button>
-            </div>
-          )}
-
           {resource.endpoints.map((endpoint, endpointIdx) => (
             <EndpointItem
               key={endpointIdx}
               endpoint={endpoint}
               baseUrl={baseUrl}
-              isEditing={isEditing}
-              onUpdateEndpoint={
-                isEditing
-                  ? (updatedEndpoint) =>
-                      handleEndpointUpdate(endpointIdx, updatedEndpoint)
-                  : undefined
+              onUpdateEndpoint={(updatedEndpoint) =>
+                handleEndpointUpdate(endpointIdx, updatedEndpoint)
               }
-              onDeleteEndpoint={
-                isEditing ? () => handleEndpointDelete(endpointIdx) : undefined
-              }
+              onDeleteEndpoint={() => handleEndpointDelete(endpointIdx)}
             />
           ))}
 
@@ -244,6 +225,17 @@ export function ResourceSection({
         onAddEndpoint={handleAddEndpoint}
         resourceName={resource.name}
       />
+      {/* Add Endpoint Button */}
+      <div className="p-2 border-b border-divider bg-hover-active/10">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-primary-cta"
+          onClick={() => setShowNewEndpointDialog(true)}
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" /> Add Endpoint
+        </Button>
+      </div>
     </div>
   );
 }

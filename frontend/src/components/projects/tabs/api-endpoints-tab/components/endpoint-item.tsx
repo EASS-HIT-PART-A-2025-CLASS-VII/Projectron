@@ -32,7 +32,6 @@ import { ResponseSection } from "./response-section";
 interface EndpointItemProps {
   endpoint: Endpoint;
   baseUrl: string;
-  isEditing?: boolean;
   onUpdateEndpoint?: (updatedEndpoint: Endpoint) => void;
   onDeleteEndpoint?: () => void;
 }
@@ -40,7 +39,6 @@ interface EndpointItemProps {
 export function EndpointItem({
   endpoint,
   baseUrl,
-  isEditing = false,
   onUpdateEndpoint,
   onDeleteEndpoint,
 }: EndpointItemProps) {
@@ -123,35 +121,33 @@ export function EndpointItem({
         <div className="text-secondary-text hidden md:block truncate max-w-xs pr-4">
           {endpoint.name}
         </div>
-        {isEditing && (
-          <div className="flex items-center gap-1 mr-2">
+        <div className="flex items-center gap-1 mr-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(true);
+              setEditingMetadata(true);
+            }}
+          >
+            <Edit className="h-3.5 w-3.5 text-secondary-text hover:text-blue-500" />
+          </Button>
+          {onDeleteEndpoint && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0"
+              className="h-7 w-7 p-0 hover:text-red-400"
               onClick={(e) => {
                 e.stopPropagation();
-                setIsOpen(true);
-                setEditingMetadata(true);
+                onDeleteEndpoint();
               }}
             >
-              <Edit className="h-3.5 w-3.5 text-secondary-text" />
+              <Trash2 className="h-3.5 w-3.5 text-secondary-text hover:text-red-500" />
             </Button>
-            {onDeleteEndpoint && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 hover:text-red-400"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteEndpoint();
-                }}
-              >
-                <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
-              </Button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
         {isOpen ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
       </div>
 
@@ -327,18 +323,14 @@ export function EndpointItem({
                 <RequestSection
                   request={editedEndpoint.request}
                   path={editedEndpoint.path}
-                  isEditing={isEditing}
-                  onUpdateRequest={isEditing ? handleRequestUpdate : undefined}
+                  onUpdateRequest={handleRequestUpdate}
                 />
               </TabsContent>
 
               <TabsContent value="response" className="mt-0">
                 <ResponseSection
                   response={editedEndpoint.response}
-                  isEditing={isEditing}
-                  onUpdateResponse={
-                    isEditing ? handleResponseUpdate : undefined
-                  }
+                  onUpdateResponse={handleResponseUpdate}
                 />
               </TabsContent>
             </Tabs>

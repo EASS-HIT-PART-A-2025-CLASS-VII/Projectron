@@ -59,28 +59,26 @@ export function ResponseErrorItem({
             {error.description}
           </span>
 
-          {isEditing && (
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={() => setEditMode(true)}
+            >
+              <Edit className="h-3.5 w-3.5 text-secondary-text" />
+            </Button>
+            {onDelete && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
-                onClick={() => setEditMode(true)}
+                className="h-7 w-7 p-0 hover:text-red-400"
+                onClick={onDelete}
               >
-                <Edit className="h-3.5 w-3.5 text-secondary-text" />
+                <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
               </Button>
-              {onDelete && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0 hover:text-red-400"
-                  onClick={onDelete}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-secondary-text" />
-                </Button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );
