@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, Info } from "lucide-react";
+import { Edit, Info, Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import {
 
 import { Subtask } from "../types";
 import { EditSubtaskDialog } from "./dialogs/edit-subtask-dialog";
+import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 
 interface SubtaskItemProps {
   subtask: Subtask;
@@ -23,6 +24,7 @@ interface SubtaskItemProps {
   subtaskIndex: number;
   onStatusChange: (status: string) => void;
   onUpdate: (updatedSubtask: Subtask) => void;
+  onDelete: () => void;
 }
 
 export function SubtaskItem({
@@ -32,8 +34,10 @@ export function SubtaskItem({
   subtaskIndex,
   onStatusChange,
   onUpdate,
+  onDelete,
 }: SubtaskItemProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
   const handleCheckChange = (checked: boolean) => {
@@ -149,6 +153,19 @@ export function SubtaskItem({
                   >
                     <Edit className="h-3.5 w-3.5 text-secondary-text" />
                   </Button>
+
+                  {/* Delete button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 rounded-full hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -165,6 +182,16 @@ export function SubtaskItem({
         milestoneIndex={milestoneIndex}
         taskIndex={taskIndex}
         subtaskIndex={subtaskIndex}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={onDelete}
+        title="Delete Subtask"
+        description="Are you sure you want to delete this subtask?"
+        itemName={subtask.name}
       />
     </>
   );

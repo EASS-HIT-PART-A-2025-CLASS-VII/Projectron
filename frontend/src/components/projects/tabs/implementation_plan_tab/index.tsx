@@ -26,6 +26,14 @@ import { CompletionBar } from "./components/completion-bar";
 import { MilestoneItem } from "./components/milestone-item";
 import { AddMilestoneDialog } from "./components/dialogs/add-milestone-dialog";
 
+// Add new type for delete operations
+type DeleteItemPayload = {
+  type: "milestone" | "task" | "subtask";
+  milestoneIndex: number;
+  taskIndex?: number;
+  subtaskIndex?: number;
+};
+
 export function ImplementationPlanTab({
   project: initialProject,
 }: ImplementationPlanTabProps) {
@@ -44,8 +52,12 @@ export function ImplementationPlanTab({
   // Queue for processing updates sequentially
   const updateQueue = useRef<
     Array<{
-      type: "status" | "edit" | "add";
-      payload: UpdateStatusPayload | EditItemPayload | AddItemPayload;
+      type: "status" | "edit" | "add" | "delete";
+      payload:
+        | UpdateStatusPayload
+        | EditItemPayload
+        | AddItemPayload
+        | DeleteItemPayload;
       projectSnapshot: ImplementationPlanTabProps["project"];
     }>
   >([]);
@@ -188,8 +200,12 @@ export function ImplementationPlanTab({
 
   // Queue update with immediate UI feedback
   const queueUpdate = (
-    type: "status" | "edit" | "add",
-    payload: UpdateStatusPayload | EditItemPayload | AddItemPayload,
+    type: "status" | "edit" | "add" | "delete",
+    payload:
+      | UpdateStatusPayload
+      | EditItemPayload
+      | AddItemPayload
+      | DeleteItemPayload,
     updatedProject: ImplementationPlanTabProps["project"]
   ) => {
     // Update UI immediately
@@ -382,6 +398,46 @@ export function ImplementationPlanTab({
     queueUpdate("add", payload, updatedProject);
   };
 
+  // Delete milestone, task, or subtask
+  const deleteItem = (payload: DeleteItemPayload) => {
+    if (!displayImplementationPlan) return;
+
+    // Create a deep copy of the project
+    const updatedProject = JSON.parse(JSON.stringify(displayProject));
+    const updatedPlan =
+      updatedProject.implementation_plan as DetailedImplementationPlan;
+
+    const { type, milestoneIndex, taskIndex, subtaskIndex } = payload;
+
+    if (type === "milestone") {
+      // Delete milestone (and all its tasks and subtasks)
+      updatedPlan.milestones.splice(milestoneIndex, 1);
+
+      // Update expanded milestones array
+      setExpandedMilestones((prev) =>
+        prev
+          .filter((index) => index !== milestoneIndex)
+          .map((index) => (index > milestoneIndex ? index - 1 : index))
+      );
+    } else if (type === "task" && taskIndex !== undefined) {
+      // Delete task (and all its subtasks)
+      updatedPlan.milestones[milestoneIndex].tasks.splice(taskIndex, 1);
+    } else if (
+      type === "subtask" &&
+      taskIndex !== undefined &&
+      subtaskIndex !== undefined
+    ) {
+      // Delete subtask
+      updatedPlan.milestones[milestoneIndex].tasks[taskIndex].subtasks.splice(
+        subtaskIndex,
+        1
+      );
+    }
+
+    // Queue update for processing
+    queueUpdate("delete", payload, updatedProject);
+  };
+
   // Handle adding a new milestone
   const handleAddMilestone = (milestone: Milestone) => {
     addItem({
@@ -413,6 +469,37 @@ export function ImplementationPlanTab({
     });
   };
 
+  // Handle deleting a milestone
+  const handleDeleteMilestone = (milestoneIndex: number) => {
+    deleteItem({
+      type: "milestone",
+      milestoneIndex,
+    });
+  };
+
+  // Handle deleting a task
+  const handleDeleteTask = (milestoneIndex: number, taskIndex: number) => {
+    deleteItem({
+      type: "task",
+      milestoneIndex,
+      taskIndex,
+    });
+  };
+
+  // Handle deleting a subtask
+  const handleDeleteSubtask = (
+    milestoneIndex: number,
+    taskIndex: number,
+    subtaskIndex: number
+  ) => {
+    deleteItem({
+      type: "subtask",
+      milestoneIndex,
+      taskIndex,
+      subtaskIndex,
+    });
+  };
+
   // If implementation plan not available, show empty state with option to add
   if (
     !displayImplementationPlan ||
@@ -420,26 +507,35 @@ export function ImplementationPlanTab({
     displayImplementationPlan.milestones.length === 0
   ) {
     return (
-      <div className="p-6 text-center">
-        <div className="mb-4 flex justify-center">
-          <AlertTriangle className="h-12 w-12 text-secondary-text" />
+      <>
+        <div className="p-6 text-center">
+          <div className="mb-4 flex justify-center">
+            <AlertTriangle className="h-12 w-12 text-secondary-text" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">
+            No Implementation Plan Yet
+          </h3>
+          <p className="text-secondary-text max-w-md mx-auto mb-6">
+            This project doesn't have an implementation plan defined yet. You
+            can start by adding milestones or generate one from the Plan
+            Generation page.
+          </p>
+          <Button
+            onClick={() => setShowAddMilestoneDialog(true)}
+            className="bg-primary-cta hover:bg-primary-cta-hover text-black font-semibold"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add First Milestone
+          </Button>
         </div>
-        <h3 className="text-xl font-semibold mb-2">
-          No Implementation Plan Yet
-        </h3>
-        <p className="text-secondary-text max-w-md mx-auto mb-6">
-          This project doesn't have an implementation plan defined yet. You can
-          start by adding milestones or generate one from the Plan Generation
-          page.
-        </p>
-        <Button
-          onClick={() => setShowAddMilestoneDialog(true)}
-          className="bg-primary-cta hover:bg-primary-cta-hover"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add First Milestone
-        </Button>
-      </div>
+
+        {/* Add Milestone Dialog - Also needed in empty state */}
+        <AddMilestoneDialog
+          open={showAddMilestoneDialog}
+          onOpenChange={setShowAddMilestoneDialog}
+          onAdd={handleAddMilestone}
+        />
+      </>
     );
   }
 
@@ -528,6 +624,13 @@ export function ImplementationPlanTab({
               onSubtaskAdd={(taskIndex, subtask) =>
                 handleAddSubtask(milestoneIndex, taskIndex, subtask)
               }
+              onDelete={() => handleDeleteMilestone(milestoneIndex)}
+              onTaskDelete={(taskIndex) =>
+                handleDeleteTask(milestoneIndex, taskIndex)
+              }
+              onSubtaskDelete={(taskIndex, subtaskIndex) =>
+                handleDeleteSubtask(milestoneIndex, taskIndex, subtaskIndex)
+              }
             />
           )
         )}
@@ -536,8 +639,9 @@ export function ImplementationPlanTab({
       {/* Add Milestone Button */}
       <div className="mt-6 flex justify-start">
         <Button
+          variant="outline"
           onClick={() => setShowAddMilestoneDialog(true)}
-          className="bg-primary-cta hover:bg-hover-active hover:text-white text-black font-semibold"
+          className="text-secondary-text font-semibold"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Milestone

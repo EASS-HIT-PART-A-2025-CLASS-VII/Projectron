@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, ChevronDown, ChevronUp, Info, Clock, Plus } from "lucide-react";
+import {
+  Edit,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Clock,
+  Plus,
+  Trash,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +26,7 @@ import { SubtaskItem } from "./subtask-item";
 import { PRIORITY_COLORS } from "../constants";
 import { EditTaskDialog } from "./dialogs/edit-task-dialog";
 import { AddSubtaskDialog } from "./dialogs/add-subtask-dialog";
+import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 
 interface TaskItemProps {
   task: Task;
@@ -28,6 +37,8 @@ interface TaskItemProps {
   onUpdate: (updatedTask: Task) => void;
   onSubtaskUpdate: (subtaskIndex: number, updatedSubtask: any) => void;
   onSubtaskAdd: (subtask: Subtask) => void;
+  onDelete: () => void;
+  onSubtaskDelete: (subtaskIndex: number) => void;
 }
 
 export function TaskItem({
@@ -39,9 +50,12 @@ export function TaskItem({
   onUpdate,
   onSubtaskUpdate,
   onSubtaskAdd,
+  onDelete,
+  onSubtaskDelete,
 }: TaskItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAddSubtaskDialog, setShowAddSubtaskDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -77,6 +91,15 @@ export function TaskItem({
       default:
         return "bg-secondary-background text-secondary-text border-gray-600";
     }
+  };
+
+  // Get delete confirmation message
+  const getDeleteMessage = () => {
+    const subtaskCount = task.subtasks.length;
+    if (subtaskCount > 0) {
+      return `Are you sure you want to delete this task and all ${subtaskCount} of its subtasks?`;
+    }
+    return "Are you sure you want to delete this task?";
   };
 
   return (
@@ -186,6 +209,19 @@ export function TaskItem({
                         <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-secondary-text" />
                       </Button>
 
+                      {/* Delete button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 sm:h-7 sm:w-7 p-0 rounded-full hover:bg-destructive/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        <Trash className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
+                      </Button>
+
                       {/* Expand/collapse button */}
                       <Button
                         variant="ghost"
@@ -227,6 +263,7 @@ export function TaskItem({
               onUpdate={(updatedSubtask) =>
                 onSubtaskUpdate(subtaskIndex, updatedSubtask)
               }
+              onDelete={() => onSubtaskDelete(subtaskIndex)}
             />
           ))}
 
@@ -239,7 +276,7 @@ export function TaskItem({
                 e.stopPropagation();
                 setShowAddSubtaskDialog(true);
               }}
-              className="h-7 text-xs text-secondary-text hover:text-primary-text hover:bg-secondary-background/70"
+              className="h-7 text-xs text-secondary-text hover:text-primary-text hover:bg-hover-active"
             >
               <Plus className="h-3 w-3 mr-1" />
               Add Subtask
@@ -265,6 +302,16 @@ export function TaskItem({
         onAdd={onSubtaskAdd}
         milestoneIndex={milestoneIndex}
         taskIndex={taskIndex}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={onDelete}
+        title="Delete Task"
+        description={getDeleteMessage()}
+        itemName={task.name}
       />
     </>
   );

@@ -1,6 +1,7 @@
 // src/types/index.ts
-
 // User interfaces
+export type ProjectStatus = "draft" | "active" | "completed" | "cancelled";
+
 export interface User {
   id: string;
   email: string;
@@ -10,14 +11,14 @@ export interface User {
   created_at: string;
 }
 
-// For project listing page (simpler structure)
+// For project listing page
 export interface ProjectListItem {
   milestone_count: number;
   task_count: number;
   id: string;
   name: string;
   description: string;
-  status: string;
+  status: ProjectStatus;
   created_at: string;
   updated_at: string;
   owner_id: string | null;
@@ -25,12 +26,12 @@ export interface ProjectListItem {
   completion_percentage: number;
 }
 
-// For detailed project view (complex structure with nested data)
+// For detailed project view
 export interface Project extends ProjectListItem {
   tech_stack: string[];
   experience_level: string;
   team_size: number;
-
+  status: ProjectStatus;
   // Plan components
   high_level_plan: Record<string, any>;
   technical_architecture: Record<string, any>;
@@ -89,12 +90,12 @@ export interface Subtask {
 }
 
 // Status type definitions for better type safety
-export type ProjectStatus = "draft" | "in_progress" | "completed" | "cancelled";
 export type TaskStatus =
   | "not_started"
   | "in_progress"
   | "completed"
   | "blocked";
+
 export type TaskPriority = "low" | "medium" | "high" | "critical";
 
 // API response types

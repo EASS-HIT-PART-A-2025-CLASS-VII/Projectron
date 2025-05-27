@@ -12,15 +12,31 @@ import { CalendarIcon, FolderIcon, ListChecksIcon } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 
-// Define status badge variants
+// Define status badge variants with custom colors matching the dark theme
 const statusVariants: Record<
   ProjectStatus,
-  { variant: string; label: string }
+  { className: string; label: string; progressColor: string }
 > = {
-  draft: { variant: "secondary", label: "Draft" },
-  in_progress: { variant: "default", label: "In Progress" },
-  completed: { variant: "success", label: "Completed" },
-  cancelled: { variant: "destructive", label: "Cancelled" },
+  draft: {
+    className: "bg-transparent text-blue-400 border-blue-500/30",
+    label: "Draft",
+    progressColor: "bg-transparent",
+  },
+  active: {
+    className: "bg-transparent text-amber-400 border-amber-500/30 0",
+    label: "Active",
+    progressColor: "bg-amber-500",
+  },
+  completed: {
+    className: "bg-transparent text-emerald-400 border-emerald-500/30 ",
+    label: "Completed",
+    progressColor: "bg-emerald-500",
+  },
+  cancelled: {
+    className: "bg-transparent text-red-400 border-red-500/30",
+    label: "Cancelled",
+    progressColor: "bg-red-500",
+  },
 };
 
 interface ProjectCardProps {
@@ -42,17 +58,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="block transition-transform hover:scale-[1.02]"
+      className="block transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20"
     >
-      <Card className="h-full overflow-hidden hover:bg-hover-active transition-colors duration-200">
+      <Card className="h-full overflow-hidden hover:bg-hover-active transition-all duration-200 border border-secondary-background/50 hover:border-secondary-background">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <h3 className="text-lg font-semibold line-clamp-1">
               {project.name}
             </h3>
             <Badge
-              variant={statusConfig.variant as any}
-              className="gradient-border"
+              className={`${statusConfig.className} transition-all duration-200 font-medium`}
             >
               {statusConfig.label}
             </Badge>
@@ -88,7 +103,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <CardFooter className="pt-2 pb-4">
           <div className="w-full bg-hover-active rounded-full h-2">
             <div
-              className="bg-primary-cta h-full rounded-full"
+              className={`${statusConfig.progressColor} h-full rounded-full transition-all duration-300`}
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>

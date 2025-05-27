@@ -123,7 +123,11 @@ export function AddMilestoneDialog({
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!newMilestone.name.trim()}>
+          <Button
+            onClick={handleSave}
+            disabled={!newMilestone.name.trim()}
+            className="text-black font-semibold hover:bg-cta-hover"
+          >
             Add Milestone
           </Button>
         </DialogFooter>

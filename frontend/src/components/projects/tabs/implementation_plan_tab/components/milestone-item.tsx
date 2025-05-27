@@ -8,6 +8,7 @@ import {
   Calendar,
   Info,
   Plus,
+  Trash,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { Milestone, Subtask, Task } from "../types";
 import { TaskItem } from "./task-item";
 import { EditMilestoneDialog } from "./dialogs/edit-milestone-dialog";
 import { AddTaskDialog } from "./dialogs/add-task-dialog";
+import { DeleteConfirmationDialog } from "./dialogs/delete-confirmation-dialog";
 
 interface MilestoneItemProps {
   milestone: Milestone;
@@ -46,6 +48,9 @@ interface MilestoneItemProps {
   ) => void;
   onTaskAdd: (task: Task) => void;
   onSubtaskAdd: (taskIndex: number, subtask: Subtask) => void;
+  onDelete: () => void;
+  onTaskDelete: (taskIndex: number) => void;
+  onSubtaskDelete: (taskIndex: number, subtaskIndex: number) => void;
 }
 
 export function MilestoneItem({
@@ -61,8 +66,12 @@ export function MilestoneItem({
   onSubtaskUpdate,
   onTaskAdd,
   onSubtaskAdd,
+  onDelete,
+  onTaskDelete,
+  onSubtaskDelete,
 }: MilestoneItemProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const milestoneRef = useRef<HTMLDivElement>(null);
@@ -95,6 +104,12 @@ export function MilestoneItem({
   const completionPercent =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  // Calculate total subtasks
+  const totalSubtasks = milestone.tasks.reduce(
+    (total, task) => total + task.subtasks.length,
+    0
+  );
+
   // Determine status badge color
   const getStatusBadgeColor = () => {
     switch (milestone.status) {
@@ -105,6 +120,18 @@ export function MilestoneItem({
       default:
         return "bg-secondary-background text-secondary-text border-gray-600";
     }
+  };
+
+  // Get delete confirmation message
+  const getDeleteMessage = () => {
+    const taskCount = milestone.tasks.length;
+    if (taskCount > 0) {
+      if (totalSubtasks > 0) {
+        return `Are you sure you want to delete this milestone and all ${taskCount} of its tasks (including ${totalSubtasks} subtasks)?`;
+      }
+      return `Are you sure you want to delete this milestone and all ${taskCount} of its tasks?`;
+    }
+    return "Are you sure you want to delete this milestone?";
   };
 
   return (
@@ -228,6 +255,19 @@ export function MilestoneItem({
               <Edit className="h-4.5 w-4.5 text-secondary-text" />
             </Button>
 
+            {/* Delete button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 rounded-full hover:bg-destructive/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteDialog(true);
+              }}
+            >
+              <Trash className="h-4.5 w-4.5 text-destructive" />
+            </Button>
+
             {/* Expand/collapse button */}
             <Button
               variant="ghost"
@@ -266,6 +306,10 @@ export function MilestoneItem({
                 onSubtaskUpdate(taskIndex, subtaskIndex, updatedSubtask)
               }
               onSubtaskAdd={(subtask) => onSubtaskAdd(taskIndex, subtask)}
+              onDelete={() => onTaskDelete(taskIndex)}
+              onSubtaskDelete={(subtaskIndex) =>
+                onSubtaskDelete(taskIndex, subtaskIndex)
+              }
             />
           ))}
 
@@ -278,7 +322,7 @@ export function MilestoneItem({
                 e.stopPropagation();
                 setShowAddTaskDialog(true);
               }}
-              className="h-8 text-secondary-text hover:text-primary-text hover:bg-secondary-background/70"
+              className="h-8 text-secondary-text hover:text-primary-text hover:bg-hover-active"
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
               Add Task
@@ -302,6 +346,16 @@ export function MilestoneItem({
         onOpenChange={setShowAddTaskDialog}
         onAdd={onTaskAdd}
         milestoneIndex={milestoneIndex}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={onDelete}
+        title="Delete Milestone"
+        description={getDeleteMessage()}
+        itemName={milestone.name}
       />
     </div>
   );

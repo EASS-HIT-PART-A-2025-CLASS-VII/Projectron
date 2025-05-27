@@ -384,16 +384,6 @@ export function ApiEndpointsTab({
                       API Design Principles
                     </span>
                   </div>
-                  {apiEndpoints.api_design_principles.length > 3 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-5 text-xs p-0 text-primary-cta"
-                      onClick={() => setShowAllPrinciples(!showAllPrinciples)}
-                    >
-                      {showAllPrinciples ? "Less" : "More"}
-                    </Button>
-                  )}
                 </div>
                 <div
                   className={`overflow-y-auto scrollbar-thin ${
@@ -474,11 +464,26 @@ export function ApiEndpointsTab({
                       ))}
                       {!showAllPrinciples &&
                         apiEndpoints.api_design_principles.length > 3 && (
-                          <li className="text-primary-cta text-xs">
+                          <li
+                            className="text-primary-cta text-xs cursor-pointer hover:text-white"
+                            onClick={() =>
+                              setShowAllPrinciples(!showAllPrinciples)
+                            }
+                          >
                             +{apiEndpoints.api_design_principles.length - 3}{" "}
                             more
                           </li>
                         )}
+                      {showAllPrinciples && (
+                        <li
+                          className="text-primary-cta text-xs cursor-pointer hover:text-white"
+                          onClick={() =>
+                            setShowAllPrinciples(!showAllPrinciples)
+                          }
+                        >
+                          Less
+                        </li>
+                      )}
                     </ul>
                   )}
                 </div>

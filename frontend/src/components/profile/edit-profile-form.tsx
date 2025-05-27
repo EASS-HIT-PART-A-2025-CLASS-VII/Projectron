@@ -113,7 +113,7 @@ export function EditProfileForm({
           <Button
             type="submit"
             disabled={isLoading || !hasChanges}
-            className="w-full bg-primary-cta hover:bg-cta-hover text-white"
+            className="w-full bg-primary-cta hover:bg-cta-hover text-black font-bold"
           >
             {isLoading ? (
               <>

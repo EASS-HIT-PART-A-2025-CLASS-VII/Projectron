@@ -139,7 +139,7 @@ export default function ProjectsPage() {
               <SelectContent className="bg-secondary-background border-divider">
                 <SelectItem value="all">All Projects</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>

@@ -137,7 +137,7 @@ export function AddTaskDialog({
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRIORITY_OPTIONS.map((option:any) => (
+                  {PRIORITY_OPTIONS.map((option: any) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -170,7 +170,11 @@ export function AddTaskDialog({
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!newTask.name.trim()}>
+          <Button
+            onClick={handleSave}
+            disabled={!newTask.name.trim()}
+            className="text-black font-semibold hover:bg-cta-hover"
+          >
             Add Task
           </Button>
         </DialogFooter>

@@ -24,6 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,14 +54,22 @@ export function ProjectHeader({ project, setProject }: ProjectHeaderProps) {
   const [editFormData, setEditFormData] = useState({
     name: project.name,
     description: project.description,
+    status: project.status, // Add status to form data
   });
+
+  // Status options for the dropdown
+  const statusOptions = [
+    { value: "draft", label: "Draft" },
+    { value: "active", label: "Active" },
+    { value: "completed", label: "Completed" },
+  ];
 
   // Get status badge color based on project status
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case "draft":
         return "bg-blue-500/20 text-blue-500 hover:bg-blue-500/30";
-      case "in_progress":
+      case "active":
         return "bg-amber-500/20 text-amber-500 hover:bg-amber-500/30";
       case "completed":
         return "bg-green-500/20 text-green-500 hover:bg-green-500/30";
@@ -64,11 +79,18 @@ export function ProjectHeader({ project, setProject }: ProjectHeaderProps) {
         return "bg-gray-500/20 text-gray-500 hover:bg-gray-500/30";
     }
   };
+
   // Handle input changes in edit dialog
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    setEditFormData((prev) => ({ ...prev, [name]: value }));
+    console.log("Updated form data:", { ...editFormData, [name]: value });
+  };
+
+  // Handle select changes (for status dropdown)
+  const handleSelectChange = (name: string, value: string) => {
     setEditFormData((prev) => ({ ...prev, [name]: value }));
     console.log("Updated form data:", { ...editFormData, [name]: value });
   };
@@ -207,6 +229,28 @@ export function ProjectHeader({ project, setProject }: ProjectHeaderProps) {
                 rows={5}
                 className="bg-primary-background border-divider"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={editFormData.status}
+                onValueChange={(value) => handleSelectChange("status", value)}
+              >
+                <SelectTrigger className="bg-primary-background border-divider">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-secondary-background border-divider">
+                  {statusOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="hover:bg-hover-active focus:bg-hover-active"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

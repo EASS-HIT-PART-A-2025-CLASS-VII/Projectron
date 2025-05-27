@@ -104,7 +104,11 @@ export function AddSubtaskDialog({
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!newSubtask.name.trim()}>
+          <Button
+            onClick={handleSave}
+            disabled={!newSubtask.name.trim()}
+            className="text-black font-semibold hover:bg-cta-hover"
+          >
             Add Subtask
           </Button>
         </DialogFooter>
