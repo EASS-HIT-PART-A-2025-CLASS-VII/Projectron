@@ -25,3 +25,20 @@ def isolate_tests(test_database):
     # This runs before each test
     yield
     # This runs after each test - cleanup is handled in individual test files
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for the test session."""
+    import asyncio
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+def pytest_configure(config):
+    """Configure pytest with custom markers"""
+    config.addinivalue_line(
+        "markers", "integration: mark test as integration test"
+    )
+    config.addinivalue_line(
+        "markers", "auth: mark test as authentication related"
+    )

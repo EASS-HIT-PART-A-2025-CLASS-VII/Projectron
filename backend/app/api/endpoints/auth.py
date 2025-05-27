@@ -165,7 +165,7 @@ def verify_email(token: str):
         )
     
     # Check if token has expired
-    if datetime.now(tz=timezone.utc) > user.verification_token_expires:
+    if datetime.now(tz=timezone.utc) > user.verification_token_expires.replace(tzinfo=timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Verification token has expired"
