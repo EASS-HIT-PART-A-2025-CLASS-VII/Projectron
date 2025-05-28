@@ -118,9 +118,10 @@ IMPORTANT: Design an ambitious yet achievable architecture. Assume the developer
 """
 
 # Prompt for generating API endpoints
-API_ENDPOINTS_PROMPT = API_ENDPOINTS_PROMPT = """
+API_ENDPOINTS_PROMPT = """
 You are an experienced API designer with expertise in RESTful and GraphQL APIs.
-Your task is to create detailed API endpoints documentation for a software project.
+Your task is to Create comprehensive yet concise API documentation tailored to the project's specific features and complexity. 
+Design endpoints that directly support the application's core functionality and primary user workflows.
 
 # Project Information
 Project Name: {project_name}
@@ -140,33 +141,62 @@ System Components: {system_components}
 Communication Patterns: {communication_patterns}
 Architecture Patterns: {architecture_patterns}
 
-# Instructions
-Create API documentation that is BOTH comprehensive AND concise. Include:
-1. 3-5 key API design principles - focus on the most important standards
-2. Base URL structure - keep this brief
-3. Authentication approach - concise description of the auth mechanism
-4. Resources - focus on 4-8 essential resources that align with core features
+#Core Requirements
+Documentation Structure
+1. API Design Principles (3-5 principles)
+Identify the most critical design standards that will guide this API:
 
-# Token Management Guidelines
-IMPORTANT: Keep your response under 14,000 tokens by following these guidelines:
-1. For each resource, document 2-6 endpoints (prioritize the most essential ones)
-2. Use a consistent, compact format for endpoint documentation
-3. Keep descriptions focused and brief (2-3 sentences maximum)
-4. For request/response schemas, include only essential fields (1-7 fields per schema)
-5. Consolidate similar endpoints where possible
-6. Omit detailed error codes except for the most critical cases
+Focus on principles directly relevant to this project's needs
+Emphasize standards that impact user experience and developer adoption
+Keep each principle to 1-2 sentences with clear rationale
 
-# Prioritization
-Focus only on endpoints that directly support:
-1. Core business functionality (directly tied to main features)
-2. Primary user flows (the critical path for users)
-3. Essential data management (create, read, update, delete of key resources)
+2. Base URL & Authentication
 
-Scale the API complexity appropriately for the {total_hours} hour budget:
-- For small projects (<50 hours): 3-4 resources with 2-3 endpoints each
-- For medium projects (50-150 hours): 4-6 resources with 3-4 endpoints each
-- For large projects (>150 hours): 6-8 resources with 4-6 endpoints each
-- If a resource is not logically needed in any way, do not include it
+Provide clean, logical base URL structure
+Describe authentication mechanism concisely (1-2 sentences)
+Specify auth requirements clearly (which endpoints require authentication)
+
+3. Resource Documentation
+Focus on essential resources only - those directly tied to core application features.
+Complexity Scaling Guidelines
+Project Budget: {total_hours} hours
+Scale your API design appropriately:
+
+Small projects (<50h): 3-4 core resources, 3-4 endpoints each
+Medium projects (50-150h): 5-6 resources, 4-5 endpoints each
+Large projects (>150h): 6-8 resources, 5-6 endpoints each
+
+Documentation Format Standards
+Resource Structure
+For each resource, include:
+
+Resource purpose (1 sentence)
+Key endpoints (2-6 most essential operations)
+Consistent endpoint format: Method, Path, Purpose, Auth requirement
+
+Schema Guidelines
+
+Request schemas: 3-6 essential fields only
+Response schemas: 4-7 key fields only
+Field descriptions: Brief but clear (avoid obvious descriptions)
+Data types: Always specify (string, integer, boolean, array, etc.)
+
+Endpoint Prioritization
+Include only endpoints that support:
+
+Core CRUD operations for primary entities
+Essential business logic (not every possible operation)
+Primary user workflows (the critical path users follow)
+Key integrations (authentication, critical external services)
+
+Quality Criteria
+
+Every endpoint should serve a clear business purpose
+API should feel intuitive to developers familiar with REST principles
+Documentation should enable immediate implementation
+Balance between comprehensive coverage and practical usability
+
+Token Target: Keep entire response under 14,000 tokens through strategic focus on essential functionality.
 """
 
 # Prompt for generating data models

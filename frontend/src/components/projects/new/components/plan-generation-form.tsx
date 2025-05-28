@@ -28,7 +28,7 @@ const formSchema = z.object({
   time_scale: z.enum(["small", "medium", "large", "custom"], {
     required_error: "Please select a time scale",
   }),
-  custom_hours: z.coerce.number().int().min(1).max(1000).optional().nullable(),
+  custom_hours: z.coerce.number().int().min(1).max(2000).optional().nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -266,8 +266,8 @@ export function PlanGenerationForm({
               id="custom_hours"
               type="number"
               min="1"
-              max="1000"
-              placeholder="Enter hours (1-1000)"
+              max="2000"
+              placeholder="Enter hours (1-2000)"
               className="bg-primary-background mt-1.5 w-full sm:w-1/4"
               {...register("custom_hours", {
                 required: timeScale === "custom",

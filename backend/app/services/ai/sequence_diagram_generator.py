@@ -3,7 +3,7 @@ import json
 import logging
 import re
 import time
-from typing import Dict, Optional, Tuple, Any
+from typing import Dict, Optional, Tuple, Any, List
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -17,6 +17,7 @@ from langchain.schema import HumanMessage
 from langchain_core.language_models.llms import LLM
 
 from app.utils.timing import timed
+from app.services.ai.ai_utils import create_llm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -287,7 +288,44 @@ class SequenceDiagramGenerator:
         return False, "Failed after maximum retry attempts"
 
 
-# The rest of the functions remain unchanged
+# NEW: Helper function for LLM fallbacks
+async def execute_llm_with_fallbacks(primary_llm, fallback_llms: List, messages, description: str = "LLM operation"):
+    """
+    Try to execute LLM request with primary model, fall back to others if it fails.
+    
+    Args:
+        primary_llm: The primary LLM to try first
+        fallback_llms: List of fallback LLMs to try in order
+        messages: The messages to send to the LLM
+        description: Description of the operation for logging
+        
+    Returns:
+        The result from the first successful LLM
+    """
+    try:
+        logger.info(f"Trying primary model for {description}")
+        result = await primary_llm.ainvoke(messages)
+        return result
+    except Exception as e:
+        logger.warning(f"Error with primary model for {description}: {e}")
+        
+        for i, fallback_llm in enumerate(fallback_llms):
+            try:
+                logger.info(f"Trying fallback model {i+1}/{len(fallback_llms)} for {description}")
+                result = await fallback_llm.ainvoke(messages)
+                return result
+            except Exception as e2:
+                logger.warning(f"Error with fallback model {i+1} for {description}: {e2}")
+                if i == len(fallback_llms) - 1:
+                    # This was the last fallback, re-raise the error
+                    logger.error(f"All models failed for {description}")
+                    raise
+        
+        # We should never reach here but just in case
+        raise RuntimeError(f"All models failed for {description}")
+
+
+# The rest of the utility functions remain unchanged
 def json_to_sequence_diagram_code(diagram_json: Dict) -> str:
     """
     Convert a diagram JSON to sequencediagram.org syntax.
@@ -499,10 +537,11 @@ async def generate_sequence_diagram(
 ) -> Dict[str, Any]:
     """
     Generate a sequence diagram based on a project plan.
+    Enhanced with LLM fallback mechanism to handle rate limits and errors.
     
     Args:
         project_plan: The project plan description
-        llm: The language model to use
+        llm: The primary language model to use
         existing_json: Existing diagram JSON if available
         change_request: Specific changes requested
         max_iterations: Maximum number of attempts to generate a valid diagram
@@ -522,6 +561,21 @@ async def generate_sequence_diagram(
         'error': None,
         'json': None
     }
+    
+    # Create fallback LLMs - using different models to handle rate limits
+    try:
+        # Create primary and fallback models
+        primary_llm = llm  # Use the passed LLM as primary
+        fallback_llms = [
+            create_llm(temperature=0.1, json_mode=False, model='gpt-4o-mini', timeout=140, max_retries=2),
+            create_llm(temperature=0.1, json_mode=False, model='gpt-4.1-nano', timeout=140, max_retries=2),
+            create_llm(temperature=0.1, json_mode=False, model='gpt-4.1-mini', timeout=140, max_retries=2)
+        ]
+        logger.info(f"Created {len(fallback_llms)} fallback LLMs for sequence diagram generation")
+    except Exception as e:
+        logger.warning(f"Failed to create some fallback LLMs: {e}. Proceeding with available models.")
+        # If we can't create fallbacks, just use the primary
+        fallback_llms = []
     
     # Initialize the diagram generator with retry capabilities
     generator = SequenceDiagramGenerator(
@@ -576,8 +630,13 @@ async def generate_sequence_diagram(
                         json_feedback_prompt = formatted_json_prompt + f"\n\nFeedback from previous attempt:\n{json_feedback}\n\nPlease correct the issues and try again."
                         json_messages = [HumanMessage(content=json_feedback_prompt)]
                     
-                    # Get JSON response from the AI service
-                    json_response = await llm.ainvoke(json_messages)
+                    # ENHANCED: Use LLM with fallbacks
+                    json_response = await execute_llm_with_fallbacks(
+                        primary_llm, 
+                        fallback_llms, 
+                        json_messages, 
+                        f"JSON generation iteration {json_iteration}"
+                    )
                     json_str = extract_json_from_text(json_response.content)
                     
                     try:
@@ -610,8 +669,16 @@ async def generate_sequence_diagram(
                                     diagram_json=json.dumps(diagram_json, indent=2)
                                 )
                                 code_messages = [HumanMessage(content=formatted_code_prompt)]
-                                code_response = await llm.ainvoke(code_messages)
+                                
+                                # ENHANCED: Use LLM with fallbacks for conversion too
+                                code_response = await execute_llm_with_fallbacks(
+                                    primary_llm,
+                                    fallback_llms,
+                                    code_messages,
+                                    f"JSON to code conversion iteration {json_iteration}"
+                                )
                                 diagram_source = extract_code_from_text(code_response.content)
+                                
                                 # Validate again
                                 is_valid, error = generator.validate_diagram_source(diagram_source)
                                 
@@ -682,9 +749,15 @@ async def generate_sequence_diagram(
                         feedback_prompt = formatted_prompt + f"\n\nFeedback from previous attempt:\n{feedback}\n\nPlease correct the issues and try again."
                         messages = [HumanMessage(content=feedback_prompt)]
                     
-                    # Get response from the AI service
-                    response = await llm.ainvoke(messages)
+                    # ENHANCED: Use LLM with fallbacks
+                    response = await execute_llm_with_fallbacks(
+                        primary_llm,
+                        fallback_llms,
+                        messages,
+                        f"Direct diagram generation iteration {iteration}"
+                    )
                     diagram_source = extract_code_from_text(response.content)
+                    
                     # Validate the diagram source
                     is_valid, error = generator.validate_diagram_source(diagram_source)
                     

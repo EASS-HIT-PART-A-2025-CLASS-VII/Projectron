@@ -10,7 +10,7 @@ class Project(Document):
     name              = StringField(required=True)
     description       = StringField(default="")
     tech_stack        = ListField(StringField(), default=[])
-    experience_level  = StringField(choices=("junior", "mid", "senior"), default="junior")
+    experience_level  = StringField(choices=("student", "junior", "mid", "senior"), default="mid")
     team_size         = IntField(min_value=1, default=1)
     status            = StringField(choices=("draft", "active", "completed"), default="draft")
 

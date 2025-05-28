@@ -3,7 +3,7 @@ from contextvars import ContextVar
 from app.core.config import get_settings
 from app.pydantic_models.ai_plan_models import APIEndpoints, ClarificationQuestions, DataModels, DetailedImplementationPlan, HighLevelPlan, TechnicalArchitecture, UIComponents
 from app.pydantic_models.project_http_models import PlanGenerationInput
-from app.services.ai.ai_utils import create_llm
+from app.services.ai.ai_utils import create_llm, create_gemini_llm
 from app.services.ai.prompts.plan_prompts import (
     CLARIFICATION_QUESTIONS_PROMPT,
     HIGH_LEVEL_PLAN_PROMPT,
@@ -19,6 +19,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from app.utils.timing import timed
 
 settings = get_settings()
+
+# Timeout configuration
+STEP_TIMEOUT_SECONDS = 110
 
 # Context variable for progress tracking (thread-safe and isolated per request)
 _progress_context: ContextVar[Optional[Any]] = ContextVar('progress_context', default=None)
@@ -50,9 +53,10 @@ class PlanState(TypedDict):
     implementation_plan:DetailedImplementationPlan
     # Remove progress from state to avoid serialization issues
 
-llm_4o_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4o-mini")
-llm_41_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-mini")
-llm_41_nano = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-nano")
+llm_4o_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4o-mini", timeout=STEP_TIMEOUT_SECONDS, max_retries=2)
+llm_41_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-mini", timeout=STEP_TIMEOUT_SECONDS, max_retries=2)
+llm_41_nano = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-nano", timeout=STEP_TIMEOUT_SECONDS, max_retries=3)
+llm_gemini = create_gemini_llm(temperature=0.1, timeout=STEP_TIMEOUT_SECONDS, max_retries=2)
 
 
 async def generate_clarifying_questions(project_info: PlanGenerationInput) -> Dict[str, str]:
@@ -69,7 +73,6 @@ async def generate_clarifying_questions(project_info: PlanGenerationInput) -> Di
     )
     
     result = await llm_41_nano.with_structured_output(ClarificationQuestions).ainvoke(prompt)
-    
     return result.model_dump()
 
 @timed 
@@ -194,7 +197,7 @@ async def generate_high_level_plan(state: PlanState):
     )
 
     result = await execute_with_fallbacks(primary_llm=llm_4o_mini,
-                                    fallback_llms=[llm_41_nano, llm_41_mini],
+                                    fallback_llms=[llm_gemini, llm_41_nano, llm_41_mini],
                                    structured_output_type=HighLevelPlan,
                                    prompt=prompt)
 
@@ -238,7 +241,7 @@ async def generate_technical_architecture(state: PlanState):
     )
 
     result = await execute_with_fallbacks(primary_llm=llm_4o_mini,
-                                    fallback_llms=[llm_41_nano, llm_41_mini],
+                                    fallback_llms=[llm_gemini, llm_41_nano, llm_41_mini],
                                    structured_output_type=TechnicalArchitecture,
                                    prompt=prompt)
     
@@ -312,8 +315,9 @@ async def generate_api_endpoints(state: PlanState):
         communication_patterns=comm_patterns_str,
         architecture_patterns=arch_patterns_str
     )
+    
     result = await execute_with_fallbacks(primary_llm=llm_41_mini,
-                                    fallback_llms=[llm_41_nano, llm_4o_mini],
+                                    fallback_llms=[llm_gemini, llm_41_nano, llm_4o_mini],
                                    structured_output_type=APIEndpoints,
                                    prompt=prompt)
     
@@ -347,8 +351,8 @@ async def generate_data_models(state: PlanState):
         authentication=auth_type
     )
     
-    result = await execute_with_fallbacks(primary_llm=llm_4o_mini,
-                                    fallback_llms=[llm_41_nano, llm_41_mini],
+    result = await execute_with_fallbacks(primary_llm=llm_gemini,
+                                    fallback_llms=[llm_41_mini, llm_41_nano, llm_4o_mini],
                                    structured_output_type=DataModels,
                                    prompt=prompt)
     
@@ -368,31 +372,54 @@ async def generate_ui_components(state: PlanState):
     
     # Extract high-level plan information
     high_level_plan = state["high_level_plan"]
-    core_features = ", ".join(high_level_plan.core_features)
+    try:
+        core_features = ", ".join(high_level_plan.core_features)
+    except (AttributeError, TypeError):
+        core_features = "No core features defined"
     
     # Format target users
     target_users = []
-    for user in high_level_plan.target_users:
-        user_str = f"{user.type} (Needs: {', '.join(user.needs)}; Pain points: {', '.join(user.pain_points)})"
-        target_users.append(user_str)
-    target_users_str = "; ".join(target_users)
+    try:
+        for user in high_level_plan.target_users:
+            try:
+                user_str = f"{user.type} (Needs: {', '.join(user.needs)}; Pain points: {', '.join(user.pain_points)})"
+                target_users.append(user_str)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    target_users_str = "; ".join(target_users) if target_users else "No specific target users defined"
     
     # Extract frontend components from technical architecture
     tech_arch = state["technical_architecture"]
     frontend_components = []
-    for comp in tech_arch.system_components:
-        if any(keyword in comp.name.lower() for keyword in ["frontend", "ui", "client"]):
-            comp_str = f"{comp.name}: {comp.description} (Technologies: {', '.join(comp.technologies)})"
-            frontend_components.append(comp_str)
+    try:
+        for comp in tech_arch.system_components:
+            try:
+                if any(keyword in comp.name.lower() for keyword in ["frontend", "ui", "client"]):
+                    comp_str = f"{comp.name}: {comp.description} (Technologies: {', '.join(comp.technologies)})"
+                    frontend_components.append(comp_str)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
     frontend_components_str = "; ".join(frontend_components) if frontend_components else "No specific frontend components defined"
     
     # Extract API resources
-    api_resources = [r.name for r in state["api_endpoints"].resources]
-    api_resources_str = ", ".join(api_resources)
+    api_resources = []
+    try:
+        api_resources = [r.name for r in state["api_endpoints"].resources]
+    except (AttributeError, TypeError):
+        pass
+    api_resources_str = ", ".join(api_resources) if api_resources else "No API resources defined"
     
     # Extract data entities
-    data_entities = [e.name for e in state["data_models"].entities]
-    data_entities_str = ", ".join(data_entities)
+    data_entities = []
+    try:
+        data_entities = [e.name for e in state["data_models"].entities]
+    except (AttributeError, TypeError):
+        pass
+    data_entities_str = ", ".join(data_entities) if data_entities else "No data entities defined"
     
     prompt = UI_COMPONENTS_PROMPT.format(
         project_name=state["name"],
@@ -406,8 +433,9 @@ async def generate_ui_components(state: PlanState):
         api_resources=api_resources_str,
         data_entities=data_entities_str
     )
-    result = await execute_with_fallbacks(primary_llm=llm_41_mini,
-                                    fallback_llms=[llm_41_nano, llm_4o_mini],
+    
+    result = await execute_with_fallbacks(primary_llm=llm_gemini,
+                                    fallback_llms=[llm_41_mini, llm_41_nano, llm_4o_mini],
                                    structured_output_type=UIComponents,
                                    prompt=prompt)
     
@@ -455,7 +483,7 @@ async def generate_implementation_plan(state: PlanState):
     )
 
     result = await execute_with_fallbacks(primary_llm=llm_41_mini,
-                                    fallback_llms=[llm_41_nano, llm_4o_mini],
+                                    fallback_llms=[llm_gemini, llm_41_nano, llm_4o_mini],
                                    structured_output_type=DetailedImplementationPlan,
                                    prompt=prompt)
     
@@ -481,7 +509,12 @@ async def execute_with_fallbacks(primary_llm, fallback_llms, structured_output_t
         for i, fallback_llm in enumerate(fallback_llms):
             try:
                 print(f"Trying fallback model {i+1}/{len(fallback_llms)}...")
-                return await fallback_llm.with_structured_output(structured_output_type).ainvoke(prompt)
+                # Add JSON instruction for Gemini
+                if hasattr(fallback_llm, 'model') and 'gemini' in fallback_llm.model.lower():
+                    gemini_prompt = f"{prompt}\n\nIMPORTANT: Respond with valid JSON format only."
+                    return await fallback_llm.with_structured_output(structured_output_type).ainvoke(gemini_prompt)
+                else:
+                    return await fallback_llm.with_structured_output(structured_output_type).ainvoke(prompt)
             except Exception as e2:
                 print(f"Error with fallback model {i+1}: {e2}")
                 if i == len(fallback_llms) - 1:

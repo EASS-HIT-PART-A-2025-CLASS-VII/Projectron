@@ -9,9 +9,9 @@ from app.utils.timing import timed
 settings = get_settings()
 
 # Initialize LLM models - GPT-4.1-mini as primary due to 1M context window
-llm_41_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-mini")
-llm_4o_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4o-mini")
-llm_41_nano = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-nano")
+llm_41_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-mini", timeout=180)
+llm_4o_mini = create_llm(temperature=0.1, json_mode=True, model="gpt-4o-mini", timeout=180)
+llm_41_nano = create_llm(temperature=0.1, json_mode=True, model="gpt-4.1-nano", timeout=180)
 
 @timed
 async def generate_comprehensive_context(

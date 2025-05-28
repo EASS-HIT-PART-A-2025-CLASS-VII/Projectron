@@ -101,10 +101,7 @@ async def get_latest_context(
             )
         
         if not project.last_context_message:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No context has been generated for this project yet"
-            )
+            return None
         
         return ContextGenerationResponse(
             success=True,

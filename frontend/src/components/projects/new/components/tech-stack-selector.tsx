@@ -1,426 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
+import { PREDEFINED_TECH_OPTIONS } from "../constants";
 // Comprehensive technology options
-const PREDEFINED_TECH_OPTIONS = [
-  // Frontend Frameworks & Libraries
-  "React",
-  "Angular",
-  "Vue.js",
-  "Next.js",
-  "Nuxt.js",
-  "Svelte",
-  "SvelteKit",
-  "Gatsby",
-  "Remix",
-  "Solid.js",
-  "Preact",
-  "Lit",
-  "Stencil",
-  "Alpine.js",
-  "Ember.js",
-  "Backbone.js",
-  "jQuery",
-
-  // Programming Languages
-  "JavaScript",
-  "TypeScript",
-  "Python",
-  "Java",
-  "C#",
-  "C++",
-  "C",
-  "Go",
-  "Rust",
-  "PHP",
-  "Ruby",
-  "Swift",
-  "Kotlin",
-  "Dart",
-  "Scala",
-  "Clojure",
-  "F#",
-  "Haskell",
-  "Erlang",
-  "Elixir",
-  "R",
-  "MATLAB",
-  "Julia",
-  "Perl",
-  "Lua",
-  "Shell",
-  "PowerShell",
-
-  // CSS & Styling
-  "CSS",
-  "HTML",
-  "Sass",
-  "SCSS",
-  "Less",
-  "Stylus",
-  "Tailwind CSS",
-  "Bootstrap",
-  "Material UI",
-  "Ant Design",
-  "Chakra UI",
-  "Semantic UI",
-  "Bulma",
-  "Foundation",
-  "Styled Components",
-  "Emotion",
-  "CSS Modules",
-  "PostCSS",
-
-  // Backend Frameworks
-  "Node.js",
-  "Express",
-  "Koa",
-  "Fastify",
-  "NestJS",
-  "Django",
-  "Flask",
-  "FastAPI",
-  "Tornado",
-  "Pyramid",
-  "Ruby on Rails",
-  "Sinatra",
-  "Spring Boot",
-  "Spring Framework",
-  "Quarkus",
-  "Micronaut",
-  "ASP.NET Core",
-  "ASP.NET",
-  ".NET Framework",
-  "Laravel",
-  "Symfony",
-  "CodeIgniter",
-  "CakePHP",
-  "Gin",
-  "Echo",
-  "Fiber",
-  "Actix",
-  "Rocket",
-  "Phoenix",
-  "Cowboy",
-
-  // Databases
-  "MongoDB",
-  "PostgreSQL",
-  "MySQL",
-  "SQLite",
-  "MariaDB",
-  "Redis",
-  "Elasticsearch",
-  "CouchDB",
-  "Cassandra",
-  "DynamoDB",
-  "Firebase Firestore",
-  "Realtime Database",
-  "Neo4j",
-  "InfluxDB",
-  "TimescaleDB",
-  "ClickHouse",
-  "Apache Spark",
-  "BigQuery",
-  "Snowflake",
-  "Oracle Database",
-  "SQL Server",
-  "IBM Db2",
-  "Amazon RDS",
-  "Azure SQL",
-  "CockroachDB",
-  "PlanetScale",
-  "Supabase",
-  "FaunaDB",
-
-  // Mobile Development
-  "React Native",
-  "Flutter",
-  "Ionic",
-  "Xamarin",
-  "Cordova",
-  "PhoneGap",
-  "Unity",
-  "SwiftUI",
-  "UIKit",
-  "Android SDK",
-  "Kotlin Multiplatform",
-  "Capacitor",
-
-  // Cloud Platforms
-  "AWS",
-  "Amazon Web Services",
-  "Azure",
-  "Google Cloud Platform",
-  "GCP",
-  "Heroku",
-  "Vercel",
-  "Netlify",
-  "DigitalOcean",
-  "Linode",
-  "Vultr",
-  "Railway",
-  "Render",
-  "Fly.io",
-  "Cloudflare",
-  "Firebase",
-  "Oracle Cloud",
-  "IBM Cloud",
-  "Alibaba Cloud",
-
-  // DevOps & Containerization
-  "Docker",
-  "Kubernetes",
-  "Docker Compose",
-  "Podman",
-  "Vagrant",
-  "Ansible",
-  "Terraform",
-  "Pulumi",
-  "Jenkins",
-  "GitLab CI",
-  "GitHub Actions",
-  "CircleCI",
-  "Travis CI",
-  "TeamCity",
-  "Azure DevOps",
-  "Bamboo",
-  "Chef",
-  "Puppet",
-  "SaltStack",
-
-  // API Technologies
-  "REST API",
-  "GraphQL",
-  "Apollo GraphQL",
-  "Relay",
-  "gRPC",
-  "tRPC",
-  "WebSockets",
-  "Socket.IO",
-  "Server-Sent Events",
-  "OpenAPI",
-  "Swagger",
-  "JSON API",
-  "JSON-RPC",
-  "XML-RPC",
-  "SOAP",
-
-  // Testing
-  "Jest",
-  "Mocha",
-  "Jasmine",
-  "Cypress",
-  "Playwright",
-  "Puppeteer",
-  "Selenium",
-  "WebDriver",
-  "Testing Library",
-  "Enzyme",
-  "Vitest",
-  "Karma",
-  "Protractor",
-  "Cucumber",
-  "PyTest",
-  "JUnit",
-  "TestNG",
-  "NUnit",
-  "xUnit",
-  "RSpec",
-  "Minitest",
-
-  // Build Tools
-  "Webpack",
-  "Vite",
-  "Rollup",
-  "Parcel",
-  "esbuild",
-  "SWC",
-  "Babel",
-  "ESLint",
-  "Prettier",
-  "TypeScript Compiler",
-  "Grunt",
-  "Gulp",
-  "Browserify",
-  "Snowpack",
-
-  // State Management
-  "Redux",
-  "MobX",
-  "Zustand",
-  "Recoil",
-  "Jotai",
-  "Valtio",
-  "Context API",
-  "Vuex",
-  "Pinia",
-  "NgRx",
-  "Akita",
-
-  // Machine Learning & AI
-  "TensorFlow",
-  "PyTorch",
-  "Keras",
-  "Scikit-learn",
-  "OpenCV",
-  "Pandas",
-  "NumPy",
-  "Matplotlib",
-  "Seaborn",
-  "Jupyter",
-  "Anaconda",
-  "MLflow",
-  "Kubeflow",
-  "Apache Airflow",
-  "Spark MLlib",
-  "XGBoost",
-  "LightGBM",
-  "Hugging Face",
-  "OpenAI",
-  "LangChain",
-
-  // Content Management
-  "WordPress",
-  "Drupal",
-  "Joomla",
-  "Strapi",
-  "Contentful",
-  "Sanity",
-  "Ghost",
-  "Directus",
-  "Keystone",
-  "Forestry",
-  "Netlify CMS",
-
-  // Game Development
-  "Unity",
-  "Unreal Engine",
-  "Godot",
-  "Phaser",
-  "Three.js",
-  "Babylon.js",
-  "PixiJS",
-  "Cocos2d",
-  "GameMaker Studio",
-  "Construct",
-
-  // Version Control
-  "Git",
-  "GitHub",
-  "GitLab",
-  "Bitbucket",
-  "Mercurial",
-  "SVN",
-  "Perforce",
-
-  // Monitoring & Analytics
-  "Google Analytics",
-  "Mixpanel",
-  "Amplitude",
-  "Hotjar",
-  "LogRocket",
-  "Sentry",
-  "Bugsnag",
-  "Rollbar",
-  "New Relic",
-  "DataDog",
-  "Grafana",
-  "Prometheus",
-  "Kibana",
-  "Splunk",
-
-  // Authentication
-  "Auth0",
-  "Firebase Auth",
-  "AWS Cognito",
-  "Okta",
-  "Keycloak",
-  "NextAuth",
-  "Passport.js",
-  "JWT",
-  "OAuth",
-  "SAML",
-  "LDAP",
-
-  // Message Queues
-  "RabbitMQ",
-  "Apache Kafka",
-  "Redis Pub/Sub",
-  "Amazon SQS",
-  "Google Pub/Sub",
-  "Apache Pulsar",
-  "NATS",
-  "ZeroMQ",
-
-  // Blockchain & Web3
-  "Ethereum",
-  "Solidity",
-  "Web3.js",
-  "Ethers.js",
-  "Hardhat",
-  "Truffle",
-  "Ganache",
-  "MetaMask",
-  "IPFS",
-  "Polygon",
-  "Solana",
-  "Bitcoin",
-
-  // Design Tools
-  "Figma",
-  "Sketch",
-  "Adobe XD",
-  "InVision",
-  "Zeplin",
-  "Framer",
-  "Principle",
-  "Adobe Photoshop",
-  "Adobe Illustrator",
-
-  // Documentation
-  "Gitbook",
-  "Notion",
-  "Confluence",
-  "Docsify",
-  "VuePress",
-  "Docusaurus",
-  "Sphinx",
-  "MkDocs",
-  "GitBook",
-
-  // Other Tools & Technologies
-  "Electron",
-  "Tauri",
-  "PWA",
-  "WebAssembly",
-  "Service Workers",
-  "IndexedDB",
-  "Web Workers",
-  "WebRTC",
-  "WebGL",
-  "Canvas API",
-  "Geolocation API",
-  "Payment Request API",
-  "Push Notifications",
-  "Yarn",
-  "npm",
-  "pnpm",
-  "Bower",
-  "Composer",
-  "pip",
-  "Maven",
-  "Gradle",
-  "NuGet",
-  "CocoaPods",
-  "Carthage",
-  "Swift Package Manager",
-];
 
 interface TechStackSelectorProps {
   selectedTech: string[];
@@ -433,6 +19,9 @@ export function TechStackSelector({
 }: TechStackSelectorProps) {
   const [inputValue, setInputValue] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Filter technologies based on input and exclude already selected ones
   // Prioritize technologies that start with the input (prefix match)
@@ -460,6 +49,30 @@ export function TechStackSelector({
     return [...prefixMatches, ...containsMatches].slice(0, 10);
   })();
 
+  // Auto-highlight first suggestion when suggestions appear
+  useEffect(() => {
+    if (showSuggestions && filteredSuggestions.length > 0) {
+      setHighlightedIndex(0);
+    } else {
+      setHighlightedIndex(-1);
+    }
+  }, [showSuggestions, filteredSuggestions.length]);
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIndex >= 0 && dropdownRef.current) {
+      const highlightedElement = dropdownRef.current.children[
+        highlightedIndex
+      ] as HTMLElement;
+      if (highlightedElement) {
+        highlightedElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }
+  }, [highlightedIndex]);
+
   // Add technology
   const handleAddTech = (techToAdd?: string) => {
     const tech = techToAdd || inputValue.trim();
@@ -467,6 +80,7 @@ export function TechStackSelector({
       onChange([...selectedTech, tech]);
       setInputValue(""); // Clear input
       setShowSuggestions(false);
+      setHighlightedIndex(-1);
     }
   };
 
@@ -479,11 +93,30 @@ export function TechStackSelector({
 
   // Handle pressing Enter in the input
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && inputValue.trim()) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      handleAddTech();
+      if (highlightedIndex >= 0 && filteredSuggestions[highlightedIndex]) {
+        handleAddTech(filteredSuggestions[highlightedIndex]);
+      } else if (inputValue.trim()) {
+        handleAddTech();
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (filteredSuggestions.length > 0) {
+        setHighlightedIndex((prev) =>
+          prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+        );
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (filteredSuggestions.length > 0) {
+        setHighlightedIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+        );
+      }
     } else if (e.key === "Escape") {
       setShowSuggestions(false);
+      setHighlightedIndex(-1);
     }
   };
 
@@ -526,28 +159,47 @@ export function TechStackSelector({
       <div className="relative">
         <div className="flex">
           <div className="flex-1 relative">
-            <Input
+            <input
+              ref={inputRef}
               placeholder="Search and add technology"
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
               onFocus={() => setShowSuggestions(inputValue.trim().length > 0)}
-              onBlur={() => {
-                // Delay hiding suggestions to allow clicking on them
-                setTimeout(() => setShowSuggestions(false), 150);
+              onBlur={(e) => {
+                // Only hide if blur is not moving to a suggestion button
+                const relatedTarget = e.relatedTarget as HTMLElement;
+                if (
+                  !relatedTarget ||
+                  !relatedTarget.closest("[data-suggestions-dropdown]")
+                ) {
+                  setTimeout(() => {
+                    setShowSuggestions(false);
+                    setHighlightedIndex(-1);
+                  }, 100);
+                }
               }}
-              className="bg-primary-background"
+              className="flex h-10 w-full rounded-md border border-input bg-primary-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              autoComplete="off"
             />
 
             {/* Suggestions dropdown */}
             {showSuggestions && filteredSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-secondary-background border border-divider rounded-md shadow-lg max-h-[200px] overflow-y-auto">
-                {filteredSuggestions.map((tech) => (
+              <div
+                ref={dropdownRef}
+                data-suggestions-dropdown
+                className="absolute top-full left-0 right-0 z-50 mt-1 bg-secondary-background border border-divider rounded-md shadow-lg max-h-[200px] overflow-y-auto"
+              >
+                {filteredSuggestions.map((tech, index) => (
                   <button
                     key={tech}
                     type="button"
                     onClick={() => handleSuggestionClick(tech)}
-                    className="w-full text-left px-3 py-2 hover:bg-hover-active text-sm transition-colors"
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                      index === highlightedIndex
+                        ? "bg-hover-active text-white font-semibold"
+                        : "hover:bg-hover-active"
+                    }`}
                   >
                     {tech}
                   </button>

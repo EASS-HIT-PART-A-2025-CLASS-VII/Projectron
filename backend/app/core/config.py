@@ -17,8 +17,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000" 
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
-        "http://localhost:3000",  # Frontend DEV URL
-        FRONTEND_URL,  # Frontend URL from environment variable
+        FRONTEND_URL, 
         "http://localhost:8000",  # Backend URL
     ]
 
@@ -36,29 +35,25 @@ class Settings(BaseSettings):
     COOKIE_HTTPONLY: bool = True
     COOKIE_SECURE: bool = False  # Set to True in production with HTTPS
     COOKIE_SAMESITE: str = "lax"  # "strict", "lax", or "none"
-    COOKIE_MAX_AGE: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60  # seconds
+    COOKIE_MAX_AGE: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60 
     
     # EMAIL SERVICE
     SMTP_SERVER: str = "smtp.gmail.com"
     SMTP_PORT: int =  587
     SMTP_USER: str 
     SMTP_PASSWORD: str 
-    
-    # OPENAI SERVICE
-    AI_MODEL_STRONG: str = "gpt-4o-mini"
-    AI_MODEL_FAST: str = "gpt-4.1-nano"
 
     DIAGRAM_TEMPERATURE: float = 0.2
     openai_api_key: str = ""
 
-    # ANTHROPIC SERVICE
-    ANTHROPIC_API_KEY: str 
+    GEMINI_API_KEY: str
+    GEMINI_MODEL: str = "gemini-2.5-flash-preview-05-20"
 
     # SELENIUM
     # Settings related to the Sequence Diagram Generator
     SELENIUM_URL: str = "http://localhost:4444"  # URL of the Selenium standalone Chrome instance
-    SEQUENCE_DIAGRAM_SITE_URL: str = "https://sequencediagram.org"  # URL of sequencediagram.org 
-    SELENIUM_TIMEOUT: int = 30  # Timeout in seconds for Selenium operations
+    SEQUENCE_DIAGRAM_SITE_URL: str = "https://sequencediagram.org"  
+    SELENIUM_TIMEOUT: int = 30 
     MAX_DIAGRAM_ITERATIONS: int = 3  # Maximum number of iterations for diagram generation
     
     ENVIRONMENT: str = "development"  # "development", "staging", "production"

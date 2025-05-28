@@ -229,9 +229,16 @@ function MobileQueryParamsList({
   onEdit?: (index: number, param: QueryParam) => void;
   onDelete?: (index: number) => void;
 }) {
+  // Add safety check for undefined/null params
+  const safeParams = params || [];
+
+  if (safeParams.length === 0) {
+    return null;
+  }
+
   return (
     <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {params.map((param, idx) => (
+      {safeParams.map((param, idx) => (
         <QueryParamCard
           key={idx}
           param={param}
@@ -253,6 +260,13 @@ function DesktopQueryParamsTable({
   onEdit?: (index: number, param: QueryParam) => void;
   onDelete?: (index: number) => void;
 }) {
+  // Add safety check for undefined/null params
+  const safeParams = params || [];
+
+  if (safeParams.length === 0) {
+    return null;
+  }
+
   return (
     <div className="hidden md:block rounded-md border border-divider overflow-hidden">
       <table className="w-full text-sm">
@@ -270,7 +284,7 @@ function DesktopQueryParamsTable({
           </tr>
         </thead>
         <tbody>
-          {params.map((param, idx) => (
+          {safeParams.map((param, idx) => (
             <QueryParamTableRow
               key={idx}
               param={param}
@@ -487,11 +501,15 @@ export function RequestSection({
     description: "",
   });
 
+  // Safe access to query_params with default empty array
+  const queryParams = request.query_params || [];
+  const hasExistingParams = queryParams.length > 0;
+
   // Handle parameter update
   const handleParamUpdate = (index: number, updatedParam: QueryParam) => {
     if (!onUpdateRequest) return;
 
-    const newParams = [...request.query_params];
+    const newParams = [...queryParams];
     newParams[index] = updatedParam;
 
     onUpdateRequest({
@@ -504,7 +522,7 @@ export function RequestSection({
   const handleParamDelete = (index: number) => {
     if (!onUpdateRequest) return;
 
-    const newParams = [...request.query_params];
+    const newParams = [...queryParams];
     newParams.splice(index, 1);
 
     onUpdateRequest({
@@ -513,13 +531,13 @@ export function RequestSection({
     });
   };
 
-  // Add new parameter
+  // Add new parameter - using safe queryParams variable
   const addParam = () => {
     if (!onUpdateRequest || newParam.name.trim() === "") return;
 
     onUpdateRequest({
       ...request,
-      query_params: [...request.query_params, newParam],
+      query_params: [...queryParams, newParam], // Use safe queryParams instead of request.query_params
     });
 
     setNewParam({
@@ -568,22 +586,25 @@ export function RequestSection({
           )}
         </div>
 
-        {(request.query_params && request.query_params.length > 0) ||
-        addingParam ? (
+        {hasExistingParams || addingParam ? (
           <>
-            {/* Desktop Table View */}
-            <DesktopQueryParamsTable
-              params={request.query_params}
-              onEdit={handleParamUpdate}
-              onDelete={handleParamDelete}
-            />
+            {/* Desktop Table View - only show if there are existing params */}
+            {hasExistingParams && (
+              <DesktopQueryParamsTable
+                params={queryParams}
+                onEdit={handleParamUpdate}
+                onDelete={handleParamDelete}
+              />
+            )}
 
-            {/* Mobile Card List View */}
-            <MobileQueryParamsList
-              params={request.query_params}
-              onEdit={handleParamUpdate}
-              onDelete={handleParamDelete}
-            />
+            {/* Mobile Card List View - only show if there are existing params */}
+            {hasExistingParams && (
+              <MobileQueryParamsList
+                params={queryParams}
+                onEdit={handleParamUpdate}
+                onDelete={handleParamDelete}
+              />
+            )}
 
             {/* New parameter form */}
             {addingParam && (

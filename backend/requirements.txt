@@ -60,7 +60,7 @@ zstandard
 graphviz
 selenium
 webdriver-manager
-langchain-anthropic
+langchain-google-genai
 langgraph
 langgraph-prebuilt
 authlib

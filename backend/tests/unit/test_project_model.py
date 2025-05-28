@@ -16,7 +16,7 @@ class TestProjectModel:
         
         # Test default values
         assert project.tech_stack == []
-        assert project.experience_level == "junior"
+        assert project.experience_level == "mid"
         assert project.team_size == 1
         assert project.status == "draft"
         assert project.implementation_plan == {}
@@ -38,7 +38,7 @@ class TestProjectModel:
     
     def test_experience_level_choices(self):
         """Test experience level validation logic"""
-        valid_levels = ["junior", "mid", "senior"]
+        valid_levels = ["student","junior", "mid", "senior"]
         
         for level in valid_levels:
             project = Project()
