@@ -33,10 +33,8 @@ export function ComponentCard({
   const [editedComponent, setEditedComponent] = useState<Component>({
     ...component,
   });
-  const [newItem, setNewItem] = useState("");
-  const [newItemType, setNewItemType] = useState<
-    "api_endpoints" | "data_displayed"
-  >("api_endpoints");
+  const [newApiEndpoint, setNewApiEndpoint] = useState("");
+  const [newDataItem, setNewDataItem] = useState("");
 
   // Get the component icon based on its type
   const getComponentIcon = () => {
@@ -50,26 +48,32 @@ export function ComponentCard({
     return "border-gray-600 gradient-border";
   };
 
-  // Add new item (API endpoint or data item)
-  const handleAddItem = () => {
-    if (!newItem.trim()) return;
+  // Add new API endpoint
+  const handleAddApiEndpoint = () => {
+    if (!newApiEndpoint.trim()) return;
 
     const updatedComponent = { ...editedComponent };
-
-    if (newItemType === "api_endpoints") {
-      updatedComponent.api_endpoints = [
-        ...updatedComponent.api_endpoints,
-        newItem,
-      ];
-    } else {
-      updatedComponent.data_displayed = [
-        ...updatedComponent.data_displayed,
-        newItem,
-      ];
-    }
+    updatedComponent.api_endpoints = [
+      ...updatedComponent.api_endpoints,
+      newApiEndpoint,
+    ];
 
     setEditedComponent(updatedComponent);
-    setNewItem("");
+    setNewApiEndpoint("");
+  };
+
+  // Add new data item
+  const handleAddDataItem = () => {
+    if (!newDataItem.trim()) return;
+
+    const updatedComponent = { ...editedComponent };
+    updatedComponent.data_displayed = [
+      ...updatedComponent.data_displayed,
+      newDataItem,
+    ];
+
+    setEditedComponent(updatedComponent);
+    setNewDataItem("");
   };
 
   // Remove item
@@ -186,22 +190,9 @@ export function ComponentCard({
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-xs text-secondary-text">
-                  API Endpoints
-                </label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => {
-                    setNewItemType("api_endpoints");
-                    setNewItem("");
-                  }}
-                >
-                  <Plus className="h-3 w-3 mr-1" /> Add Endpoint
-                </Button>
-              </div>
+              <label className="text-xs text-secondary-text block mb-1">
+                API Endpoints
+              </label>
 
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {editedComponent.api_endpoints.map((endpoint, idx) => (
@@ -221,48 +212,34 @@ export function ComponentCard({
                 ))}
               </div>
 
-              {newItemType === "api_endpoints" && (
-                <div className="flex gap-2 mb-3">
-                  <Input
-                    value={newItem}
-                    onChange={(e) => setNewItem(e.target.value)}
-                    placeholder="Enter API endpoint"
-                    className="bg-primary-background text-sm h-8"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleAddItem();
-                      }
-                    }}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8"
-                    onClick={handleAddItem}
-                  >
-                    Add
-                  </Button>
-                </div>
-              )}
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={newApiEndpoint}
+                  onChange={(e) => setNewApiEndpoint(e.target.value)}
+                  placeholder="Enter API endpoint"
+                  className="bg-primary-background text-sm h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddApiEndpoint();
+                    }
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={handleAddApiEndpoint}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add
+                </Button>
+              </div>
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-xs text-secondary-text">
-                  Data Displayed
-                </label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs"
-                  onClick={() => {
-                    setNewItemType("data_displayed");
-                    setNewItem("");
-                  }}
-                >
-                  <Plus className="h-3 w-3 mr-1" /> Add Data
-                </Button>
-              </div>
+              <label className="text-xs text-secondary-text block mb-1">
+                Data Displayed
+              </label>
 
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {editedComponent.data_displayed.map((data, idx) => (
@@ -282,40 +259,38 @@ export function ComponentCard({
                 ))}
               </div>
 
-              {newItemType === "data_displayed" && (
-                <div className="flex gap-2 mb-3">
-                  <Input
-                    value={newItem}
-                    onChange={(e) => setNewItem(e.target.value)}
-                    placeholder="Enter data item"
-                    className="bg-primary-background text-sm h-8"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleAddItem();
-                      }
-                    }}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8"
-                    onClick={handleAddItem}
-                  >
-                    Add
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" size="sm" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button variant="default" size="sm" onClick={handleSave}>
-                <Save className="h-3.5 w-3.5 mr-1" /> Save
-              </Button>
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={newDataItem}
+                  onChange={(e) => setNewDataItem(e.target.value)}
+                  placeholder="Enter data item"
+                  className="bg-primary-background text-sm h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddDataItem();
+                    }
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={handleAddDataItem}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add
+                </Button>
+              </div>
             </div>
           </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2 mt-auto mr-4">
+          <Button variant="outline" size="sm" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button variant="default" size="sm" onClick={handleSave}>
+            <Save className="h-3.5 w-3.5 mr-1" /> Save
+          </Button>
         </div>
       </Card>
     );
@@ -323,8 +298,8 @@ export function ComponentCard({
 
   // View mode
   return (
-    <Card className={`border overflow-hidden`}>
-      <div className="p-4">
+    <Card className={`border overflow-hidden p-4`}>
+      <div className="">
         <div className="flex items-center gap-2 mb-2">
           {getComponentIcon()}
           <h3 className="font-semibold">{component.name}</h3>
@@ -376,20 +351,19 @@ export function ComponentCard({
             </div>
           </div>
         )}
-
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-            <Edit className="h-3.5 w-3.5 mr-1" /> Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-red-400 hover:bg-red-950/20"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-          </Button>
-        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-auto bottom-0">
+        <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+          <Edit className="h-3.5 w-3.5 mr-1" /> Edit
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-red-400 hover:bg-red-950/20"
+          onClick={onDelete}
+        >
+          <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+        </Button>
       </div>
     </Card>
   );

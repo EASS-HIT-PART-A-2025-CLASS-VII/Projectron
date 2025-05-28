@@ -4,7 +4,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-def create_llm(temperature=0.1, json_mode=True, model='gpt-4o-mini', max_tokens=14000) -> ChatOpenAI:
+def create_llm(temperature=0.1, json_mode=True, model='gpt-4o-mini', max_tokens=14000, timeout=90) -> ChatOpenAI:
     """
     Creates a language model instance with the specified configuration.
     
@@ -42,6 +42,7 @@ def create_llm(temperature=0.1, json_mode=True, model='gpt-4o-mini', max_tokens=
             temperature=temperature,
             openai_api_key=api_key,
             max_tokens=max_tokens,
+            timeout=timeout,
             model_kwargs={"response_format": {"type": "json_object"}} if json_mode else {},
         )
 

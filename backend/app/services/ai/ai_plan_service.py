@@ -117,7 +117,7 @@ async def generate_plan(clarification_qa: Dict[str, str], project_info: PlanGene
 
     result = {
         "name": result["name"],
-        "description": result["description"],
+        "description": result["high_level_plan"].description if hasattr(result["high_level_plan"], "description") else result["description"],
         "status": result["status"],
         "clarification_qa": result["clarification_qa"],
         "tech_stack": result["tech_stack"],

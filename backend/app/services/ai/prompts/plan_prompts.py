@@ -66,16 +66,17 @@ Preferred Tech Stack: {tech_stack}
 # Instructions
 Create a high-level project plan that includes:
 1. Project name - USE THE EXACT PROJECT NAME PROVIDED: "{project_name}" (do not create a new name)
-2. Project vision - what this project aims to achieve
-3. Business objectives - specific, measurable goals
-4. Target users - who will use this application and why
-5. Core features - key functionality at a high level
-6. Project scope - what's in and what's out
-7. Success criteria - how to determine if the project is successful
-8. Constraints - time, budget, technical, or other limitations
-9. Assumptions - what we're assuming to be true
-10. Risks - potential obstacles to success
-11. Tech stack - USE THE PROVIDED TECH STACK as a foundation, adding any necessary technologies (if needed) to complete the architecture. Do not remove any of the provided technologies: {tech_stack}
+2. Project Description - 3 - 4 sentences summarizing the project, don't take the client original description, but summarize it in your own words
+3. Project vision - what this project aims to achieve
+4. Business objectives - specific, measurable goals
+5. Target users - who will use this application and why
+6. Core features - key functionality at a high level
+7. Project scope - what's in and what's out
+8. Success criteria - how to determine if the project is successful
+9. Constraints - time, budget, technical, or other limitations
+10. Assumptions - what we're assuming to be true
+11. Risks - potential obstacles to success
+12. Tech stack - USE THE PROVIDED TECH STACK as a foundation, adding any necessary technologies (if needed) to complete the architecture. Do not remove any of the provided technologies: {tech_stack}
 
 IMPORTANT: Assume the developers are highly capable and can accomplish more than the stated time budget suggests. For a {total_hours} hour project, plan for what could be accomplished in approximately {extended_hours} hours by an efficient team. Focus on creating an ambitious but achievable plan.
 

@@ -107,7 +107,7 @@ export function PlanGenerationForm({
         </div>
 
         <div>
-          <Label htmlFor="description">Project Description</Label>
+          <Label htmlFor="description">Describe Your Project</Label>
           <Textarea
             id="description"
             placeholder="Describe your project, its purpose, and key features..."

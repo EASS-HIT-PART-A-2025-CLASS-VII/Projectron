@@ -72,8 +72,10 @@ export function ImplementationPlanTab({
   // Initialize with all milestones expanded
   useEffect(() => {
     if (implementationPlan?.milestones) {
-      const allIndices = implementationPlan.milestones.map((_, index) => index);
-      setExpandedMilestones(allIndices);
+      const index: number = implementationPlan.milestones.findIndex(
+        (milestone) => milestone.status !== "completed"
+      );
+      setExpandedMilestones([index]);
     }
   }, []);
 
@@ -256,6 +258,18 @@ export function ImplementationPlanTab({
             ].status = "completed";
           });
         });
+      } else if (newStatus === "not_started") {
+        // If milestone is not started, reset all tasks and subtasks
+        updatedPlan.milestones[milestoneIndex].tasks.forEach((task, tIdx) => {
+          updatedPlan.milestones[milestoneIndex].tasks[tIdx].status =
+            "not_started";
+
+          task.subtasks.forEach((_, stIdx) => {
+            updatedPlan.milestones[milestoneIndex].tasks[tIdx].subtasks[
+              stIdx
+            ].status = "not_started";
+          });
+        });
       }
     } else if (type === "task" && taskIndex !== undefined) {
       // Update task status
@@ -270,6 +284,15 @@ export function ImplementationPlanTab({
           updatedPlan.milestones[milestoneIndex].tasks[taskIndex].subtasks[
             stIdx
           ].status = "completed";
+        });
+      } else if (newStatus === "not_started") {
+        // If task is not started, reset all subtasks
+        updatedPlan.milestones[milestoneIndex].tasks[
+          taskIndex
+        ].subtasks.forEach((_, stIdx) => {
+          updatedPlan.milestones[milestoneIndex].tasks[taskIndex].subtasks[
+            stIdx
+          ].status = "not_started";
         });
       }
 
