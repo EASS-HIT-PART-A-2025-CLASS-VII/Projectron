@@ -1,0 +1,18 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+healthcheckPath = "/wd/hub/status"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+# Create selenium-service/.dockerignore
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.vscode
