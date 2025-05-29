@@ -31,6 +31,13 @@ export interface GitHubAuthResponse {
   auth_url: string;
 }
 
+export interface EmailVerificationResponse {
+  message: string;
+  access_token?: string;
+  token_type?: string;
+  user?: User;
+}
+
 // Login function - sends credentials to your backend
 export async function login(
   credentials: LoginCredentials
@@ -182,12 +189,14 @@ export async function logout(): Promise<void> {
   }
 }
 
-// Verify email with token
-export async function verifyEmail(token: string): Promise<{ message: string }> {
+// Updated verify email function with auto-login
+export async function verifyEmail(
+  token: string
+): Promise<EmailVerificationResponse> {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email?token=${token}`,
     {
-      credentials: "include", // Include cookies
+      credentials: "include", // Include cookies for auto-login
     }
   );
 

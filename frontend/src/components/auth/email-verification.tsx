@@ -147,7 +147,7 @@ export function EmailVerification({
                 : "Please check your email for a verification link to complete your registration."}
             </p>
             <Alert className="mt-6 bg-secondary-background border-divider">
-              <AlertDescription>
+              <AlertDescription className="text-red-400 text-center font-bold">
                 If you don't see the email in your inbox, please check your spam
                 folder.
               </AlertDescription>

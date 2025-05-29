@@ -107,3 +107,10 @@ export interface ProjectsResponse {
 export interface ProjectResponse {
   project: Project;
 }
+
+export interface EmailVerificationResponse {
+  message: string;
+  access_token?: string;
+  token_type?: string;
+  user?: User;
+}

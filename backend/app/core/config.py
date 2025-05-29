@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     SELENIUM_TIMEOUT: int = 30 
     MAX_DIAGRAM_ITERATIONS: int = 3  # Maximum number of iterations for diagram generation
     
-    ENVIRONMENT: str = "development"  # "development", "staging", "production"
+    ENVIRONMENT: str = "development" 
     ENABLE_MERMAID_CLI_VALIDATION: bool = True
 
     GOOGLE_CLIENT_ID: str

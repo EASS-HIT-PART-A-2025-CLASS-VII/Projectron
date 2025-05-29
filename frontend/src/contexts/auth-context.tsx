@@ -24,6 +24,7 @@ import {
   logout as logoutApi,
   isAuthenticated as checkIsAuthenticated,
 } from "@/lib/auth";
+import { EmailVerificationResponse } from "@/types";
 
 // Define auth context interface
 interface AuthContextType {
@@ -41,7 +42,7 @@ interface AuthContextType {
   loginWithGithub: () => Promise<void>;
   registerWithGithub: () => Promise<void>;
   logout: () => Promise<void>;
-  verifyEmail: (token: string) => Promise<boolean>;
+  verifyEmail: (token: string) => Promise<EmailVerificationResponse>; // Updated return type
   resendVerification: (email: string) => Promise<void>;
   error: string | null;
   setUser: (user: User | null) => void;
@@ -236,23 +237,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Email verification function
-  const verifyEmail = useCallback(async (token: string): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
+  const verifyEmail = useCallback(
+    async (token: string): Promise<EmailVerificationResponse> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      await verifyEmailApi(token);
-      return true;
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
-      setError(errorMessage);
-      console.error("Verification error:", errorMessage);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      try {
+        console.log("Auth context: Starting email verification...");
+
+        const result = await verifyEmailApi(token);
+        console.log("Auth context: Verification API result:", result);
+
+        // If the response includes user data, set it immediately
+        // Don't try to fetch again since we already have the user data
+        if (result.user) {
+          console.log(
+            "Auth context: Setting user from verification response:",
+            result.user
+          );
+          setUser(result.user);
+        }
+
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "An unknown error occurred";
+        setError(errorMessage);
+        console.error("Auth context: Verification error:", errorMessage);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   // Resend verification email function
   const resendVerification = async (email: string) => {

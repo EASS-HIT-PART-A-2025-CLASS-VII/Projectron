@@ -16,20 +16,50 @@ class EmailService:
         
         # Email content
         subject = "Verify your email address"
-        body = f"""
-            <html>
-                <body>
-                    <h1>🚀 Welcome to Projectron! 🚀</h1>
-                    <p>Congratulations on joining the most intelligent project planning revolution since humans discovered calendars!</p>
-                    <p>Your future self is already thanking you for this brilliant decision. Now, there's just one tiny step between you and project management nirvana...</p>
-                    <p><a href="{confirmation_url}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">VERIFY THIS EMAIL!</a></p>
-                    <p>⏰ This magical link will self-destruct in 24 hours, so click it before it vanishes like your productivity without Projectron.</p>
-                    <p>If you didn't sign up for Projectron, please ignore this email... and reconsider your life choices. Who wouldn't want the world's most awesome AI project planner?</p>
-                    <p>May your deadlines always be met and your coffee always be strong,</p>
-                    <p>The Projectron Team</p>
-                </body>
-            </html>
-        """
+        body = f"""<html>
+        <head>
+            <style>
+                body {{ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #ffffff; color: #1a1a1a; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 40px 20px; }}
+                .header {{ text-align: center; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid #e5e5e5; }}
+                .logo {{ font-size: 28px; font-weight: 700; color: #12e88f; margin-bottom: 8px; letter-spacing: -0.5px; }}
+                .title {{ font-size: 18px; font-weight: 500; color: #64748b; }}
+                .content {{ background: #f8fafc; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid #e2e8f0; }}
+                .message {{ font-size: 16px; color: #334155; margin-bottom: 32px; }}
+                .cta-button {{ display: inline-block; background: #12e88f; color: #000000 !important; padding: 16px 32px; text-decoration: none !important; border-radius: 8px; font-weight: 600; font-size: 16px; transition: all 0.2s; }}
+                .cta-button:hover {{ background: #0fd982; color: #000000 !important; }}
+                .cta-button:visited {{ color: #000000 !important; }}
+                .cta-button:active {{ color: #000000 !important; }}
+                .cta-button:link {{ color: #000000 !important; }}
+                a.cta-button {{ color: #000000 !important; text-decoration: none !important; }}
+                .footer {{ text-align: center; margin-top: 32px; font-size: 14px; color: #64748b; }}
+                .expiry {{ font-size: 14px; color: #64748b; margin-top: 16px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">PROJECTRON</div>
+                    <div class="title">AI-Powered Project Planning</div>
+                </div>
+                
+                <div class="content">
+                    <div class="message">
+                        Welcome to the future of project planning.<br>
+                        One click to activate your account.
+                    </div>
+                    
+                    <a href="{confirmation_url}" class="cta-button">Verify Email Address</a>
+                    
+                    <div class="expiry">Link expires in 24 hours</div>
+                </div>
+                
+                <div class="footer">
+                    <p>Best regards,<br>The Projectron Team</p>
+                </div>
+            </div>
+        </body>
+        </html>"""
         
         # Create email message
         message = MIMEMultipart()

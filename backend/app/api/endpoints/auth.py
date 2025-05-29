@@ -151,34 +151,74 @@ async def register_user(user_in: UserCreate) -> Any:
     return user
 
 @router.get("/verify-email")
-def verify_email(token: str):
+def verify_email(response: Response, token: str):
     """
-    Verify user email with token
+    Verify user email with token and automatically log them in
     """
-    # Find user with this token
-    user = User.objects(verification_token=token).first()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification token"
+    try:
+        # Find user with this token
+        user = User.objects(verification_token=token).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid verification token"
+            )
+        
+        # Check if token has expired
+        if datetime.now(tz=timezone.utc) > user.verification_token_expires:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verification token has expired"
+            )
+        
+        # Mark email as verified
+        user.is_email_verified = True
+        user.verification_token = None
+        user.verification_token_expires = None
+        
+        # Update last login time (same as login endpoint)
+        user.last_login = datetime.now(tz=timezone.utc)
+        user.save()
+        
+        # Create access token with user ID as the subject (exactly like login endpoint)
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": str(user.id)}, 
+            expires_delta=access_token_expires
         )
-    
-    # Check if token has expired
-    if datetime.now(tz=timezone.utc) > user.verification_token_expires.replace(tzinfo=timezone.utc):
+        
+        # Set httpOnly cookie (exactly like login endpoint)
+        set_auth_cookie(response, access_token)
+        
+        # Debug logging
+        print(f"Email verification successful for user: {user.email}")
+        print(f"Setting cookie with token: {access_token[:20]}...")
+        
+        # Return success response with user data
+        return {
+            "message": "Email successfully verified and logged in",
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "full_name": user.full_name,
+                "roles": user.roles or [],
+                "created_at": user.created_at,
+                "last_login": user.last_login
+            }
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        print(f"Unexpected error in email verification: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Verification token has expired"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Email verification failed: {str(e)}"
         )
-    
-    # Mark email as verified
-    user.is_email_verified = True
-    user.verification_token = None
-    user.verification_token_expires = None
-    user.save()
-    
-    # Return success response
-    return {"message": "Email successfully verified"}
 
 @router.post("/resend-verification")
 def resend_verification_email(request: ResendRequest):
