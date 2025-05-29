@@ -27,7 +27,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
+      - NEXT_PUBLIC_BACKEND_URL=https://astonishing-joy-production.up.railway.app/api/endpoints
     depends_on:
       - backend
 # No mongo service needed since we're using Atlas
