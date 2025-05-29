@@ -312,11 +312,11 @@ async def google_callback(response: Response, code: str):
         # For OAuth, pass token in URL for frontend to handle cookie setting
         # This avoids cross-domain cookie issues
         params = urlencode({"token": jwt_token})
-        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
+        return RedirectResponse(f"{settings.FRONT_AUTH_REDIRECT_SUCCESS}?{params}")
     
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})
-        return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
+        return RedirectResponse(f"{settings.FRONT_AUTH_REDIRECT_FAILURE}?{params}")
 
 @router.get("/github")
 async def github_login():
@@ -375,7 +375,7 @@ async def github_callback(response: Response, code: str):
         
         if not email:
             params = urlencode({"error": "no_email"})
-            return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
+            return RedirectResponse(f"{settings.FRONT_AUTH_REDIRECT_FAILURE}?{params}")
         
         # Find or create user
         user = User.objects(email=email).first()
@@ -397,11 +397,11 @@ async def github_callback(response: Response, code: str):
         # For OAuth, pass token in URL for frontend to handle cookie setting
         # This avoids cross-domain cookie issues
         params = urlencode({"token": jwt_token})
-        return RedirectResponse(f"http://localhost:3000/auth/success?{params}")
+        return RedirectResponse(f"{settings.FRONT_AUTH_REDIRECT_SUCCESS}?{params}")
     
     except Exception as e:
         params = urlencode({"error": "oauth_failed"})
-        return RedirectResponse(f"http://localhost:3000/auth/login?{params}")
+        return RedirectResponse(f"{settings.FRONT_AUTH_REDIRECT_FAILURE}?{params}")
     
 
 class TokenExchangeRequest(BaseModel):

@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI:str 
     
+    FRONT_AUTH_REDIRECT_SUCCESS: str
+    FRONT_AUTH_REDIRECT_FAILURE: str
 
     GITHUB_CLIENT_ID: str
     GITHUB_CLIENT_SECRET: str
