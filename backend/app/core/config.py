@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Projectron"
     API_V1_STR: str = "/api/endpoints"
 
-    FRONTEND_URL: str
+    FRONTEND_URL: str = "https://projectron-production.up.railway.app",
+
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
         FRONTEND_URL, 
