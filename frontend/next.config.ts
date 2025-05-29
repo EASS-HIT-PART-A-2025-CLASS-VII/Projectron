@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // add this webpack override
+  output: "standalone",
+
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
