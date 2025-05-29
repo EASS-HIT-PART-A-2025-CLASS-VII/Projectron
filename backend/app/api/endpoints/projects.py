@@ -14,6 +14,7 @@ from app.utils.serializers import calculate_plan_metrics, get_structured_project
 router = APIRouter()
 
 @router.get("/", response_description="List all projects")
+@router.get("")
 async def list_projects(current_user: User = Depends(get_current_user)):
     """
     Retrieve all projects for the authenticated user.
@@ -47,6 +48,7 @@ async def list_projects(current_user: User = Depends(get_current_user)):
     
 
 @router.get("/{project_id}", response_description="Get a complete project with all details")
+@router.get("/{project_id}/", response_description="Get a complete project with all details") 
 async def get_complete_project(project_id: str, current_user: User = Depends(get_current_user)):
     """
     Retrieve a project by ID with all nested details (milestones, tasks, subtasks).
@@ -93,6 +95,7 @@ async def get_complete_project(project_id: str, current_user: User = Depends(get
 
 
 @router.put("/{project_id}", response_description="Update a project")
+@router.put("/{project_id}/", response_description="Update a project")
 async def update_project(project_id: str, project_data: dict, current_user: User = Depends(get_current_user)):
     """
     Update all project information.
@@ -128,6 +131,7 @@ async def update_project(project_id: str, project_data: dict, current_user: User
     return serialize_mongodb_doc(project_dict)
 
 @router.delete("/{project_id}", response_description="Delete a project")
+@router.delete("/{project_id}/", response_description="Delete a project")
 async def delete_project(project_id: str, current_user: User = Depends(get_current_user)):
     """
     Delete a project and all its nested milestones, tasks, and subtasks.
