@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.api_router import api_router
@@ -70,6 +71,24 @@ app.json_encoders = MongoJSONEncoder
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Railway"""
+    try:
+        return {
+            "status": "healthy",
+            "service": "projectron-api",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy", 
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+    
 @app.get("/")
 async def root():
     return {"message": "Welcome to AI Project Planner API"}
+

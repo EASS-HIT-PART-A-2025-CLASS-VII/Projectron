@@ -18,6 +18,7 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
         FRONTEND_URL, 
+        "https://*.railway.app"
         "http://localhost:8000",  # Backend URL
     ]
 
