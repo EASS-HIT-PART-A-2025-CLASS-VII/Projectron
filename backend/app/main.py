@@ -56,11 +56,13 @@ app = FastAPI(
     description="AI Project Planner API",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    lifespan=lifespan  # Use the new lifespan parameter
+    lifespan=lifespan,
+    servers=[
+        {"url": "https://astonishing-joy-production.up.railway.app", "description": "Production server"},
+        {"url": "http://localhost:8000", "description": "Development server"}
+    ] if settings.ENVIRONMENT == "production" else [{"url": "http://localhost:8000"}]
 )
 
-if settings.ENVIRONMENT == "production":
-    app.add_middleware(HTTPSRedirectMiddleware)
 # Set up CORS middleware
 app.add_middleware(
     CORSMiddleware,
