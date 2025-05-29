@@ -1,6 +1,3 @@
-# Create a new folder: selenium-service/
-# Create selenium-service/Dockerfile
-
 FROM selenium/standalone-chrome:latest
 
 # Install curl for health checks
