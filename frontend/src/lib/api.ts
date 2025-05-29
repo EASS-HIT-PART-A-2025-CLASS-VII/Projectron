@@ -66,7 +66,7 @@ export async function apiClient<T>(
 
         // Extract error message from various possible fields
         const errorMessage =
-          errorData.detail ||
+          errorData.detail.msg ||
           errorData.message ||
           errorData.error ||
           (typeof errorData === "string" ? errorData : null) ||

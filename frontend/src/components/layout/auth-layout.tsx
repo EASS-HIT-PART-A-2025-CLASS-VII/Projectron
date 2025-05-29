@@ -35,7 +35,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col bg-primary-background">
       <Link href="/" className="flex items-center justify-center">
-        <Logo className="h-14 md:h-20 mt-4 m-auto" />
+        <Logo className="h-10 md:h-20 mt-4 m-auto" />
       </Link>
       <div className="flex flex-1 flex-col justify-center px-6 pt-2 pb-10 lg:px-8">
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">

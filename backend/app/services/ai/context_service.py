@@ -43,7 +43,7 @@ async def generate_comprehensive_context(
     # Generate context with single LLM call
     result = await execute_with_fallbacks(
         primary_llm=llm_41_mini,  # Primary: GPT-4.1-mini for 1M context window
-        fallback_llms=[llm_4o_mini, llm_41_nano],
+        fallback_llms=[llm_41_nano, llm_41_mini, llm_4o_mini],
         structured_output_type=DevelopmentContext,
         prompt=prompt
     )

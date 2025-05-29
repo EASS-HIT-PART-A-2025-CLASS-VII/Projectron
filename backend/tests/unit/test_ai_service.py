@@ -1,4 +1,4 @@
-# tests/unit/test_ai_services.py
+# tests/unit/test_ai_service.py
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 
@@ -64,6 +64,20 @@ class TestAIServices:
         assert "mid" in call_args
         assert "100" in call_args
     
+    def _create_mock_pydantic_model(self):
+        """Helper to create a properly mocked Pydantic model class"""
+        mock_model_class = MagicMock()
+        # Mock the model_json_schema method to return a valid dictionary
+        mock_model_class.model_json_schema.return_value = {
+            "type": "object",
+            "properties": {
+                "test_field": {"type": "string"},
+                "another_field": {"type": "integer"}
+            },
+            "required": ["test_field"]
+        }
+        return mock_model_class
+    
     @pytest.mark.asyncio
     async def test_execute_with_fallbacks_primary_success(self):
         """Test fallback execution when primary LLM succeeds"""
@@ -78,8 +92,11 @@ class TestAIServices:
         mock_structured.ainvoke = AsyncMock(return_value=mock_result)
         primary_llm.with_structured_output.return_value = mock_structured
         
-        # Mock Pydantic model
-        mock_model_class = MagicMock()
+        # Mock primary LLM model attribute (for Gemini check)
+        primary_llm.model = "gpt-4o-mini"
+        
+        # Mock Pydantic model with proper model_json_schema
+        mock_model_class = self._create_mock_pydantic_model()
         
         # Test successful execution
         result = await execute_with_fallbacks(
@@ -112,14 +129,17 @@ class TestAIServices:
         primary_structured = MagicMock()
         primary_structured.ainvoke = AsyncMock(side_effect=Exception("Primary LLM failed"))
         primary_llm.with_structured_output.return_value = primary_structured
+        primary_llm.model = "gpt-4o-mini"  # Mock model attribute
         
         # First fallback succeeds
         fallback1_structured = MagicMock()
         fallback1_result = MagicMock()
         fallback1_structured.ainvoke = AsyncMock(return_value=fallback1_result)
         fallback_llm1.with_structured_output.return_value = fallback1_structured
+        fallback_llm1.model = "gpt-4.1-nano"  # Mock model attribute
         
-        mock_model_class = MagicMock()
+        # Mock Pydantic model with proper model_json_schema
+        mock_model_class = self._create_mock_pydantic_model()
         
         # Test fallback execution
         result = await execute_with_fallbacks(
@@ -156,8 +176,10 @@ class TestAIServices:
             structured = MagicMock()
             structured.ainvoke = AsyncMock(side_effect=Exception("LLM failed"))
             llm.with_structured_output.return_value = structured
+            llm.model = "gpt-4o-mini"  # Mock model attribute
         
-        mock_model_class = MagicMock()
+        # Mock Pydantic model with proper model_json_schema
+        mock_model_class = self._create_mock_pydantic_model()
         
         # Test that it raises an exception when all fail
         with pytest.raises(Exception):
@@ -172,6 +194,43 @@ class TestAIServices:
         primary_llm.with_structured_output.assert_called_once()
         fallback_llm1.with_structured_output.assert_called_once()
         fallback_llm2.with_structured_output.assert_called_once()
+    
+    @pytest.mark.asyncio
+    async def test_execute_with_fallbacks_gemini_model(self):
+        """Test fallback execution with Gemini model (special prompt handling)"""
+        # Mock Gemini LLM
+        gemini_llm = MagicMock()
+        fallback_llm1 = MagicMock()
+        
+        # Mock successful Gemini LLM
+        mock_structured = MagicMock()
+        mock_result = MagicMock()
+        mock_structured.ainvoke = AsyncMock(return_value=mock_result)
+        gemini_llm.with_structured_output.return_value = mock_structured
+        
+        # Mock Gemini model attribute
+        gemini_llm.model = "gemini-2.5-flash-preview"
+        
+        # Mock Pydantic model with proper model_json_schema
+        mock_model_class = self._create_mock_pydantic_model()
+        
+        # Test Gemini execution
+        result = await execute_with_fallbacks(
+            primary_llm=gemini_llm,
+            fallback_llms=[fallback_llm1],
+            structured_output_type=mock_model_class,
+            prompt="test prompt for gemini"
+        )
+        
+        # Verify Gemini LLM was used
+        gemini_llm.with_structured_output.assert_called_once_with(mock_model_class)
+        mock_structured.ainvoke.assert_called_once_with("test prompt for gemini")
+        
+        # Verify fallback was not used
+        fallback_llm1.with_structured_output.assert_not_called()
+        
+        # Verify result
+        assert result == mock_result
     
     def test_set_current_progress(self):
         """Test progress context setting"""

@@ -69,6 +69,8 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
   const [activeTab, setActiveTab] = useState<DiagramType>("sequence");
   const [loadingSequence, setLoadingSequence] = useState(false);
   const [loadingClass, setLoadingClass] = useState(false);
+  const [fetchingSequence, setFetchingSequence] = useState(false);
+  const [fetchingClass, setFetchingClass] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [toast, setToast] = useState<ToastState>({ open: false, title: "" });
   const [showChangeRequestDialog, setShowChangeRequestDialog] = useState(false);
@@ -77,6 +79,81 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
   // SVG display helpers
   const hasSequenceDiagram = !!currentProject.sequence_diagram_svg;
   const hasClassDiagram = !!currentProject.class_diagram_svg;
+
+  // Fetch existing diagrams on component mount
+  useEffect(() => {
+    const fetchExistingDiagrams = async () => {
+      // Only fetch if we don't already have the SVG content
+      const promises = [];
+
+      // Fetch sequence diagram if not already present
+      if (!currentProject.sequence_diagram_svg) {
+        setFetchingSequence(true);
+        promises.push(
+          fetchExistingDiagram("sequence")
+            .catch((error) => {
+              // Silently handle 404 errors (no diagram exists)
+              if (error.message.includes("404")) {
+                return null;
+              }
+              console.warn("Failed to fetch sequence diagram:", error);
+              return null;
+            })
+            .finally(() => setFetchingSequence(false))
+        );
+      }
+
+      // Fetch class diagram if not already present
+      if (!currentProject.class_diagram_svg) {
+        setFetchingClass(true);
+        promises.push(
+          fetchExistingDiagram("class")
+            .catch((error) => {
+              // Silently handle 404 errors (no diagram exists)
+              if (error.message.includes("404")) {
+                return null;
+              }
+              console.warn("Failed to fetch class diagram:", error);
+              return null;
+            })
+            .finally(() => setFetchingClass(false))
+        );
+      }
+
+      // Wait for all fetches to complete
+      await Promise.all(promises);
+    };
+
+    fetchExistingDiagrams();
+  }, [currentProject.id]); // Re-fetch if project changes
+
+  // Function to fetch existing diagram
+  const fetchExistingDiagram = async (
+    type: DiagramType
+  ): Promise<string | null> => {
+    try {
+      const svgContent = await apiClient<string>(
+        `/diagrams/${type}/${currentProject.id}`,
+        {
+          method: "GET",
+          responseType: "text",
+        }
+      );
+
+      if (svgContent) {
+        // Update the project state with the fetched SVG
+        setCurrentProject((prev) => ({
+          ...prev,
+          [`${type}_diagram_svg`]: svgContent,
+        }));
+        return svgContent;
+      }
+      return null;
+    } catch (error) {
+      // Re-throw to be handled by caller
+      throw error;
+    }
+  };
 
   // Show toast function
   const showToast = (
@@ -117,9 +194,11 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
 
   // Generate diagram function
   const generateDiagram = async (type: DiagramType, changeReq?: string) => {
+    // Define isUpdating outside try block so it's available in catch block
+    const isUpdating =
+      type === "sequence" ? hasSequenceDiagram : hasClassDiagram;
+
     try {
-      const isUpdating =
-        type === "sequence" ? hasSequenceDiagram : hasClassDiagram;
       const endpoint = `/diagrams/${type}/${isUpdating ? "update" : "create"}`;
 
       // Set loading state
@@ -136,21 +215,20 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
           project_id: currentProject.id,
           change_request: changeReq || undefined,
         },
-        token: localStorage.getItem("token") || undefined,
         responseType: "text",
       });
 
       // Update project state
       if (type === "sequence") {
-        setCurrentProject({
-          ...currentProject,
+        setCurrentProject((prev) => ({
+          ...prev,
           sequence_diagram_svg: response,
-        });
+        }));
       } else {
-        setCurrentProject({
-          ...currentProject,
+        setCurrentProject((prev) => ({
+          ...prev,
           class_diagram_svg: response,
-        });
+        }));
       }
 
       showToast(
@@ -160,15 +238,11 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
       );
     } catch (error) {
       console.error(
-        `Error ${
-          hasSequenceDiagram ? "updating" : "generating"
-        } ${type} diagram:`,
+        `Error ${isUpdating ? "updating" : "generating"} ${type} diagram:`,
         error
       );
       showToast(
-        `Failed to ${
-          hasSequenceDiagram ? "update" : "generate"
-        } ${type} diagram`,
+        `Failed to ${isUpdating ? "update" : "generate"} ${type} diagram`,
         "Please try again",
         "destructive"
       );
@@ -214,20 +288,39 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
   const makeTransparentSvg = (svgContent: string | null | undefined) => {
     if (!svgContent) return null;
 
-    // Add a CSS style to make the background transparent
-    // Replace any fill="white" or background attributes
-    // Convert black colors to white for lines and text
-    return svgContent
-      .replace(/<svg/, '<svg style="background-color: transparent;"')
-      .replace(/fill="white"/g, 'fill="transparent"')
-      .replace(/background="white"/g, 'background="transparent"')
-      .replace(/fill="#000000"/g, 'fill="#FFFFFF"')
-      .replace(/fill="black"/g, 'fill="white"')
-      .replace(/stroke="#000000"/g, 'stroke="#FFFFFF"')
-      .replace(/stroke="black"/g, 'stroke="white"')
-      .replace(/color: black/g, "color: white")
-      .replace(/color:#000000/g, "color:#FFFFFF")
-      .replace(/<text /g, '<text fill="white" ');
+    // Enhanced SVG processing for better dark theme compatibility
+    return (
+      svgContent
+        // Make background transparent
+        .replace(/<svg([^>]*)/, '<svg$1 style="background-color: transparent;"')
+        .replace(/fill="white"/g, 'fill="transparent"')
+        .replace(/fill="#ffffff"/gi, 'fill="transparent"')
+        .replace(/background="white"/g, 'background="transparent"')
+        .replace(/background="#ffffff"/gi, 'background="transparent"')
+
+        // Convert black elements to white for dark theme
+        .replace(/fill="#000000"/g, 'fill="#FFFFFF"')
+        .replace(/fill="black"/gi, 'fill="#FFFFFF"')
+        .replace(/stroke="#000000"/g, 'stroke="#FFFFFF"')
+        .replace(/stroke="black"/gi, 'stroke="#FFFFFF"')
+
+        // Handle CSS styles within SVG
+        .replace(/color:\s*black/gi, "color: #FFFFFF")
+        .replace(/color:\s*#000000/gi, "color: #FFFFFF")
+        .replace(/fill:\s*black/gi, "fill: #FFFFFF")
+        .replace(/fill:\s*#000000/gi, "fill: #FFFFFF")
+        .replace(/stroke:\s*black/gi, "stroke: #FFFFFF")
+        .replace(/stroke:\s*#000000/gi, "stroke: #FFFFFF")
+
+        // Ensure text elements are white
+        .replace(/<text(?![^>]*fill=)/g, '<text fill="#FFFFFF" ')
+        .replace(/<text([^>]*fill=")black(")/gi, "<text$1#FFFFFF$2")
+        .replace(/<text([^>]*fill=")#000000(")/gi, "<text$1#FFFFFF$2")
+
+        // Handle common diagram element colors
+        .replace(/fill="rgb\(0,\s*0,\s*0\)"/gi, 'fill="#FFFFFF"')
+        .replace(/stroke="rgb\(0,\s*0,\s*0\)"/gi, 'stroke="#FFFFFF"')
+    );
   };
 
   return (
@@ -349,24 +442,26 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
           <TabsContent value="sequence" className="mt-0">
             <DiagramView
               svg={makeTransparentSvg(currentProject.sequence_diagram_svg)}
-              isLoading={loadingSequence}
+              isLoading={loadingSequence || fetchingSequence}
               zoom={zoom}
               onZoomIn={handleZoomIn}
               onZoomOut={handleZoomOut}
               onResetZoom={handleResetZoom}
               diagramType="sequence"
+              isGenerating={loadingSequence}
             />
           </TabsContent>
 
           <TabsContent value="class" className="mt-0">
             <DiagramView
               svg={makeTransparentSvg(currentProject.class_diagram_svg)}
-              isLoading={loadingClass}
+              isLoading={loadingClass || fetchingClass}
               zoom={zoom}
               onZoomIn={handleZoomIn}
               onZoomOut={handleZoomOut}
               onResetZoom={handleResetZoom}
               diagramType="class"
+              isGenerating={loadingClass}
             />
           </TabsContent>
         </Tabs>
@@ -444,6 +539,7 @@ interface DiagramViewProps {
   onZoomOut: () => void;
   onResetZoom: () => void;
   diagramType: DiagramType;
+  isGenerating?: boolean;
 }
 
 function DiagramView({
@@ -454,6 +550,7 @@ function DiagramView({
   onZoomOut,
   onResetZoom,
   diagramType,
+  isGenerating = false,
 }: DiagramViewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -556,7 +653,9 @@ function DiagramView({
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-t-2 border-primary-cta mx-auto mb-4 rounded-full"></div>
           <p className="text-secondary-text">
-            Generating {diagramType} diagram... This may take a minute.
+            {isGenerating
+              ? `Generating ${diagramType} diagram... This may take a minute.`
+              : `Loading ${diagramType} diagram...`}
           </p>
         </div>
       </div>

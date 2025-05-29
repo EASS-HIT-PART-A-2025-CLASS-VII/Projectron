@@ -165,8 +165,16 @@ def verify_email(response: Response, token: str):
                 detail="Invalid verification token"
             )
         
-        # Check if token has expired
-        if datetime.now(tz=timezone.utc) > user.verification_token_expires:
+        # Check if token has expired - handle timezone comparison safely
+        current_time = datetime.now(tz=timezone.utc)
+        expiration_time = user.verification_token_expires
+        
+        # Ensure both datetimes are timezone-aware for comparison
+        if expiration_time.tzinfo is None:
+            # If stored time is naive, assume it's UTC
+            expiration_time = expiration_time.replace(tzinfo=timezone.utc)
+        
+        if current_time > expiration_time:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Verification token has expired"
@@ -177,27 +185,23 @@ def verify_email(response: Response, token: str):
         user.verification_token = None
         user.verification_token_expires = None
         
-        # Update last login time (same as login endpoint)
+        # Update last login time
         user.last_login = datetime.now(tz=timezone.utc)
         user.save()
         
-        # Create access token with user ID as the subject (exactly like login endpoint)
+        # Create access token with user ID as the subject
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": str(user.id)}, 
             expires_delta=access_token_expires
         )
         
-        # Set httpOnly cookie (exactly like login endpoint)
+        # Set httpOnly cookie
         set_auth_cookie(response, access_token)
-        
-        # Debug logging
-        print(f"Email verification successful for user: {user.email}")
-        print(f"Setting cookie with token: {access_token[:20]}...")
         
         # Return success response with user data
         return {
-            "message": "Email successfully verified and logged in",
+            "message": "Email successfully verified",
             "access_token": access_token,
             "token_type": "bearer",
             "user": {

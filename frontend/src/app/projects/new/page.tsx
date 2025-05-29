@@ -140,8 +140,6 @@ export default function NewProjectPage() {
     setPlanStatus(null);
 
     try {
-      // No token check needed - cookies sent automatically
-      // If not authenticated, apiClient will handle 401 and redirect to login
       const response = await apiClient<{
         task_id: string;
         status: string;
@@ -149,8 +147,10 @@ export default function NewProjectPage() {
         method: "POST",
         body: {
           input_data: { ...projectInput },
-          clarification_qa: questionAnswers,
-        }, // apiClient will stringify this
+          clarification_qa: {
+            qa_pairs: questionAnswers,
+          },
+        },
       });
 
       // Start polling for status

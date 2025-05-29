@@ -1,7 +1,7 @@
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import Dict, Any
-from app.pydantic_models.project_http_models import ClarificationResponse, PlanGeneratioResponse, PlanGenerationInput, PlanRefinementInput
+from app.pydantic_models.project_http_models import ClarificationQA, ClarificationResponse, PlanGeneratioResponse, PlanGenerationInput, PlanRefinementInput
 from app.db.models.project import Project
 from app.services.ai.ai_plan_service import generate_clarifying_questions, generate_plan
 from app.db.models.auth import User
@@ -68,12 +68,11 @@ async def get_plan_status(
             detail=f"Failed to get status: {str(e)}"
         )
 
-# Modify your existing generate-plan endpoint
 @router.post("/generate-plan", response_model=dict)
 async def generate_project_plan(
     background_tasks: BackgroundTasks,
     input_data: PlanGenerationInput,
-    clarification_qa: Dict[str, str] = {},
+    clarification_qa: ClarificationQA,
     current_user: User = Depends(get_current_user)
 ):
     """Generate a complete project plan based on description and answers to clarification questions"""
@@ -114,7 +113,7 @@ async def generate_project_plan(
 # New background task function
 async def generate_plan_background(
     task_id: str,
-    clarification_qa: Dict[str, str],
+    clarification_qa: ClarificationQA,
     project_info: PlanGenerationInput,
     current_user: User
 ):
@@ -125,7 +124,7 @@ async def generate_plan_background(
         progress.update_progress("Initializing plan generation", 1, 'processing')
         
         # Call your existing generate_plan function with progress
-        plan = await generate_plan(clarification_qa, project_info, current_user.id, progress)
+        plan = await generate_plan(clarification_qa.qa_pairs, project_info, current_user.id, progress)
         
         progress.update_progress("Creating project", 6, 'processing')
         

@@ -7,8 +7,7 @@ services:
       - ./backend:/app
     depends_on:
       - selenium
-    env_file:
-      ./backend/.env
+    env_file: ./backend/.env
 
   selenium:
     image: selenium/standalone-chrome:4.19.1-20240402
@@ -16,8 +15,8 @@ services:
       - "4444:4444"
     environment:
       - SE_START_XVFB=false
-      - SE_NODE_MAX_SESSIONS=2
-      - SE_NODE_SESSION_TIMEOUT=30
+      - SE_NODE_MAX_SESSIONS=20
+      - SE_NODE_SESSION_TIMEOUT=60
     shm_size: 2g
 
   frontend:

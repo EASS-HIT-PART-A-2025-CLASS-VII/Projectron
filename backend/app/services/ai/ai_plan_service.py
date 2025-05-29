@@ -3,7 +3,7 @@ from contextvars import ContextVar
 from app.core.config import get_settings
 from app.pydantic_models.ai_plan_models import APIEndpoints, ClarificationQuestions, DataModels, DetailedImplementationPlan, HighLevelPlan, TechnicalArchitecture, UIComponents
 from app.pydantic_models.project_http_models import PlanGenerationInput
-from app.services.ai.ai_utils import create_llm, create_gemini_llm
+from app.services.ai.ai_utils import compact_json, create_llm, create_gemini_llm
 from app.services.ai.prompts.plan_prompts import (
     CLARIFICATION_QUESTIONS_PROMPT,
     HIGH_LEVEL_PLAN_PROMPT,
@@ -316,8 +316,8 @@ async def generate_api_endpoints(state: PlanState):
         architecture_patterns=arch_patterns_str
     )
     
-    result = await execute_with_fallbacks(primary_llm=llm_41_mini,
-                                    fallback_llms=[llm_gemini, llm_41_nano, llm_4o_mini],
+    result = await execute_with_fallbacks(primary_llm=llm_4o_mini,
+                                    fallback_llms=[llm_41_nano, llm_41_mini, llm_gemini],
                                    structured_output_type=APIEndpoints,
                                    prompt=prompt)
     
@@ -336,11 +336,18 @@ async def generate_data_models(state: PlanState):
     extended_hours = int(state["total_hours"] * 1.5)
     
     # Extract API resources
+
     api_endpoints = state["api_endpoints"]
-    resource_names = [r.name for r in api_endpoints.resources]
-    resources_str = ", ".join(resource_names)
-    auth_type = api_endpoints.authentication.type
-    
+    try:
+        resource_names = [r.name for r in api_endpoints.resources]
+        resources_str = ", ".join(resource_names)
+    except (AttributeError, TypeError):
+        resources_str = "No API resources defined"
+    try:    
+        auth_type = api_endpoints.authentication.type
+    except (AttributeError, TypeError):
+        auth_type = "No authentication defined"
+
     prompt = DATA_MODELS_PROMPT.format(
         project_name=state["name"],
         project_description=state["description"],
@@ -351,8 +358,8 @@ async def generate_data_models(state: PlanState):
         authentication=auth_type
     )
     
-    result = await execute_with_fallbacks(primary_llm=llm_gemini,
-                                    fallback_llms=[llm_41_mini, llm_41_nano, llm_4o_mini],
+    result = await execute_with_fallbacks(primary_llm=llm_41_mini,
+                                    fallback_llms=[llm_4o_mini, llm_41_nano, llm_gemini],
                                    structured_output_type=DataModels,
                                    prompt=prompt)
     
@@ -434,8 +441,8 @@ async def generate_ui_components(state: PlanState):
         data_entities=data_entities_str
     )
     
-    result = await execute_with_fallbacks(primary_llm=llm_gemini,
-                                    fallback_llms=[llm_41_mini, llm_41_nano, llm_4o_mini],
+    result = await execute_with_fallbacks(primary_llm=llm_41_mini,
+                                    fallback_llms=[llm_4o_mini, llm_41_nano, llm_gemini],
                                    structured_output_type=UIComponents,
                                    prompt=prompt)
     
@@ -454,21 +461,53 @@ async def generate_implementation_plan(state: PlanState):
     extended_hours = int(state["total_hours"] * 1.5)
     
     # Extract system components
-    tech_arch = state["technical_architecture"]
-    system_components = [c.name for c in tech_arch.system_components]
-    system_components_str = ", ".join(system_components)
+    system_components = []
+    try:
+        tech_arch = state["technical_architecture"]
+        for c in tech_arch.system_components:
+            try:
+                system_components.append(c.name)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    system_components_str = ", ".join(system_components) if system_components else "No system components defined"
     
     # Extract API resources
-    api_resources = [r.name for r in state["api_endpoints"].resources]
-    api_resources_str = ", ".join(api_resources)
+    api_resources = []
+    try:
+        for r in state["api_endpoints"].resources:
+            try:
+                api_resources.append(r.name)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    api_resources_str = ", ".join(api_resources) if api_resources else "No API resources defined"
     
     # Extract data entities
-    data_entities = [e.name for e in state["data_models"].entities]
-    data_entities_str = ", ".join(data_entities)
+    data_entities = []
+    try:
+        for e in state["data_models"].entities:
+            try:
+                data_entities.append(e.name)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    data_entities_str = ", ".join(data_entities) if data_entities else "No data entities defined"
     
     # Extract UI screens
-    ui_screens = [s.name for s in state["ui_components"].screens]
-    ui_screens_str = ", ".join(ui_screens)
+    ui_screens = []
+    try:
+        for s in state["ui_components"].screens:
+            try:
+                ui_screens.append(s.name)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    ui_screens_str = ", ".join(ui_screens) if ui_screens else "No UI screens defined"
     
     prompt = DETAILED_IMPLEMENTATION_PLAN_PROMPT.format(
         project_name=state["name"],
@@ -483,7 +522,7 @@ async def generate_implementation_plan(state: PlanState):
     )
 
     result = await execute_with_fallbacks(primary_llm=llm_41_mini,
-                                    fallback_llms=[llm_gemini, llm_41_nano, llm_4o_mini],
+                                    fallback_llms=[llm_4o_mini, llm_41_nano, llm_gemini],
                                    structured_output_type=DetailedImplementationPlan,
                                    prompt=prompt)
     
@@ -502,8 +541,20 @@ async def execute_with_fallbacks(primary_llm, fallback_llms, structured_output_t
     Returns:
         The result from the first successful LLM
     """
+    gemini_prompt = f"""{prompt}
+
+            IMPORTANT: Respond with valid JSON format only that matches this exact schema:
+            {compact_json(structured_output_type.model_json_schema())}
+
+            Return only the JSON object, no additional text."""
     try:
-        return await primary_llm.with_structured_output(structured_output_type).ainvoke(prompt)
+        if hasattr(primary_llm, 'model') and "gemini" in str(primary_llm.model).lower():
+            result = await primary_llm.with_structured_output(structured_output_type).ainvoke(prompt)
+        else:
+            result = await primary_llm.with_structured_output(structured_output_type).ainvoke(prompt)
+        if not result:
+            raise ValueError("Primary model returned empty result")
+        return result
     except Exception as e:
         print(f"Error with primary model: {e}")
         for i, fallback_llm in enumerate(fallback_llms):
@@ -511,7 +562,6 @@ async def execute_with_fallbacks(primary_llm, fallback_llms, structured_output_t
                 print(f"Trying fallback model {i+1}/{len(fallback_llms)}...")
                 # Add JSON instruction for Gemini
                 if hasattr(fallback_llm, 'model') and 'gemini' in fallback_llm.model.lower():
-                    gemini_prompt = f"{prompt}\n\nIMPORTANT: Respond with valid JSON format only."
                     return await fallback_llm.with_structured_output(structured_output_type).ainvoke(gemini_prompt)
                 else:
                     return await fallback_llm.with_structured_output(structured_output_type).ainvoke(prompt)

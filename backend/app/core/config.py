@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
     # SELENIUM
     # Settings related to the Sequence Diagram Generator
-    SELENIUM_URL: str = "http://localhost:4444"  # URL of the Selenium standalone Chrome instance
+    SELENIUM_URL: str # = "http://localhost:4444"  # URL of the Selenium standalone Chrome instance
     SEQUENCE_DIAGRAM_SITE_URL: str = "https://sequencediagram.org"  
     SELENIUM_TIMEOUT: int = 30 
     MAX_DIAGRAM_ITERATIONS: int = 3  # Maximum number of iterations for diagram generation

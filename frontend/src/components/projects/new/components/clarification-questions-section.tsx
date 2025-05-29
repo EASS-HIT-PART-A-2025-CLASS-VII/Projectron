@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Edit, Check } from "lucide-react";
+import { Loader2, Edit, Check, AlertCircle } from "lucide-react";
 import { TypewriterText } from "./typewriter-text";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ClarificationQuestionsSectionProps {
   questions: string[];
   onSubmit: (answers: Record<string, string>) => void;
   isLoading: boolean;
 }
+
+const MAX_ANSWER_LENGTH = 3500;
+const WARNING_THRESHOLD = 3200; // Show warning at 90% of limit
 
 export function ClarificationQuestionsSection({
   questions,
@@ -35,15 +39,47 @@ export function ClarificationQuestionsSection({
     }
   }, [currentQuestionIndex, answers, questions.length]);
 
+  // Get character count for a specific answer
+  const getCharacterCount = (questionIndex: number): number => {
+    if (questionIndex < questions.length) {
+      return answers[questions[questionIndex]]?.length || 0;
+    }
+    return 0;
+  };
+
+  // Check if an answer is valid (within character limit and not empty)
+  const isAnswerValid = (questionIndex: number): boolean => {
+    const question = questions[questionIndex];
+    const answer = answers[question];
+    return (
+      typeof answer === "string" &&
+      answer.trim().length > 0 &&
+      answer.length <= MAX_ANSWER_LENGTH
+    );
+  };
+
+  // Check if any answer exceeds the character limit
+  const hasInvalidAnswers = (): boolean => {
+    return Object.values(answers).some(
+      (answer) => answer && answer.length > MAX_ANSWER_LENGTH
+    );
+  };
+
   // Handle answer input for the current question
   const handleAnswerChange = (
     value: string,
     questionIndex = currentQuestionIndex
   ) => {
     if (questionIndex < questions.length) {
+      // Allow typing but truncate if exceeding limit during paste operations
+      const truncatedValue =
+        value.length > MAX_ANSWER_LENGTH
+          ? value.substring(0, MAX_ANSWER_LENGTH)
+          : value;
+
       setAnswers((prev) => ({
         ...prev,
-        [questions[questionIndex]]: value,
+        [questions[questionIndex]]: truncatedValue,
       }));
     }
   };
@@ -52,7 +88,7 @@ export function ClarificationQuestionsSection({
   const handleNextQuestion = () => {
     if (
       currentQuestionIndex < questions.length &&
-      answers[questions[currentQuestionIndex]]?.trim()
+      isAnswerValid(currentQuestionIndex)
     ) {
       setCurrentQuestionIndex((prev) => prev + 1);
       setTypingComplete(false);
@@ -61,9 +97,9 @@ export function ClarificationQuestionsSection({
 
   // Handle "Let Projectron Decide" button click
   const handleLetProjectronDecide = () => {
-    handleAnswerChange(
-      "Choose the best approach based on project requirements."
-    );
+    const defaultAnswer =
+      "Choose the best approach based on project requirements.";
+    handleAnswerChange(defaultAnswer);
     setCurrentQuestionIndex((prev) => prev + 1);
     setTypingComplete(false);
   };
@@ -80,7 +116,33 @@ export function ClarificationQuestionsSection({
 
   // Handle submission of all answers
   const handleSubmitAnswers = () => {
-    onSubmit(answers);
+    if (!hasInvalidAnswers()) {
+      onSubmit(answers);
+    }
+  };
+
+  // Render character counter with appropriate styling
+  const renderCharacterCounter = (questionIndex: number) => {
+    const charCount = getCharacterCount(questionIndex);
+    const isOverLimit = charCount > MAX_ANSWER_LENGTH;
+    const isNearLimit = charCount >= WARNING_THRESHOLD;
+
+    let textColor = "text-secondary-text";
+    if (isOverLimit) {
+      textColor = "text-red-400";
+    } else if (isNearLimit) {
+      textColor = "text-yellow-400";
+    }
+
+    return (
+      <div className={`text-sm ${textColor} flex items-center gap-1`}>
+        {isOverLimit && <AlertCircle className="h-4 w-4" />}
+        <span>
+          {charCount.toLocaleString()}/{MAX_ANSWER_LENGTH.toLocaleString()}{" "}
+          characters
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -91,8 +153,20 @@ export function ClarificationQuestionsSection({
       <p className="text-secondary-text mb-6">
         Please answer these questions to help us understand your project better.
         This will ensure your generated plan is as accurate and detailed as
-        possible.
+        possible. Each answer should be under{" "}
+        {MAX_ANSWER_LENGTH.toLocaleString()} characters.
       </p>
+
+      {/* Show warning if any answers are too long */}
+      {hasInvalidAnswers() && (
+        <Alert className="border-red-500/20 bg-red-500/10">
+          <AlertCircle className="h-4 w-4 text-red-400" />
+          <AlertDescription className="text-red-400">
+            Some answers exceed the {MAX_ANSWER_LENGTH.toLocaleString()}{" "}
+            character limit. Please shorten them before proceeding.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="space-y-8">
         {/* Display questions that have already been asked and answered */}
@@ -109,12 +183,19 @@ export function ClarificationQuestionsSection({
                 <Textarea
                   value={answers[question] || ""}
                   onChange={(e) => handleAnswerChange(e.target.value, index)}
-                  className="bg-primary-background min-h-[120px]"
+                  className={`bg-primary-background min-h-[120px] ${
+                    getCharacterCount(index) > MAX_ANSWER_LENGTH
+                      ? "border-red-500 focus:border-red-500"
+                      : ""
+                  }`}
+                  maxLength={MAX_ANSWER_LENGTH}
                 />
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  {renderCharacterCounter(index)}
                   <Button
                     type="button"
                     onClick={handleSaveEdit}
+                    disabled={!isAnswerValid(index)}
                     className="bg-primary-cta hover:bg-primary-cta/90"
                   >
                     <Check className="mr-2 h-4 w-4" />
@@ -124,20 +205,37 @@ export function ClarificationQuestionsSection({
               </div>
             ) : (
               // View mode
-              <div className="flex justify-between items-start gap-4">
-                <div className="bg-primary-background/50 border border-divider p-3 rounded-md flex-1">
-                  {answers[question]}
+              <div className="space-y-2">
+                <div className="flex justify-between items-start gap-4">
+                  <p
+                    className={`
+                      flex-1 min-w-0              
+                      bg-primary-background/50 border p-3 rounded-md
+                      break-words whitespace-pre-wrap
+                      overflow-wrap-anywhere text-wrap
+                      ${
+                        getCharacterCount(index) > MAX_ANSWER_LENGTH
+                          ? "border-red-500/50"
+                          : "border-divider"
+                      }
+                    `}
+                  >
+                    {answers[question]}
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={() => handleEditQuestion(index)}
+                    variant="outline"
+                    size="sm"
+                    className="flex-shrink-0"
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  onClick={() => handleEditQuestion(index)}
-                  variant="outline"
-                  size="sm"
-                  className="flex-shrink-0"
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
+                <div className="flex justify-end">
+                  {renderCharacterCounter(index)}
+                </div>
               </div>
             )}
           </div>
@@ -158,26 +256,34 @@ export function ClarificationQuestionsSection({
                   value={answers[questions[currentQuestionIndex]] || ""}
                   onChange={(e) => handleAnswerChange(e.target.value)}
                   placeholder="Type your answer here..."
-                  className="bg-primary-background min-h-[120px]"
+                  className={`bg-primary-background min-h-[120px] ${
+                    getCharacterCount(currentQuestionIndex) > MAX_ANSWER_LENGTH
+                      ? "border-red-500 focus:border-red-500"
+                      : ""
+                  }`}
+                  maxLength={MAX_ANSWER_LENGTH}
                 />
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="cta"
-                    onClick={handleLetProjectronDecide}
-                    className="text-background bg-white hover:bg-hover-active hover:text-white hover:border-gray-700 border"
-                  >
-                    Decide For Me
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="cta"
-                    onClick={handleNextQuestion}
-                    disabled={!answers[questions[currentQuestionIndex]]?.trim()}
-                    className="bg-primary-cta text-black font-semi-bold inline-block hover:bg-hover-active hover:text-white hover:border-gray-700 border"
-                  >
-                    Next Question
-                  </Button>
+                <div className="flex justify-between items-center">
+                  {renderCharacterCounter(currentQuestionIndex)}
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="cta"
+                      onClick={handleLetProjectronDecide}
+                      className="text-background bg-white hover:bg-hover-active hover:text-white hover:border-gray-700 border"
+                    >
+                      Decide For Me
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="cta"
+                      onClick={handleNextQuestion}
+                      disabled={!isAnswerValid(currentQuestionIndex)}
+                      className="bg-primary-cta text-black font-semi-bold inline-block hover:bg-hover-active hover:text-white hover:border-gray-700 border"
+                    >
+                      Next Question
+                    </Button>
+                  </div>
                 </div>
               </>
             )}
@@ -194,7 +300,7 @@ export function ClarificationQuestionsSection({
               </p>
               <Button
                 onClick={handleSubmitAnswers}
-                disabled={isLoading}
+                disabled={isLoading || hasInvalidAnswers()}
                 className="bg-primary-cta hover:bg-hover-active hover:text-white text-black font-semi-bold"
               >
                 {isLoading ? (

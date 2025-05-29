@@ -224,14 +224,14 @@ export function Navbar() {
     <>
       {/* Main Navbar */}
       <header className="sticky top-0 z-30 border-b border-white/10 bg-secondary-background/80 backdrop-blur-xl">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        <div className="flex h-16 items-center justify-between px-4">
           {/* Logo Section */}
           <div className="flex items-center">
             <button
               onClick={() => router.push("/")}
               className="flex items-center transition-all duration-200 hover:scale-105 rounded-lg p-1"
             >
-              <Logo className="h-12 w-auto" />
+              <Logo className="sm:h-7 h-6 w-auto" />
             </button>
           </div>
 
@@ -263,7 +263,7 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-10 rounded-full focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+                    className="relative h-10 w-10 rounded-full focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none hidden sm:flex"
                   >
                     <Avatar>
                       <AvatarFallback className="bg-transparent text-white gradient-border gradient-border-full">

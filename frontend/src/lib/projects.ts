@@ -16,7 +16,7 @@ export async function createProject(
   // No token check needed - cookies sent automatically
   return apiClient<ProjectListItem>("/projects", {
     method: "POST",
-    body: projectData, // apiClient will stringify this
+    body: projectData,
   });
 }
 

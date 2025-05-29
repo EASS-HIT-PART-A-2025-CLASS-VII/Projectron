@@ -1,3 +1,4 @@
+# backend/app/api/endpoints/diagrams.py
 from contextlib import asynccontextmanager
 import json
 from bson import ObjectId
@@ -23,18 +24,101 @@ class SVGResponse(Response):
 router = APIRouter()
 settings = get_settings()
 
-@asynccontextmanager
-async def get_selenium_connection():
-    generator = SequenceDiagramGenerator(
-        selenium_url=settings.SELENIUM_URL,
-        diagram_site_url=settings.SEQUENCE_DIAGRAM_SITE_URL,
-        timeout=settings.SELENIUM_TIMEOUT
-    )
+
+@router.get("/sequence/{project_id}", response_class=SVGResponse)
+async def get_sequence_diagram(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get existing sequence diagram SVG for a project
+    """
     try:
-        generator.connect()
-        yield generator
-    finally:
-        generator.disconnect()
+        project = Project.objects(id=ObjectId(project_id)).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Check if user has access to this project
+        if project.owner_id.id != current_user.id and current_user.id not in [collab.id for collab in project.collaborator_ids]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        if not project.sequence_diagram_svg:
+            return None
+        
+        return SVGResponse(content=project.sequence_diagram_svg)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving sequence diagram: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving sequence diagram: {str(e)}"
+        )
+
+@router.get("/class/{project_id}", response_class=SVGResponse)
+async def get_class_diagram(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get existing class diagram SVG for a project
+    """
+    try:
+        project = Project.objects(id=ObjectId(project_id)).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Check if user has access to this project
+        if project.owner_id.id != current_user.id and current_user.id not in [collab.id for collab in project.collaborator_ids]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        if not project.class_diagram_svg:
+            return None
+        
+        return SVGResponse(content=project.class_diagram_svg)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving class diagram: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving class diagram: {str(e)}"
+        )
+
+@router.get("/activity/{project_id}", response_class=SVGResponse)
+async def get_activity_diagram(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get existing activity diagram SVG for a project
+    """
+    try:
+        project = Project.objects(id=ObjectId(project_id)).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Check if user has access to this project
+        if project.owner_id.id != current_user.id and current_user.id not in [collab.id for collab in project.collaborator_ids]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        if not project.activity_diagram_svg:
+            raise HTTPException(status_code=404, detail="No activity diagram found for this project")
+        
+        return SVGResponse(content=project.activity_diagram_svg)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error retrieving activity diagram: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving activity diagram: {str(e)}"
+        )
+
+# EXISTING ENDPOINTS (UNCHANGED)
 
 @router.post("/sequence/create", response_class=SVGResponse)
 async def create_sequence_diagram(

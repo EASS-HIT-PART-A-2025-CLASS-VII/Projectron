@@ -205,14 +205,14 @@ export function LandingHeader() {
           backgroundColor: `rgba(var(--background-rgb, 255, 255, 255), ${opacity})`,
         }}
       >
-        <div className="px-2 sm:px-0 sm:container mx-auto flex items-center justify-between">
+        <div className="px-2 sm:px-0 flex items-center justify-between w-full">
           {/* Logo */}
           <Link
             href="/"
             className="flex items-center transition-all duration-200 hover:scale-105 rounded-lg p-1"
           >
             <Logo
-              className="sm:h-14 h-[3.4rem] w-auto focus:none focus-ring-0"
+              className="sm:h-[1.85rem] h-6 w-auto focus:none focus-ring-0"
               aria-label="Projectron"
             />
           </Link>

@@ -17,10 +17,12 @@ import { TimeScale, PlanGenerationInput } from "../types";
 const formSchema = z.object({
   name: z
     .string()
-    .min(3, { message: "Project name must be at least 3 characters" }),
+    .min(3, { message: "Project name must be at least 3 characters" })
+    .max(200, { message: "Project name cannot exceed 200 characters" }),
   description: z
     .string()
-    .min(10, { message: "Description must be at least 10 characters" }),
+    .min(10, { message: "Description must be at least 10 characters" })
+    .max(7000, { message: "Description cannot exceed 5000 characters" }),
   experience_level: z.enum(["student", "junior", "mid", "senior"], {
     required_error: "Please select an experience level",
   }),
