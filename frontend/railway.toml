@@ -5,6 +5,7 @@ builder = "DOCKERFILE"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
+startCommand = "node server.js"
 
 [deploy.envs]
 NODE_ENV = "production"
