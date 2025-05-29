@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Projectron"
     API_V1_STR: str = "/api/endpoints"
 
-    FRONTEND_URL: str = "https://projectron-production.up.railway.app",
+    FRONTEND_URL: str = "https://projectron-production.up.railway.app"
 
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         "https://projectron-production.up.railway.app",
         "https://astonishing-joy-production.up.railway.app",
         "http://localhost:8000",  # Backend URL
-        "http://localhost:3000" 
+        "http://localhost:3000",
     ]
 
     # MongoDB

@@ -6,7 +6,6 @@ import PainPointCards from "@/components/sections/pain-points-section";
 
 export default function HomePage() {
   console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
-  console.log("All env vars:", process.env);
   return (
     <LandingLayout>
       <HeroSection />
