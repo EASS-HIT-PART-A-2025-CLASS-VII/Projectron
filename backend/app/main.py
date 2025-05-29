@@ -7,8 +7,10 @@ from app.core.config import get_settings
 from app.db.mongodb import connect_to_mongo, close_mongo_connection
 from app.services.ai.sequence_diagram_generator import get_global_generator
 from app.utils.mongo_encoder import MongoJSONEncoder
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 settings = get_settings()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,6 +59,8 @@ app = FastAPI(
     lifespan=lifespan  # Use the new lifespan parameter
 )
 
+if settings.ENVIRONMENT == "production":
+    app.add_middleware(HTTPSRedirectMiddleware)
 # Set up CORS middleware
 app.add_middleware(
     CORSMiddleware,

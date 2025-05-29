@@ -14,12 +14,15 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Projectron"
     API_V1_STR: str = "/api/endpoints"
 
-    FRONTEND_URL: str = "http://localhost:3000" 
+    FRONTEND_URL: str
 
     CORS_ORIGINS: List[Union[str, AnyHttpUrl]] = [
         FRONTEND_URL, 
-        "https://*.railway.app"
+        "https://*.railway.app",
+        "https://projectron-production.up.railway.app",
+        "https://astonishing-joy-production.up.railway.app"
         "http://localhost:8000",  # Backend URL
+        "http://localhost:3000" 
     ]
 
     # MongoDB
@@ -34,8 +37,8 @@ class Settings(BaseSettings):
     # Cookie Settings - NEW
     COOKIE_NAME: str = "access_token"
     COOKIE_HTTPONLY: bool = True
-    COOKIE_SECURE: bool = False  # Set to True in production with HTTPS
-    COOKIE_SAMESITE: str = "lax"  # "strict", "lax", or "none"
+    COOKIE_SECURE: bool = True  # Set to True in production with HTTPS
+    COOKIE_SAMESITE: str = "none"  # "strict", "lax", or "none"
     COOKIE_MAX_AGE: int = ACCESS_TOKEN_EXPIRE_MINUTES * 60 
     
     # EMAIL SERVICE
@@ -57,10 +60,10 @@ class Settings(BaseSettings):
     SELENIUM_TIMEOUT: int = 30 
     MAX_DIAGRAM_ITERATIONS: int = 3  # Maximum number of iterations for diagram generation
     
-    ENVIRONMENT: str = "development" 
+    ENVIRONMENT: str
     ENABLE_MERMAID_CLI_VALIDATION: bool = True
 
-    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_ID: str   
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI:str 
     
