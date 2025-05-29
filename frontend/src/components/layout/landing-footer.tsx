@@ -1,7 +1,7 @@
 "use client";
 
-import Link from 'next/link';
-import { Github, Twitter, Linkedin, Mail } from 'lucide-react';
+import Link from "next/link";
+import { Github, Twitter, Linkedin, Mail } from "lucide-react";
 
 export function LandingFooter() {
   return (
@@ -16,16 +16,29 @@ export function LandingFooter() {
               </span>
             </Link>
             <p className="text-muted-foreground">
-              AI-powered project planning that transforms your ideas into comprehensive development roadmaps.
+              AI-powered project planning that transforms your ideas into
+              comprehensive development roadmaps.
             </p>
             <div className="flex space-x-4">
-              <SocialLink href="https://github.com" icon={<Github size={18} />} />
-              <SocialLink href="https://twitter.com" icon={<Twitter size={18} />} />
-              <SocialLink href="https://linkedin.com" icon={<Linkedin size={18} />} />
-              <SocialLink href="mailto:info@projectron.com" icon={<Mail size={18} />} />
+              <SocialLink
+                href="https://github.com"
+                icon={<Github size={18} />}
+              />
+              <SocialLink
+                href="https://twitter.com"
+                icon={<Twitter size={18} />}
+              />
+              <SocialLink
+                href="https://linkedin.com"
+                icon={<Linkedin size={18} />}
+              />
+              <SocialLink
+                href="mailto:info@projectron.com"
+                icon={<Mail size={18} />}
+              />
             </div>
           </div>
-          
+
           {/* Products */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Product</h3>
@@ -35,18 +48,16 @@ export function LandingFooter() {
               <FooterLink href="#use-cases">Use Cases</FooterLink>
             </ul>
           </div>
-          
+
           {/* Company */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
               <FooterLink href="/about">About Us</FooterLink>
-              <FooterLink href="/blog">Blog</FooterLink>
-              <FooterLink href="/careers">Careers</FooterLink>
               <FooterLink href="/contact">Contact</FooterLink>
             </ul>
           </div>
-          
+
           {/* Legal */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Legal</h3>
@@ -57,7 +68,7 @@ export function LandingFooter() {
             </ul>
           </div>
         </div>
-        
+
         {/* Copyright */}
         <div className="border-t border-border mt-12 pt-6 text-center text-muted-foreground">
           <p>© {new Date().getFullYear()} Projectron. All rights reserved.</p>
@@ -68,11 +79,17 @@ export function LandingFooter() {
 }
 
 // Helper component for footer links
-function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   return (
     <li>
-      <Link 
-        href={href} 
+      <Link
+        href={href}
         className="text-muted-foreground hover:text-foreground transition-colors duration-200"
       >
         {children}
@@ -84,8 +101,8 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
 // Helper component for social links
 function SocialLink({ href, icon }: { href: string; icon: React.ReactNode }) {
   return (
-    <Link 
-      href={href} 
+    <Link
+      href={href}
       className="text-muted-foreground hover:text-primary transition-colors duration-200"
       target="_blank"
       rel="noopener noreferrer"
