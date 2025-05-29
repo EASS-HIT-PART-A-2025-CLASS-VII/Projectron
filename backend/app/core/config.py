@@ -21,7 +21,7 @@ class Settings(BaseSettings):
         FRONTEND_URL, 
         "https://*.railway.app",
         "https://projectron-production.up.railway.app",
-        "https://astonishing-joy-production.up.railway.app"
+        "https://astonishing-joy-production.up.railway.app",
         "http://localhost:8000",  # Backend URL
         "http://localhost:3000" 
     ]
