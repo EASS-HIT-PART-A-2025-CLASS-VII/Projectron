@@ -1,74 +1,142 @@
-# Projectron
+# 🤖 Projectron
+**AI-powered project planning for developers**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+Transform project descriptions into comprehensive development plans with AI-generated architecture, APIs, and implementation roadmaps.
 
-Projectron is an innovative project planning tool designed for solo developers. It leverages artificial intelligence to transform high-level project descriptions into comprehensive, actionable development plans with minimal effort.
+[Live Demo](https://projectron-production.up.railway.app) • [Report Bug](https://github.com/Eden-Cohen1/projectron/issues)
 
-## 🚀 Features
+---
 
-- **AI-Powered Planning**: Transform brief project descriptions into complete development roadmaps
-- **Technical Documentation**: Auto-generate architecture diagrams, API specs, and database schemas
-- **Implementation Guide**: Get milestone-based development plans with task breakdowns
-- **Progress Tracking**: Monitor your development journey with visual progress indicators
-- **Context-Aware Assistant**: Get intelligent suggestions and answers based on your specific project
+## ✨ Features
 
-## 🧠 Perfect for Solo Developers
+- **Smart Planning**: AI generates complete project plans from simple descriptions
+- **Technical Architecture**: Auto-generated system diagrams and component breakdowns  
+- **API Design**: Complete REST API specifications with schemas
+- **Database Models**: Entity relationships and data structures
+- **UI Planning**: Component hierarchies and screen layouts
+- **AI Context**: Ready-to-use prompts for coding assistants
+- **Visual Diagrams**: UML class, sequence, and activity diagrams
 
-- **Reduced Planning Time**: Cut planning from days to minutes with AI assistance
-- **Consistent Documentation**: Maintain professional documentation without the overhead
-- **Technical Decision Support**: Get AI recommendations for architecture and technology choices
-- **Focus on Coding**: Spend less time planning and more time building
-- **Built-In Expertise**: Leverage the context-aware assistant that understands your specific project details
+![image](https://github.com/user-attachments/assets/90ef9f08-262e-45c4-8c88-7e1b0bf51976)
 
-## 🛠️ Tech Stack
+## 🎯 Use Cases
 
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Shadcn
-- **Backend**: FastAPI, Pydantic, LangChain
-- **Database**: MongoDB
-- **Containerization**: Docker
+**🎓 Students:** Academic projects, hackathon planning, learning software architecture
 
-## 🔧 Installation
+**💼 Freelancers:** Client proposals, accurate time estimates, clear project scope
+
+**👨‍💻 Solo Developers:** Learning new technologies, exploring project ideas, structured practice
+
+**🚀 Entrepreneurs:** MVP structuring, technical complexity assessment, team alignment
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.12+
+- Node.js 18+
+- MongoDB (local or Atlas)
+- OpenAI API key
+- Google Gemini API key
+
+### Option 1: Docker (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/projectron.git
+# Clone repo
+git clone https://github.com/Eden-Cohen1/projectron.git
 cd projectron
 
-# Start with Docker
-docker-compose up -d
+# Set up environment files (see below)
+cp backend/.env.example backend/.env
+cp frontend/.env.local.example frontend/.env.local
 
-# Access at http://localhost:3000
+# Run with Docker
+docker-compose up --build
 ```
 
-## 📝 Core Workflows
+Visit [http://localhost:3000](http://localhost:3000)
 
-### Project Generation
+### Option 2: Local Development
 
-1. **Describe Your Project**: Input a high-level description of what you want to build
-2. **Answer Clarifying Questions**: Refine requirements through targeted questions
-3. **Review & Customize**: Adjust the AI-generated plan to match your vision
-4. **Engage with Assistant**: Get help from the context-aware AI assistant throughout development
+```bash
+# Clone repo
+git clone https://github.com/Eden-Cohen1/projectron.git
+cd projectron
 
-### Project Workspace
+# Backend
+cd backend
+pip install -r requirements.txt
+cp .env.example .env  # Configure your API keys
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-Your project includes seven integrated sections:
+# Frontend (new terminal)
+cd frontend
+npm install
+cp .env.local.example .env.local
+npm run dev
+```
 
-1. **High-level Plan**: Strategic overview and approach recommendations
-2. **Architecture Design**: Component relationships and technology recommendations
-3. **API Endpoints**: Interface documentation with endpoints and response formats
-4. **Data Models**: Database schema definitions and field specifications
-5. **UI Components**: Interface component specifications and user interactions
-6. **Implementation Plan**: Structured tasks with effort estimates
-7. **Technical Diagrams**: Visual representations of your system design
+### Environment Configuration
 
-## 📜 License
+#### Backend `.env`
+```bash
+# Database
+MONGODB_URI=mongodb://localhost:27017/projectron
+# Or use MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/projectron
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+# Security
+SECRET_KEY=your-super-secret-key-here-make-it-long-and-random
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=2880
 
-## 🙏 Acknowledgements
+# AI Services (Required)
+openai_api_key=sk-your-openai-api-key-here
+GEMINI_API_KEY=your-gemini-api-key-here
 
-- [Next.js](https://nextjs.org/)
-- [React](https://reactjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [MongoDB](https://www.mongodb.com/)
+# Selenium (for diagram generation)
+SELENIUM_URL=http://selenium:4444
+# For local development without Docker: http://localhost:4444
+
+# Email (Optional - for user registration)
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+
+# OAuth (Optional - for social login)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Environment
+ENVIRONMENT=development
+FRONTEND_URL=http://localhost:3000
+```
+
+#### Frontend `.env.local`
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/endpoints
+```
+
+---
+
+# 🛠️ Tech Stack
+**Backend:** FastAPI, MongoDB, OpenAI, Google Gemini, LangChain, Selenium
+
+**Frontend:** Next.js, TypeScript, Tailwind CSS, shadcn, Framer Motion
+
+**Deployment:** Railway, MongoDB Atlas, Docker
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+---
+
+**Made with ❤️ for developers**
