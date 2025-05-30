@@ -79,3 +79,100 @@ class EmailService:
         except Exception as e:
             print(f"Failed to send email: {str(e)}")
             return False
+        
+    @staticmethod
+    def send_contact_form_email(name: str, email: str, inquiry_type: str, subject: str, message: str):
+        """Send contact form submission email to admin"""
+        
+        settings = get_settings()
+        
+        # Create email subject
+        email_subject = f"[Projectron Contact] {inquiry_type.title()}: {subject}"
+        
+        # Map inquiry types to emojis for better visual identification
+        type_emojis = {
+            "feature": "💡",
+            "bug": "🐛", 
+            "question": "❓",
+            "other": "💬"
+        }
+        
+        emoji = type_emojis.get(inquiry_type.lower(), "📧")
+        
+        # Email content
+        body = f"""<html>
+        <head>
+            <style>
+                body {{ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #ffffff; color: #1a1a1a; line-height: 1.6; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 40px 20px; }}
+                .header {{ text-align: center; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid #e5e5e5; }}
+                .logo {{ font-size: 28px; font-weight: 700; color: #12e88f; margin-bottom: 8px; letter-spacing: -0.5px; }}
+                .title {{ font-size: 18px; font-weight: 500; color: #64748b; }}
+                .content {{ background: #f8fafc; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0; }}
+                .field {{ margin-bottom: 20px; }}
+                .field-label {{ font-weight: 600; color: #374151; margin-bottom: 4px; }}
+                .field-value {{ background: white; padding: 12px; border-radius: 6px; border: 1px solid #d1d5db; }}
+                .message-field {{ margin-top: 24px; }}
+                .message-content {{ background: white; padding: 16px; border-radius: 8px; border: 1px solid #d1d5db; white-space: pre-wrap; }}
+                .footer {{ text-align: center; margin-top: 32px; font-size: 14px; color: #64748b; }}
+                .type-badge {{ display: inline-block; background: #12e88f; color: #000000; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">PROJECTRON</div>
+                    <div class="title">Contact Form Submission</div>
+                </div>
+                
+                <div class="content">
+                    <div class="type-badge">{emoji} {inquiry_type.title()}</div>
+                    
+                    <div class="field">
+                        <div class="field-label">From:</div>
+                        <div class="field-value">{name} &lt;{email}&gt;</div>
+                    </div>
+                    
+                    <div class="field">
+                        <div class="field-label">Subject:</div>
+                        <div class="field-value">{subject}</div>
+                    </div>
+                    
+                    <div class="field">
+                        <div class="field-label">Inquiry Type:</div>
+                        <div class="field-value">{inquiry_type.title()}</div>
+                    </div>
+                    
+                    <div class="message-field">
+                        <div class="field-label">Message:</div>
+                        <div class="message-content">{message}</div>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p>This message was sent via the Projectron contact form.<br>
+                    Reply directly to this email to respond to {name}.</p>
+                </div>
+            </div>
+        </body>
+        </html>"""
+        
+        # Create email message
+        email_message = MIMEMultipart()
+        email_message["From"] = settings.SMTP_USER
+        email_message["To"] = settings.CONTACT_EMAIL
+        email_message["Subject"] = email_subject
+        email_message["Reply-To"] = email  # Allow direct replies to the user
+        email_message.attach(MIMEText(body, "html"))
+        
+        # Send email
+        try:
+            server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
+            server.starttls()
+            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+            server.sendmail(settings.SMTP_USER, settings.CONTACT_EMAIL, email_message.as_string())
+            server.quit()
+            return True
+        except Exception as e:
+            print(f"Failed to send contact form email: {str(e)}")
+            return False

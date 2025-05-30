@@ -21,21 +21,15 @@ export function LandingFooter() {
             </p>
             <div className="flex space-x-4">
               <SocialLink
-                href="https://github.com"
+                href="https://github.com/Eden-Cohen1/Projectron"
                 icon={<Github size={18} />}
               />
+
               <SocialLink
-                href="https://twitter.com"
-                icon={<Twitter size={18} />}
-              />
-              <SocialLink
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/eden-co/"
                 icon={<Linkedin size={18} />}
               />
-              <SocialLink
-                href="mailto:info@projectron.com"
-                icon={<Mail size={18} />}
-              />
+              <SocialLink href="/contact" icon={<Mail size={18} />} />
             </div>
           </div>
 
@@ -43,9 +37,9 @@ export function LandingFooter() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Product</h3>
             <ul className="space-y-2">
-              <FooterLink href="#features">Features</FooterLink>
-              <FooterLink href="#how-it-works">How It Works</FooterLink>
-              <FooterLink href="#use-cases">Use Cases</FooterLink>
+              <FooterLink href="/#features">Features</FooterLink>
+              <FooterLink href="/#how-it-works">How It Works</FooterLink>
+              <FooterLink href="/#use-cases">Use Cases</FooterLink>
             </ul>
           </div>
 
@@ -53,7 +47,7 @@ export function LandingFooter() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
-              <FooterLink href="/about">About Us</FooterLink>
+              <FooterLink href="/about">About</FooterLink>
               <FooterLink href="/contact">Contact</FooterLink>
             </ul>
           </div>

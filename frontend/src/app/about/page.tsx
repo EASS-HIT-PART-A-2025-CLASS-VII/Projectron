@@ -19,232 +19,59 @@ import Link from "next/link";
 export default function AboutPage() {
   return (
     <LandingLayout>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-card">
-        {/* Hero Section */}
-        <section className="container mx-auto px-4 pt-24 pb-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">
-              About Projectron
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Bridging the gap between brilliant ideas and actionable
-              development plans through the power of AI
-            </p>
-          </div>
-        </section>
-
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-card flex items-center">
         {/* Story Section */}
-        <section className="container mx-auto px-4 py-16">
+        <section className="container mx-auto px-4 py-32">
           <div className="max-w-4xl mx-auto">
-            <Card className="bg-card/50 backdrop-blur border-primary/20">
-              <CardContent className="p-8 md:p-12">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center">
-                    <Lightbulb className="w-8 h-8 text-black" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-foreground">
-                      The Story Behind Projectron
-                    </h2>
-                    <p className="text-primary">
-                      Born from a developer's frustration
-                    </p>
-                  </div>
-                </div>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center">
+                <Lightbulb className="w-8 h-8 text-black" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-foreground">
+                  The Story Behind Projectron
+                </h2>
+                <p className="text-primary">
+                  Born from a developer's frustration
+                </p>
+              </div>
+            </div>
 
-                <div className="prose prose-lg prose-invert max-w-none">
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    Hi, I'm Eden – a solo developer and AI enthusiast who
-                    created Projectron out of necessity. As someone constantly
-                    learning and building projects, I discovered a frustrating
-                    bottleneck in modern software development.
-                  </p>
-
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    While AI tools like ChatGPT have revolutionized how we code,
-                    there's still significant friction in providing sufficient
-                    context to these tools. Repeatedly explaining my project's
-                    background and existing codebase to the AI became
-                    time-consuming, especially as projects grew in complexity.
-                  </p>
-
-                  <p className="text-muted-foreground leading-relaxed">
-                    That's when I realized:{" "}
-                    <strong className="text-primary">
-                      What if the AI already understood your project from the
-                      start?
-                    </strong>{" "}
-                    What if you could skip the repetitive explanations and get
-                    straight to building amazing software?
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Solution Section */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                The Projectron Solution
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Two powerful features that transform how you build software
+            <div className="prose prose-lg prose-invert max-w-none">
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Hi, I'm Eden, the developer behind Projectron. This tool emerged
+                from a frustration many developers share: the gap between having
+                a great idea and actually shipping it.
               </p>
-            </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* AI Project Planning */}
-              <Card className="bg-card/50 backdrop-blur border-primary/20 hover:border-primary/40 transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center">
-                      <Brain className="w-6 h-6 text-black" />
-                    </div>
-                    <h3 className="text-2xl font-bold">AI Project Planning</h3>
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    Transform your textual project ideas into comprehensive
-                    implementation plans. Our AI generates detailed
-                    architecture, UI components, backend API endpoints, and
-                    step-by-step development tasks.
-                  </p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Complete technical architecture
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Detailed API endpoint specifications
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      UI/UX component breakdown
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Actionable development milestones
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Most projects die in the planning phase. You have a vision for
+                an app or system, but breaking it into concrete, buildable
+                pieces is overwhelming. Where do you start? How do you structure
+                the architecture? What APIs do you need? The excitement fades as
+                you get lost in decisions before writing any code.
+              </p>
 
-              {/* Context-Aware AI */}
-              <Card className="bg-card/50 backdrop-blur border-primary/20 hover:border-primary/40 transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-400 to-purple-400 flex items-center justify-center">
-                      <Code className="w-6 h-6 text-black" />
-                    </div>
-                    <h3 className="text-2xl font-bold">
-                      Context-Aware AI Assistant
-                    </h3>
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    Generate a comprehensive development context that you can
-                    share with any AI coding assistant. No more repetitive
-                    explanations – the AI understands your project from day one.
-                  </p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Complete project context generation
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Eliminates repetitive AI explanations
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Works with any AI coding assistant
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Accelerates development workflow
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                Once you overcome the planning complexity and begin development,
+                a new challenge emerges. AI has transformed how we code,
+                offering incredible power when given proper context. Throughout
+                my development journey, I found myself exhaustively bringing AI
+                assistants up to speed on my projects, repeating the same
+                explanations over and over. This time-consuming context-setting
+                becomes a major bottleneck as codebases grow
+              </p>
 
-        {/* Developer Section */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-card/50 backdrop-blur border-primary/20">
-              <CardContent className="p-8 md:p-12">
-                <div className="flex flex-col md:flex-row items-center gap-8">
-                  <div className="flex-shrink-0">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center">
-                      <Users className="w-12 h-12 text-black" />
-                    </div>
-                  </div>
-                  <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-2xl font-bold mb-2">
-                      Meet the Developer
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed mb-4">
-                      I'm Eden, a passionate solo developer and AI enthusiast.
-                      When I'm not building Projectron, you'll find me exploring
-                      the latest in AI technology, contributing to open-source
-                      projects, or sharing insights about the intersection of AI
-                      and software development.
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      Projectron represents my vision for the future of software
-                      development – where AI truly understands and accelerates
-                      the creative process, rather than just executing
-                      individual tasks.
-                    </p>
-                    <div className="flex justify-center md:justify-start gap-4">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link
-                          href="https://www.linkedin.com/in/eden-co/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Linkedin className="w-4 h-4 mr-2" />
-                          LinkedIn
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href="/contact">
-                          <Mail className="w-4 h-4 mr-2" />
-                          Get in Touch
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Transform Your Development Workflow?
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Join the future of AI-powered project planning and development
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                asChild
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Link href="/auth/register">Get Started Free</Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href="/contact">Share Feedback</Link>
-              </Button>
+              <p className="text-muted-foreground leading-relaxed">
+                <strong className="text-primary">
+                  Projectron bridges that gap between idea and implementation.
+                </strong>{" "}
+                It transforms concepts into comprehensive development plans,
+                then generates perfect context for AI-assisted development.
+                Everything stays aligned in one place as your project evolves.
+                Because the best development happens when you can focus on
+                creating, not coordinating.
+              </p>
             </div>
           </div>
         </section>

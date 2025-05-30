@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, plan, projects, diagrams, profile, context
+from app.api.endpoints import auth, plan, projects, diagrams, profile, context, contact
 
 api_router = APIRouter()
 
@@ -21,3 +21,6 @@ api_router.include_router(profile.router, prefix="/users", tags=["profile"])
 
 # Context routes
 api_router.include_router(context.router, prefix="/context", tags=["context"])
+
+# Contact routes
+api_router.include_router(contact.router, tags=["contact"])

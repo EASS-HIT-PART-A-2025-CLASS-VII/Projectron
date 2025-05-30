@@ -221,13 +221,13 @@ export function LandingHeader() {
           <div className="flex items-center gap-6">
             <nav className="hidden md:flex items-center space-x-8">
               <Link
-                href="#features"
+                href="/#features"
                 className="text-foreground hover:text-primary-cta transition-colors duration-200 font-medium"
               >
                 Features
               </Link>
               <Link
-                href="#how-it-works"
+                href="/#how-it-works"
                 className="text-foreground hover:text-primary-cta transition-colors duration-200 font-medium"
               >
                 How It Works
