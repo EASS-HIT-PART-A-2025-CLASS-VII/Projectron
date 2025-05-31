@@ -123,9 +123,9 @@ export function DiagramsTab({ project: initialProject }: DiagramsTabProps) {
       // Wait for all fetches to complete
       await Promise.all(promises);
     };
-
+    console.log("Fetching existing diagrams for project:", currentProject.id);
     fetchExistingDiagrams();
-  }, [currentProject.id]); // Re-fetch if project changes
+  }, [currentProject.id, activeTab]); // Re-fetch if project changes
 
   // Function to fetch existing diagram
   const fetchExistingDiagram = async (

@@ -263,7 +263,7 @@ export function ClarificationQuestionsSection({
                   }`}
                   maxLength={MAX_ANSWER_LENGTH}
                 />
-                <div className="flex justify-between items-center">
+                <div className="flex sm:flex-row flex-col items-start sm:justify-between sm:items-center gap-4">
                   {renderCharacterCounter(currentQuestionIndex)}
                   <div className="flex gap-3">
                     <Button
