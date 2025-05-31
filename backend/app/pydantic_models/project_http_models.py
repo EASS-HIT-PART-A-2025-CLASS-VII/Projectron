@@ -62,7 +62,7 @@ class PlanGenerationInput(BaseModel):
     experience_level: str = "junior" # e.g., "junior", "mid", "senior"
     team_size: int = 1
     time_scale: TimeScale = TimeScale.MEDIUM  # Default to medium
-    custom_hours: Optional[int] = Field(None, ge=1, le=1000)
+    custom_hours: Optional[int] = Field(None, ge=1, le=2000)
 
     @field_validator('name')
     @classmethod
