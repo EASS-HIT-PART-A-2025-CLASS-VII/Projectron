@@ -29,26 +29,18 @@ settings = get_settings()
 class SequenceDiagramGenerator:
     """
     A class for generating sequence diagrams using sequencediagram.org via Selenium.
-    Enhanced with retry logic for handling session errors.
+    Enhanced with retry logic for handling session errors and comprehensive timeouts.
     """
     
     def __init__(self, 
                  selenium_url: Optional[str] = None, 
                  diagram_site_url: str = "https://sequencediagram.org",
-                 timeout: int = 30,
+                 timeout: int = 25,  # Reduced from 30 to 15 seconds
                  use_local_chrome: bool = False,
-                 max_retries: int = 3,
-                 retry_delay: int = 2):
+                 max_retries: int = 2,  # Reduced from 3 to 2
+                 retry_delay: int = 1):  # Reduced from 2 to 1 second
         """
         Initialize the sequence diagram generator.
-        
-        Args:
-            selenium_url: URL of the Selenium standalone Chrome instance (None for local Chrome)
-            diagram_site_url: URL of sequencediagram.org or on-prem instance
-            timeout: Timeout in seconds for Selenium operations
-            use_local_chrome: Whether to use a local Chrome instance instead of remote Selenium
-            max_retries: Maximum number of retry attempts for Selenium operations
-            retry_delay: Delay in seconds between retry attempts
         """
         self.selenium_url = selenium_url
         self.diagram_site_url = diagram_site_url
@@ -89,7 +81,7 @@ class SequenceDiagramGenerator:
     
     def connect(self) -> bool:
         """
-        Connect to the Selenium standalone Chrome instance or local Chrome.
+        Connect to the Selenium standalone Chrome instance or local Chrome with timeout.
         
         Returns:
             True if connection was successful, False otherwise
@@ -101,6 +93,10 @@ class SequenceDiagramGenerator:
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-web-security")
+        options.add_argument("--disable-features=VizDisplayCompositor")
         
         try:
             if self.use_local_chrome or not self.selenium_url:
@@ -110,15 +106,19 @@ class SequenceDiagramGenerator:
                 self.driver = webdriver.Chrome(service=service, options=options)
                 logger.info("Connected to local Chrome instance")
             else:
-                # Use remote Selenium server
+                # Use remote Selenium server with timeout
                 logger.info(f"Connecting to Selenium at {self.selenium_url}")
                 self.driver = webdriver.Remote(
                     command_executor=self.selenium_url,
-                    options=options
+                    options=options,
+                    # Add keep_alive to prevent connection hanging
+                    keep_alive=True
                 )
                 logger.info(f"Connected to Selenium at {self.selenium_url}")
             
+            # Set timeouts to prevent hanging
             self.driver.set_page_load_timeout(self.timeout)
+            self.driver.implicitly_wait(5)  # 5 second implicit wait
             
             # Load the sequencediagram.org website
             logger.info(f"Loading {self.diagram_site_url}")
@@ -126,28 +126,31 @@ class SequenceDiagramGenerator:
             logger.info(f"Loaded {self.diagram_site_url}")
             
             # Wait for the page to be fully loaded
-            time.sleep(2)  # Simple wait to ensure page is loaded
+            time.sleep(1)  # Reduced from 2 to 1 second
             return True
             
         except (WebDriverException, TimeoutException) as e:
             logger.error(f"Failed to connect to Selenium or load the diagram site: {str(e)}")
             if self.driver:
-                self.driver.quit()
+                try:
+                    self.driver.quit()
+                except:
+                    pass
+                self.driver = None
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error during connection: {str(e)}")
+            if self.driver:
+                try:
+                    self.driver.quit()
+                except:
+                    pass
                 self.driver = None
             return False
     
-    def disconnect(self) -> None:
-        """
-        Disconnect from the Selenium instance.
-        """
-        if self.driver:
-            self.driver.quit()
-            self.driver = None
-            logger.info("Disconnected from Selenium")
-    
     def generate_svg(self, diagram_source: str) -> Optional[str]:
         """
-        Generate an SVG from the given diagram source with retry logic.
+        Generate an SVG from the given diagram source with retry logic and timeout.
         
         Args:
             diagram_source: The source code for the sequence diagram
@@ -164,14 +167,41 @@ class SequenceDiagramGenerator:
                         logger.error("Failed to reconnect to Selenium")
                         continue
                 
-                # Execute the JavaScript to generate the SVG
+                # Execute the JavaScript to generate the SVG with timeout
                 svg_data_url = self.driver.execute_async_script(
-                    "const callback = arguments[arguments.length - 1];" +
-                    "SEQ.api.generateSvgDataUrl(arguments[0], callback)",
+                    """
+                    const callback = arguments[arguments.length - 1];
+                    const timeout = setTimeout(() => {
+                        callback({error: 'Timeout generating SVG'});
+                    }, %d);
+                    
+                    try {
+                        SEQ.api.generateSvgDataUrl(arguments[0], (result) => {
+                            clearTimeout(timeout);
+                            callback(result);
+                        });
+                    } catch (error) {
+                        clearTimeout(timeout);
+                        callback({error: error.toString()});
+                    }
+                    """ % (self.timeout * 1000),  # Convert to milliseconds
                     diagram_source
                 )
                 
+                # Check if we got an error response
+                if isinstance(svg_data_url, dict) and 'error' in svg_data_url:
+                    logger.error(f"SVG generation error: {svg_data_url['error']}")
+                    continue
+                
                 # Extract and decode the SVG data
+                if not svg_data_url or not isinstance(svg_data_url, str):
+                    logger.error("Invalid SVG data URL received")
+                    continue
+                    
+                if not svg_data_url.startswith('data:'):
+                    logger.error("Invalid SVG data URL format")
+                    continue
+                
                 svg_base64_data = svg_data_url.split(",")[1]
                 svg_content = base64.b64decode(svg_base64_data).decode('utf-8')
                 
@@ -190,12 +220,13 @@ class SequenceDiagramGenerator:
                 if attempt < self.max_retries - 1:
                     time.sleep(self.retry_delay)
         
+        logger.error("All SVG generation attempts failed")
         return None
     
     def validate_diagram_source(self, diagram_source: str) -> Tuple[bool, str]:
         """
         Validate if the diagram source is valid by attempting to generate an SVG.
-        Enhanced with retry logic.
+        Enhanced with retry logic and timeout.
         
         Args:
             diagram_source: The source code for the sequence diagram
@@ -212,16 +243,24 @@ class SequenceDiagramGenerator:
                         logger.error("Failed to reconnect to Selenium")
                         continue
                 
-                # Try to generate the SVG
+                # Try to generate the SVG with timeout
                 result = self.driver.execute_async_script(
-                    "const callback = arguments[arguments.length - 1];" +
-                    "try {" +
-                    "  SEQ.api.generateSvgDataUrl(arguments[0], (result) => {" +
-                    "    callback({ success: true, result: result });" +
-                    "  });" +
-                    "} catch (error) {" +
-                    "  callback({ success: false, error: error.toString() });" +
-                    "}",
+                    """
+                    const callback = arguments[arguments.length - 1];
+                    const timeout = setTimeout(() => {
+                        callback({ success: false, error: 'Timeout during validation' });
+                    }, %d);
+                    
+                    try {
+                        SEQ.api.generateSvgDataUrl(arguments[0], (result) => {
+                            clearTimeout(timeout);
+                            callback({ success: true, result: result });
+                        });
+                    } catch (error) {
+                        clearTimeout(timeout);
+                        callback({ success: false, error: error.toString() });
+                    }
+                    """ % (self.timeout * 1000),  # Convert to milliseconds
                     diagram_source
                 )
                 
@@ -245,104 +284,192 @@ class SequenceDiagramGenerator:
         
         return False, "Failed after maximum retry attempts"
 
+    def disconnect(self) -> None:
+        """
+        Disconnect from the Selenium instance.
+        """
+        if self.driver:
+            try:
+                self.driver.quit()
+            except Exception as e:
+                logger.warning(f"Error during disconnect: {str(e)}")
+            finally:
+                self.driver = None
+                logger.info("Disconnected from Selenium")
 
-# ===== GLOBAL GENERATOR SINGLETON =====
+
+# ===== GLOBAL GENERATOR SINGLETON WITH CIRCUIT BREAKER =====
 
 class GlobalDiagramGenerator:
-    """Global singleton for managing a single persistent SequenceDiagramGenerator instance."""
+    """
+    Global singleton for managing a single persistent SequenceDiagramGenerator instance.
+    Enhanced with circuit breaker pattern and non-blocking operations.
+    """
     
     def __init__(self):
         self._generator: Optional[SequenceDiagramGenerator] = None
-        self._lock = asyncio.Lock()
         self._initialized = False
+        self._circuit_breaker_failures = 0
+        self._circuit_breaker_reset_time = 0
+        self._circuit_breaker_threshold = 3  # Number of failures before opening circuit
+        self._circuit_breaker_timeout = 300  # 5 minutes before trying again
+    
+    def _is_circuit_open(self) -> bool:
+        """Check if circuit breaker is open (too many recent failures)"""
+        if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
+            if time.time() < self._circuit_breaker_reset_time:
+                return True
+            else:
+                # Reset circuit breaker after timeout
+                self._circuit_breaker_failures = 0
+                self._circuit_breaker_reset_time = 0
+                return False
+        return False
+    
+    def _record_failure(self):
+        """Record a failure for circuit breaker"""
+        self._circuit_breaker_failures += 1
+        if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
+            self._circuit_breaker_reset_time = time.time() + self._circuit_breaker_timeout
+            logger.warning(f"Circuit breaker OPEN - too many Selenium failures. Will retry after {self._circuit_breaker_timeout} seconds")
+    
+    def _record_success(self):
+        """Record a success - reset circuit breaker"""
+        self._circuit_breaker_failures = 0
+        self._circuit_breaker_reset_time = 0
     
     async def get_generator(self) -> SequenceDiagramGenerator:
         """Get the global generator instance, initializing if needed."""
+        if self._is_circuit_open():
+            raise Exception("Selenium service temporarily unavailable due to repeated failures. Please try again later.")
+        
         if not self._initialized:
-            async with self._lock:
-                if not self._initialized:
-                    await self._initialize()
+            await self._initialize()
         
         return self._generator
     
     async def _initialize(self):
-        """Initialize the global generator."""
+        """Initialize the global generator with timeout."""
         try:
             logger.info("Initializing global SequenceDiagramGenerator...")
             
+            # Create generator with shorter timeouts for production
             self._generator = SequenceDiagramGenerator(
                 selenium_url=settings.SELENIUM_URL,
                 diagram_site_url=settings.SEQUENCE_DIAGRAM_SITE_URL,
-                timeout=settings.SELENIUM_TIMEOUT,
+                timeout=15,  # 15 second timeout
                 use_local_chrome=False,
-                max_retries=3,
-                retry_delay=2
+                max_retries=2,  # Only 2 retries
+                retry_delay=1   # 1 second delay
             )
             
-            # Connect once and keep alive
-            if not self._generator.connect():
+            # Try to connect with timeout
+            connection_timeout = 30  # 30 seconds max for initial connection
+            start_time = time.time()
+            
+            # Use asyncio.to_thread to avoid blocking the event loop
+            connected = await asyncio.wait_for(
+                asyncio.to_thread(self._generator.connect),
+                timeout=connection_timeout
+            )
+            
+            if not connected:
                 raise Exception("Failed to connect to Selenium")
             
             self._initialized = True
+            self._record_success()
             logger.info("Global SequenceDiagramGenerator initialized successfully")
             
+        except asyncio.TimeoutError:
+            logger.error("Timeout during Selenium initialization")
+            self._generator = None
+            self._initialized = False
+            self._record_failure()
+            raise Exception("Selenium initialization timed out")
         except Exception as e:
             logger.error(f"Failed to initialize global SequenceDiagramGenerator: {e}")
             self._generator = None
             self._initialized = False
-            raise
+            self._record_failure()
+            raise Exception(f"Selenium initialization failed: {str(e)}")
     
     async def generate_svg_threadsafe(self, diagram_source: str) -> Optional[str]:
-        """Thread-safe SVG generation using the global generator."""
-        generator = await self.get_generator()
+        """Thread-safe SVG generation using the global generator with timeout."""
+        if self._is_circuit_open():
+            raise Exception("Selenium service temporarily unavailable due to repeated failures. Please try again later.")
         
-        async with self._lock:
-            try:
-                # Check if session is still active, reconnect if needed
-                if not generator.is_session_active():
-                    logger.warning("Global generator session inactive, reconnecting...")
-                    if not generator.connect():
-                        raise Exception("Failed to reconnect global generator")
-                
-                return generator.generate_svg(diagram_source)
-                
-            except Exception as e:
-                logger.error(f"Error in threadsafe SVG generation: {e}")
-                # Try to reconnect for next request
-                try:
-                    generator.connect()
-                except:
-                    pass
+        try:
+            generator = await self.get_generator()
+            
+            # Use asyncio.to_thread to avoid blocking the event loop
+            result = await asyncio.wait_for(
+                asyncio.to_thread(generator.generate_svg, diagram_source),
+                timeout=120 
+            )
+            
+            if result:
+                self._record_success()
+                return result
+            else:
+                self._record_failure()
                 return None
+                
+        except asyncio.TimeoutError:
+            logger.error("Timeout during SVG generation")
+            self._record_failure()
+            raise Exception("Diagram generation timed out")
+        except Exception as e:
+            logger.error(f"Error in threadsafe SVG generation: {e}")
+            self._record_failure()
+            # Try to reconnect for next request
+            try:
+                if self._generator:
+                    await asyncio.to_thread(self._generator.connect)
+            except:
+                pass
+            raise Exception(f"Diagram generation failed: {str(e)}")
     
     async def validate_diagram_threadsafe(self, diagram_source: str) -> tuple[bool, str]:
-        """Thread-safe diagram validation using the global generator."""
-        generator = await self.get_generator()
+        """Thread-safe diagram validation using the global generator with timeout."""
+        if self._is_circuit_open():
+            return False, "Selenium service temporarily unavailable due to repeated failures"
         
-        async with self._lock:
+        try:
+            generator = await self.get_generator()
+            
+            # Use asyncio.to_thread to avoid blocking the event loop
+            result = await asyncio.wait_for(
+                asyncio.to_thread(generator.validate_diagram_source, diagram_source),
+                timeout=30  # 30 second timeout for validation
+            )
+            
+            if result[0]:  # If validation succeeded
+                self._record_success()
+            else:
+                self._record_failure()
+            
+            return result
+                
+        except asyncio.TimeoutError:
+            logger.error("Timeout during diagram validation")
+            self._record_failure()
+            return False, "Diagram validation timed out"
+        except Exception as e:
+            logger.error(f"Error in threadsafe validation: {e}")
+            self._record_failure()
+            # Try to reconnect for next request
             try:
-                # Check if session is still active, reconnect if needed
-                if not generator.is_session_active():
-                    logger.warning("Global generator session inactive, reconnecting...")
-                    if not generator.connect():
-                        raise Exception("Failed to reconnect global generator")
-                
-                return generator.validate_diagram_source(diagram_source)
-                
-            except Exception as e:
-                logger.error(f"Error in threadsafe validation: {e}")
-                # Try to reconnect for next request
-                try:
-                    generator.connect()
-                except:
-                    pass
-                return False, str(e)
+                if self._generator:
+                    await asyncio.to_thread(self._generator.connect)
+            except:
+                pass
+            return False, f"Diagram validation failed: {str(e)}"
     
     async def cleanup(self):
         """Cleanup the global generator."""
         if self._generator:
             try:
-                self._generator.disconnect()
+                await asyncio.to_thread(self._generator.disconnect)
             except Exception as e:
                 logger.warning(f"Error during cleanup: {e}")
             finally:
@@ -377,7 +504,7 @@ async def generate_sequence_diagram(
 ) -> Dict[str, Any]:
     """
     Generate a sequence diagram using the global persistent generator.
-    MUCH faster than creating new connections each time.
+    Enhanced with comprehensive timeout and error handling.
     """
     result = {
         'success': False,
@@ -441,12 +568,15 @@ async def generate_sequence_diagram(
                         json_feedback_prompt = formatted_json_prompt + f"\n\nFeedback from previous attempt:\n{json_feedback}\n\nPlease correct the issues and try again."
                         json_messages = [HumanMessage(content=json_feedback_prompt)]
                     
-                    # Use LLM with fallbacks
-                    json_response = await execute_llm_with_fallbacks(
-                        llm, 
-                        fallback_llms, 
-                        json_messages, 
-                        f"JSON generation iteration {json_iteration}"
+                    # Use LLM with fallbacks and timeout
+                    json_response = await asyncio.wait_for(
+                        execute_llm_with_fallbacks(
+                            llm, 
+                            fallback_llms, 
+                            json_messages, 
+                            f"JSON generation iteration {json_iteration}"
+                        ),
+                        timeout=180  # 3 minute timeout for LLM
                     )
                     json_str = extract_json_from_text(json_response.content)
                     
@@ -459,11 +589,11 @@ async def generate_sequence_diagram(
                         try:
                             diagram_source = json_to_sequence_diagram_code(diagram_json)
                             
-                            # Validate using global generator (thread-safe)
+                            # Validate using global generator (thread-safe with timeout)
                             is_valid, error = await global_generator.validate_diagram_threadsafe(diagram_source)
                             
                             if is_valid:
-                                # Generate SVG using global generator (thread-safe)
+                                # Generate SVG using global generator (thread-safe with timeout)
                                 svg_content = await global_generator.generate_svg_threadsafe(diagram_source)
                                 
                                 if svg_content:
@@ -481,11 +611,14 @@ async def generate_sequence_diagram(
                                 )
                                 code_messages = [HumanMessage(content=formatted_code_prompt)]
                                 
-                                code_response = await execute_llm_with_fallbacks(
-                                    llm,
-                                    fallback_llms,
-                                    code_messages,
-                                    f"JSON to code conversion iteration {json_iteration}"
+                                code_response = await asyncio.wait_for(
+                                    execute_llm_with_fallbacks(
+                                        llm,
+                                        fallback_llms,
+                                        code_messages,
+                                        f"JSON to code conversion iteration {json_iteration}"
+                                    ),
+                                    timeout=180  # 3 minute timeout for LLM
                                 )
                                 diagram_source = extract_code_from_text(code_response.content)
                                 
@@ -512,6 +645,9 @@ async def generate_sequence_diagram(
                     except json.JSONDecodeError as e:
                         json_feedback = f"Invalid JSON format: {str(e)}. Please provide valid JSON."
                         logger.error(f"JSON decode error: {str(e)}")
+                except asyncio.TimeoutError:
+                    json_feedback = "LLM request timed out. Please try again with a simpler diagram structure."
+                    logger.error(f"LLM timeout in iteration {json_iteration}")
                 except Exception as e:
                     json_feedback = f"An error occurred: {str(e)}. Please try again with a simpler diagram structure."
                     logger.error(f"Error in iteration {json_iteration}: {str(e)}")

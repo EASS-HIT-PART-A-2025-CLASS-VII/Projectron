@@ -21,14 +21,9 @@ async def lifespan(app: FastAPI):
     connect_to_mongo()
     print("✅ MongoDB connected")
     
-    # Initialize global diagram generator
-    try:
-        global_generator = get_global_generator()
-        await global_generator.get_generator()  # This will initialize it
-        print("✅ Global SequenceDiagramGenerator initialized and connected")
-    except Exception as e:
-        print(f"⚠️ Failed to initialize global diagram generator: {e}")
-        print("   Diagram generation may be slower or fail")
+    # DON'T initialize Selenium during startup - it will be lazy-loaded
+    # This prevents blocking the entire app if Selenium is down
+    print("ℹ️ Selenium will be initialized on first diagram request (lazy loading)")
     
     print("🎉 Startup complete!")
     
@@ -37,7 +32,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     print("🛑 Shutting down services...")
     
-    # Clean up global diagram generator
+    # Clean up global diagram generator (non-blocking)
     try:
         global_generator = get_global_generator()
         await global_generator.cleanup()
@@ -97,4 +92,3 @@ async def health_check():
 @app.get("/")
 async def root():
     return {"message": "Welcome to AI Project Planner API"}
-

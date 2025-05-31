@@ -1,6 +1,7 @@
 # backend/app/api/endpoints/diagrams.py
 from contextlib import asynccontextmanager
 import json
+import asyncio
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, Response
 from app.core.config import get_settings
@@ -118,7 +119,44 @@ async def get_activity_diagram(
             detail=f"Error retrieving activity diagram: {str(e)}"
         )
 
-# EXISTING ENDPOINTS (UNCHANGED)
+# EXISTING ENDPOINTS (ENHANCED WITH BETTER ERROR HANDLING)
+
+@router.get("/status")
+async def diagram_service_status():
+    """
+    Get the status of the diagram generation service
+    """
+    try:
+        from app.services.ai.sequence_diagram_generator import get_global_generator
+        
+        global_generator = get_global_generator()
+        
+        if global_generator._is_circuit_open():
+            return {
+                "status": "unavailable",
+                "reason": "circuit_breaker_open",
+                "message": "Service temporarily unavailable due to repeated failures. Will retry automatically.",
+                "failures": global_generator._circuit_breaker_failures,
+                "reset_time": global_generator._circuit_breaker_reset_time
+            }
+        elif global_generator._initialized:
+            return {
+                "status": "available",
+                "reason": "initialized",
+                "message": "Diagram generation service is ready"
+            }
+        else:
+            return {
+                "status": "initializing",
+                "reason": "not_initialized",
+                "message": "Service will initialize on first diagram request"
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "reason": "exception",
+            "message": f"Error checking service status: {str(e)}"
+        }
 
 @router.post("/sequence/create", response_class=SVGResponse)
 async def create_sequence_diagram(
@@ -127,45 +165,83 @@ async def create_sequence_diagram(
 ):
     """
     Generate a sequence diagram based on a project plan using sequencediagram.org
-    
-    Args:
-        request: The diagram generation request containing project plan and optional context
-        
-    Returns:
-        A DiagramResponse containing the SVG and related data
+    Enhanced with comprehensive error handling and timeouts.
     """
     try:
         project = Project.objects(id=ObjectId(request.project_id)).first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
+        
         # Create the LLM with the configured settings
         llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE, model='gpt-4.1-mini', timeout=140)
         
-        # Generate the sequence diagram
+        # Generate the sequence diagram with timeout
         plan = project.description + "\n" + compact_json(project.technical_architecture)
-        result = await generate_sequence_diagram(
-            project_plan=plan, 
-            llm=llm, 
-            use_json_intermediate=True,
-            use_local_chrome=False,
-            selenium_url=settings.SELENIUM_URL,
-        )
+        
+        try:
+            # Add overall timeout for the entire operation
+            result = await asyncio.wait_for(
+                generate_sequence_diagram(
+                    project_plan=plan, 
+                    llm=llm, 
+                    use_json_intermediate=True,
+                    use_local_chrome=False,
+                    selenium_url=settings.SELENIUM_URL,
+                ),
+                timeout=300  # 5 minute total timeout
+            )
+        except asyncio.TimeoutError:
+            raise HTTPException(
+                status_code=504,
+                detail="Diagram generation timed out. The diagram service may be temporarily unavailable. Please try again in a few minutes."
+            )
+        except Exception as e:
+            error_msg = str(e)
+            if "temporarily unavailable" in error_msg or "circuit breaker" in error_msg.lower():
+                raise HTTPException(
+                    status_code=503,
+                    detail="Diagram service is temporarily unavailable due to technical issues. Please try again in a few minutes."
+                )
+            elif "timeout" in error_msg.lower():
+                raise HTTPException(
+                    status_code=504,
+                    detail="Diagram generation timed out. Please try again with a simpler project description."
+                )
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to generate sequence diagram: {error_msg}"
+                )
         
         if not result.get("success"):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to generate sequence diagram: {result.get('error', 'Unknown error')}"
-            )
+            error_detail = result.get('error', 'Unknown error')
+            if "timeout" in error_detail.lower():
+                raise HTTPException(
+                    status_code=504,
+                    detail="Diagram generation timed out. Please try again with a simpler project description."
+                )
+            elif "temporarily unavailable" in error_detail or "circuit breaker" in error_detail.lower():
+                raise HTTPException(
+                    status_code=503,
+                    detail="Diagram service is temporarily unavailable. Please try again in a few minutes."
+                )
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to generate sequence diagram: {error_detail}"
+                )
+        
         svg_content = result.get("svg")
         
+        # Save to database
         project.sequence_diagram_source_code = result.get("diagram_source")
         project.sequence_diagram_svg = svg_content
         project.save() 
+        
         return SVGResponse(content=svg_content)
     
     except HTTPException:
         raise
-
     except Exception as e:
         print(f"Error generating sequence diagram: {str(e)}")
         raise HTTPException(
@@ -179,45 +255,84 @@ async def update_sequence_diagram(
     current_user= Depends(get_current_user)
 ):
     """
-    Generate a sequence diagram based on a project plan using sequencediagram.org
-    
-    Args:
-        request: The diagram generation request containing project plan and optional context
-        
-    Returns:
-        A DiagramResponse containing the SVG and related data
+    Update a sequence diagram based on a project plan using sequencediagram.org
+    Enhanced with comprehensive error handling and timeouts.
     """
     try:
         project = Project.objects(id=ObjectId(request.project_id)).first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
+        
         # Create the LLM with the configured settings
         llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE)
         
         plan = project.description + "\n" + compact_json(project.technical_architecture)
-        # Generate the sequence diagram
-        result = await generate_sequence_diagram(
-            project_plan=plan, 
-            existing_json=project.sequence_diagram_source_code,
-            llm=llm, 
-            use_json_intermediate=True,
-            use_local_chrome=False,
-            selenium_url=settings.SELENIUM_URL,
-        )
+        
+        try:
+            # Add overall timeout for the entire operation
+            result = await asyncio.wait_for(
+                generate_sequence_diagram(
+                    project_plan=plan, 
+                    existing_json=project.sequence_diagram_source_code,
+                    llm=llm, 
+                    use_json_intermediate=True,
+                    use_local_chrome=False,
+                    selenium_url=settings.SELENIUM_URL,
+                ),
+                timeout=300  # 5 minute total timeout
+            )
+        except asyncio.TimeoutError:
+            raise HTTPException(
+                status_code=504,
+                detail="Diagram generation timed out. The diagram service may be temporarily unavailable. Please try again in a few minutes."
+            )
+        except Exception as e:
+            error_msg = str(e)
+            if "temporarily unavailable" in error_msg or "circuit breaker" in error_msg.lower():
+                raise HTTPException(
+                    status_code=503,
+                    detail="Diagram service is temporarily unavailable due to technical issues. Please try again in a few minutes."
+                )
+            elif "timeout" in error_msg.lower():
+                raise HTTPException(
+                    status_code=504,
+                    detail="Diagram generation timed out. Please try again with a simpler project description."
+                )
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to generate sequence diagram: {error_msg}"
+                )
         
         if not result.get("success"):
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to generate sequence diagram: {result.get('error', 'Unknown error')}"
-            )
+            error_detail = result.get('error', 'Unknown error')
+            if "timeout" in error_detail.lower():
+                raise HTTPException(
+                    status_code=504,
+                    detail="Diagram generation timed out. Please try again with a simpler project description."
+                )
+            elif "temporarily unavailable" in error_detail or "circuit breaker" in error_detail.lower():
+                raise HTTPException(
+                    status_code=503,
+                    detail="Diagram service is temporarily unavailable. Please try again in a few minutes."
+                )
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to generate sequence diagram: {error_detail}"
+                )
+        
         svg_content = result.get("svg")
 
+        # Save to database
         project.sequence_diagram_source_code = result.get("diagram_source")
         project.sequence_diagram_svg = svg_content
         project.save() 
         
         return SVGResponse(content=svg_content)
     
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error generating sequence diagram: {str(e)}")
         raise HTTPException(
