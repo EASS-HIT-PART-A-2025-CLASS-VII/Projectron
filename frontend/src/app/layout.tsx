@@ -1,11 +1,11 @@
-// src/app/layout.tsx
+// frontend/src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../contexts/theme-provider";
 import { AuthProvider } from "../contexts/auth-context";
+import { GoogleAnalytics } from "../components/google-analytics";
 
-// Load Inter font with specific weights as defined in design guidelines
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -28,6 +28,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans antialiased bg-primary-background text-primary-text min-h-screen`}
       >
+        <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

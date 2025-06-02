@@ -10,6 +10,7 @@ import { ClarificationQuestionsSection } from "@/components/projects/new/compone
 import { PlanGenerationLoading } from "@/components/projects/new/components/plan-generation-loading";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { analytics } from "@/lib/google-analytics";
 
 interface PlanStatus {
   task_id: string;
@@ -61,6 +62,7 @@ export default function NewProjectPage() {
       setPlanStatus(status);
 
       if (status.status === "completed" && status.project_id) {
+        analytics.trackPlanGenerated();
         // Stop polling and redirect
         if (pollingRef.current) {
           clearInterval(pollingRef.current);

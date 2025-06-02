@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { apiClient } from "@/lib/api";
+import { analytics } from "@/lib/google-analytics";
 
 export type DiagramType = "sequence" | "class" | "activity";
 
@@ -100,6 +101,7 @@ export function useDiagrams(projectId: string): UseDiagramsReturn {
           isLoading: false,
           error: null,
         });
+        analytics.trackDiagramGenerated(type);
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";

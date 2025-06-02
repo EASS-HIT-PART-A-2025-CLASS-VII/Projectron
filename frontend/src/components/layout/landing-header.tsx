@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import Logo from "../../../public/logo.svg";
+import { analytics } from "@/lib/google-analytics";
 
 // Animated Hamburger Component
 const AnimatedHamburger = ({
@@ -235,6 +236,7 @@ export function LandingHeader() {
               <Link
                 href="/auth/login"
                 className="text-foreground hover:text-primary-cta transition-colors duration-200 font-medium"
+                onClick={() => analytics.trackNavLinkClick("login-click")}
               >
                 Login
               </Link>
@@ -244,6 +246,7 @@ export function LandingHeader() {
                 <Button
                   className="bg-white text-primary-background hover:bg-hover-active hover:text-white transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
                   variant="outline"
+                  onClick={() => analytics.trackNavLinkClick("register-click")}
                 >
                   Get Started
                 </Button>

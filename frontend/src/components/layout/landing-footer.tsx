@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Github, Twitter, Linkedin, Mail } from "lucide-react";
+import { analytics } from "@/lib/google-analytics";
 
 export function LandingFooter() {
   return (
@@ -47,8 +48,22 @@ export function LandingFooter() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-2">
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
+              <FooterLink
+                href="/about"
+                onClick={() =>
+                  analytics.trackNavLinkClick("footer-about-click")
+                }
+              >
+                About
+              </FooterLink>
+              <FooterLink
+                href="/contact"
+                onClick={() =>
+                  analytics.trackNavLinkClick("footer-contact-click")
+                }
+              >
+                Contact
+              </FooterLink>
             </ul>
           </div>
 
@@ -56,9 +71,30 @@ export function LandingFooter() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
-              <FooterLink href="/terms">Terms of Service</FooterLink>
-              <FooterLink href="/privacy">Privacy Policy</FooterLink>
-              <FooterLink href="/cookies">Cookie Policy</FooterLink>
+              <FooterLink
+                href="/terms"
+                onClick={() =>
+                  analytics.trackNavLinkClick("footer-terms-click")
+                }
+              >
+                Terms of Service
+              </FooterLink>
+              <FooterLink
+                href="/privacy"
+                onClick={() =>
+                  analytics.trackNavLinkClick("footer-privacy-click")
+                }
+              >
+                Privacy Policy
+              </FooterLink>
+              <FooterLink
+                href="/cookies"
+                onClick={() =>
+                  analytics.trackNavLinkClick("footer-cookies-click")
+                }
+              >
+                Cookie Policy
+              </FooterLink>
             </ul>
           </div>
         </div>
@@ -76,15 +112,18 @@ export function LandingFooter() {
 function FooterLink({
   href,
   children,
+  onClick,
 }: {
   href: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <li>
       <Link
         href={href}
         className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+        onClick={onClick}
       >
         {children}
       </Link>
@@ -93,13 +132,22 @@ function FooterLink({
 }
 
 // Helper component for social links
-function SocialLink({ href, icon }: { href: string; icon: React.ReactNode }) {
+function SocialLink({
+  href,
+  icon,
+  onClick,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+}) {
   return (
     <Link
       href={href}
       className="text-muted-foreground hover:text-primary transition-colors duration-200"
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onClick}
     >
       {icon}
     </Link>
