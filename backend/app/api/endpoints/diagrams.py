@@ -7,12 +7,12 @@ from fastapi import APIRouter, HTTPException, Depends, Response
 from app.core.config import get_settings
 from app.db.models.auth import User
 from app.db.models.project import Project
-from app.services.ai.diagram_service import generate_or_update_diagram, generate_svg_from_json
+from app.services.ai.class_diagram_service import generate_or_update_diagram, generate_svg_from_json
 from app.api.deps import get_current_user
 from typing import Optional
 from pydantic import BaseModel
 from app.services.ai.ai_utils import compact_json, create_llm
-from app.services.ai.sequence_diagram_generator import SequenceDiagramGenerator, generate_sequence_diagram
+from app.services.ai.sequence_diagram_service import SequenceDiagramGenerator, generate_sequence_diagram
 
 class DiagramRequest(BaseModel):
     project_id: str
@@ -127,7 +127,7 @@ async def diagram_service_status():
     Get the status of the diagram generation service
     """
     try:
-        from app.services.ai.sequence_diagram_generator import get_global_generator
+        from app.services.ai.sequence_diagram_service import get_global_generator
         
         global_generator = get_global_generator()
         

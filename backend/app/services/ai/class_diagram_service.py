@@ -9,7 +9,7 @@ import os
 from langchain.schema import HumanMessage
 
 from app.core.config import get_settings
-from app.services.ai.ai_utils import compact_json, create_llm
+from app.services.ai.ai_utils import compact_json, create_llm, create_gemini_llm
 from app.services.ai.prompts.diagram_prompts import (
     CLASS_DIAGRAM_JSON_TEMPLATE,
     ACTIVITY_DIAGRAM_JSON_TEMPLATE
@@ -20,6 +20,71 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 DiagramType = Literal["class", "activity"]
 
+# Timeout configuration for fallback mechanism
+DIAGRAM_TIMEOUT_SECONDS = 110
+
+# Initialize multiple LLM instances for fallback mechanism
+llm_4o_mini = create_llm(temperature=settings.DIAGRAM_TEMPERATURE, json_mode=True, model="gpt-4o-mini", timeout=DIAGRAM_TIMEOUT_SECONDS, max_retries=2)
+llm_41_mini = create_llm(temperature=settings.DIAGRAM_TEMPERATURE, json_mode=True, model="gpt-4.1-mini", timeout=DIAGRAM_TIMEOUT_SECONDS, max_retries=2)
+llm_41_nano = create_llm(temperature=settings.DIAGRAM_TEMPERATURE, json_mode=True, model="gpt-4.1-nano", timeout=DIAGRAM_TIMEOUT_SECONDS, max_retries=2)
+
+# Initialize Gemini as additional fallback
+try:
+    llm_gemini = create_gemini_llm(temperature=settings.DIAGRAM_TEMPERATURE, timeout=DIAGRAM_TIMEOUT_SECONDS, max_retries=2)
+except Exception as e:
+    logger.warning(f"Failed to initialize Gemini LLM: {e}")
+    llm_gemini = None
+
+async def execute_diagram_with_fallbacks(primary_llm, fallback_llms, messages, description: str = "diagram generation"):
+    """
+    Try to execute diagram generation with primary LLM, fall back to others if it fails.
+    
+    Args:
+        primary_llm: The primary LLM to try first
+        fallback_llms: List of fallback LLMs to try in order
+        messages: The messages to send to the LLM
+        description: Description of the operation for logging
+        
+    Returns:
+        The result from the first successful LLM
+    """
+    try:
+        logger.info(f"Trying primary model for {description}")
+        result = await primary_llm.ainvoke(messages)
+        return result
+    except Exception as e:
+        logger.warning(f"Error with primary model for {description}: {e}")
+        
+        for i, fallback_llm in enumerate(fallback_llms):
+            if fallback_llm is None:  # Skip None fallbacks (e.g., if Gemini failed to initialize)
+                continue
+                
+            try:
+                logger.info(f"Trying fallback model {i+1}/{len(fallback_llms)} for {description}")
+                
+                # Handle Gemini model with special prompt formatting
+                if hasattr(fallback_llm, 'model') and 'gemini' in fallback_llm.model.lower():
+                    # For Gemini, we need to add JSON instruction to the prompt
+                    original_content = messages[0].content
+                    gemini_enhanced_content = f"""{original_content}
+
+IMPORTANT: Respond with valid JSON format only that matches the required schema.
+Return only the JSON object, no additional text."""
+                    gemini_messages = [HumanMessage(content=gemini_enhanced_content)]
+                    result = await fallback_llm.ainvoke(gemini_messages)
+                else:
+                    result = await fallback_llm.ainvoke(messages)
+                
+                logger.info(f"Successfully used fallback model {i+1} for {description}")
+                return result
+            except Exception as e2:
+                logger.warning(f"Error with fallback model {i+1} for {description}: {e2}")
+                if i == len(fallback_llms) - 1:
+                    logger.error(f"All models failed for {description}")
+                    raise
+        
+        raise RuntimeError(f"All models failed for {description}")
+
 @timed
 async def generate_or_update_diagram(
     project_plan: str,
@@ -29,20 +94,17 @@ async def generate_or_update_diagram(
 ) -> Dict[str, Any]:
     """
     Generate or update a diagram based on the project plan and change request,
-    using an intermediate JSON representation.
+    using an intermediate JSON representation with fallback mechanism.
     
     Args:
         project_plan: The textual description of the project.
         existing_json: Existing diagram JSON (as a string) if available.
         change_request: Natural language request to modify the diagram.
-        diagram_type: Diagram type: "class", "sequence", or "activity".
+        diagram_type: Diagram type: "class" or "activity".
     
     Returns:
         dict: Updated diagram representation as JSON.
     """
-    # Initialize the language model with appropriate temperature
-    llm = create_llm(temperature=settings.DIAGRAM_TEMPERATURE)
-    
     # Select the appropriate JSON template based on diagram type
     template_map = {
         "class": CLASS_DIAGRAM_JSON_TEMPLATE,
@@ -81,9 +143,19 @@ async def generate_or_update_diagram(
     # Create the LLM message
     messages = [HumanMessage(content=formatted_prompt)]
     
+    # Set up fallback LLMs (excluding None values)
+    fallback_llms = [llm for llm in [llm_41_nano, llm_41_mini, llm_gemini, llm_4o_mini] if llm is not None]
+    
     try:
-        # Get response from the AI service
-        response = await llm.ainvoke(messages)
+        # Get response from the AI service with fallback mechanism
+        logger.info(f"Starting {diagram_type} diagram generation with fallback mechanism")
+        response = await execute_diagram_with_fallbacks(
+            primary_llm=llm_4o_mini,  # Primary model
+            fallback_llms=fallback_llms,
+            messages=messages,
+            description=f"{diagram_type} diagram generation"
+        )
+        
         diagram_json_str = extract_json_from_text(response.content)
         
         try:
@@ -125,7 +197,16 @@ async def generate_or_update_diagram(
                 {get_schema_description(diagram_type)}
                 """
             correction_messages = [HumanMessage(content=correction_prompt)]
-            correction_response = await llm.ainvoke(correction_messages)
+            
+            # Use fallback mechanism for correction as well
+            logger.info(f"Attempting correction with fallback mechanism for {diagram_type} diagram")
+            correction_response = await execute_diagram_with_fallbacks(
+                primary_llm=llm_4o_mini,
+                fallback_llms=fallback_llms,
+                messages=correction_messages,
+                description=f"{diagram_type} diagram correction"
+            )
+            
             corrected_json_str = extract_json_from_text(correction_response.content)
             
             try:
@@ -145,9 +226,11 @@ async def generate_or_update_diagram(
             if not is_valid:
                 raise ValueError(f"Failed to generate valid diagram JSON after correction: {error_message}")
         
+        logger.info(f"Successfully generated {diagram_type} diagram JSON with fallback mechanism")
         return diagram_data
+        
     except Exception as e:
-        logger.error(f"Error generating diagram: {str(e)}")
+        logger.error(f"Error generating {diagram_type} diagram with fallback mechanism: {str(e)}")
         raise
 
 def extract_json_from_text(text: str) -> str:

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.api_router import api_router
 from app.core.config import get_settings
 from app.db.mongodb import connect_to_mongo, close_mongo_connection
-from app.services.ai.sequence_diagram_generator import get_global_generator
+from app.services.ai.sequence_diagram_service import get_global_generator
 from app.utils.mongo_encoder import MongoJSONEncoder
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
