@@ -5,9 +5,12 @@ builder = "DOCKERFILE"
 healthcheckPath = "/wd/hub/status"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
+memoryGB = 4
+vCPUs = 2
 
 [deploy.envs]
 SE_OPTS = "--host 0.0.0.0 --port 4444"
-SE_NODE_MAX_SESSIONS = "5"
-SE_NODE_SESSION_TIMEOUT = "300"
+SE_NODE_MAX_SESSIONS = "1"
+SE_NODE_SESSION_TIMEOUT = "60"
 SE_START_XVFB = "true"
+JAVA_OPTS = "-Xmx2g -Xms1g -XX:+UseG1GC -XX:+UseStringDeduplication"
