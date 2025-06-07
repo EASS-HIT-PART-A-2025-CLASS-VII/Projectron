@@ -65,11 +65,10 @@ export async function apiClient<T>(
         const errorData = JSON.parse(responseText);
         console.log("API Error Response JSON:", errorData);
 
-        // Extract error message from various possible fields
         const errorMessage =
-          errorData.detail.msg ||
-          errorData.message ||
-          errorData.error ||
+          errorData.detail || // FastAPI HTTPException format
+          errorData.message || // Alternative format
+          errorData.error || // Alternative format
           (typeof errorData === "string" ? errorData : null) ||
           responseText ||
           `API request failed with status ${response.status}`;

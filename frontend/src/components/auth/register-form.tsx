@@ -41,7 +41,8 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
-  const { register, registerWithGoogle, registerWithGithub, error } = useAuth();
+  const { register, registerWithGoogle, registerWithGithub, error, setError } =
+    useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGithubLoading, setIsGithubLoading] = useState(false);
@@ -297,6 +298,7 @@ export function RegisterForm() {
             <Link
               href="/auth/login"
               className="text-primary-cta hover:text-cta-hover font-medium transition-colors duration-200"
+              onClick={() => setError(null)}
             >
               Sign in
             </Link>

@@ -15,6 +15,10 @@ class User(Document):
     verification_token = StringField()
     verification_token_expires = DateTimeField()
     
+    # New fields for password reset
+    reset_password_token = StringField()
+    reset_password_token_expires = DateTimeField()
+    
     meta = {
         'collection': 'users',
         'indexes': ['email']
@@ -36,7 +40,6 @@ class User(Document):
         hashed = hashlib.sha256(password.encode()).hexdigest()
         return hashed == self.hashed_password
 
-
     def generate_verification_token(self):
         """Generate a verification token for email confirmation"""
         # Generate a random token
@@ -50,6 +53,27 @@ class User(Document):
         self.save()
         
         return token
+    
+    def generate_reset_password_token(self):
+        """Generate a password reset token"""
+        # Generate a random token
+        token = secrets.token_urlsafe(32)
+        # Set expiration time (1 hour from now)
+        expires = datetime.now(tz=timezone.utc) + timedelta(hours=1)
+        
+        # Save token and expiration time
+        self.reset_password_token = token
+        self.reset_password_token_expires = expires
+        self.save()
+        
+        return token
+    
+    def reset_password(self, new_password):
+        """Reset user password and clear reset token"""
+        self.hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+        self.reset_password_token = None
+        self.reset_password_token_expires = None
+        self.save()
     
     oauth_provider = StringField()  # 'google', 'github', etc.
     oauth_id = StringField()        # User's ID from OAuth provider

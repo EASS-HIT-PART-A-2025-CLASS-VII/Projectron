@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,7 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, CheckCircle } from "lucide-react";
+import { apiClient } from "@/lib/api";
 
 // Form validation schema
 const loginSchema = z.object({
@@ -30,10 +31,18 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const { login, loginWithGoogle, loginWithGithub, error } = useAuth();
+  const { login, loginWithGoogle, loginWithGithub, error, setError } =
+    useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGithubLoading, setIsGithubLoading] = useState(false);
+
+  // New states for email verification resend
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   // Initialize form
   const form = useForm<LoginFormValues>({
@@ -47,10 +56,53 @@ export function LoginForm() {
   // Form submission handler
   const onSubmit = async (values: LoginFormValues) => {
     setIsSubmitting(true);
+    setShowResendVerification(false);
+    setResendSuccess(false);
+    setResendError(null);
+    localStorage.setItem("email", values.email); // Store email for resend verification
+    console.log("Submitting login with values:", values);
     try {
       await login(values.email, values.password);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Check if the auth error is about email verification and show resend option
+  useEffect(() => {
+    if (error && error.includes("Email not verified")) {
+      // const currentEmail = form.getValues("email");
+      const currentEmail = localStorage.getItem("email");
+      if (currentEmail) {
+        setShowResendVerification(true);
+        setResendEmail(currentEmail);
+      }
+    } else {
+      setShowResendVerification(false);
+    }
+  }, [error]);
+
+  // Handle resend verification email
+  const handleResendVerification = async () => {
+    setIsResendingVerification(true);
+    setResendError(null);
+    setError(null);
+    try {
+      await apiClient("/auth/resend-verification", {
+        method: "POST",
+        body: { email: resendEmail },
+      });
+
+      setResendSuccess(true);
+      setShowResendVerification(false);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to resend verification email";
+      setResendError(errorMessage);
+    } finally {
+      setIsResendingVerification(false);
     }
   };
 
@@ -78,8 +130,6 @@ export function LoginForm() {
 
   return (
     <div className="relative max-w-md mx-auto">
-      {/* Subtle neon glow effect */}
-
       <div className="relative bg-secondary-background rounded-2xl p-4 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2.5rem font-bold text-primary-text tracking-tight leading-tight">
@@ -90,10 +140,87 @@ export function LoginForm() {
           </p>
         </div>
 
-        {error && (
-          <Alert className="mb-6 border-red-500/20 bg-red-500/10">
+        {/* Email verification resend alert */}
+        {showResendVerification && (
+          <Alert className="mb-6 bg-secondary-background border backdrop-blur-sm text-center">
+            <AlertDescription>
+              <div className="flex items-start gap-4">
+                {/* Content */}
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-primary-text mb-2 flex items-center gap-2 w-fit mx-auto">
+                      <Mail className="h-5 w-5 text-primary-cta" />
+                      Verify your email address
+                    </h3>
+                    <p className="text-secondary-text leading-relaxed">
+                      We've sent a verification email to{" "}
+                      <span className="text-primary-cta font-medium">
+                        {resendEmail}
+                      </span>
+                      . Please check your inbox and follow the link to activate
+                      your account.
+                    </p>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex flex-col gap-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleResendVerification}
+                      disabled={isResendingVerification}
+                      className="bg-transparent border-primary-cta/50 text-primary-cta hover:bg-primary-cta hover:text-black transition-all duration-200 font-medium"
+                    >
+                      {isResendingVerification ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Sending verification email...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Resend verification email
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setShowResendVerification(false);
+                        setResendSuccess(false);
+                        setResendError(null);
+                      }}
+                      className="text-secondary-text hover:bg-hover-active hover:text-primary-text transition-all duration-200"
+                    >
+                      Try different email
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        {/* Success message for resend verification */}
+        {resendSuccess && (
+          <Alert className="mb-6 border-primary-cta/20 bg-primary-cta/10">
+            <CheckCircle className="h-4 w-4 text-primary-cta" />
+            <AlertDescription className="text-primary-text">
+              Verification email sent successfully! Please check your inbox and
+              spam folder.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Error alert */}
+        {(error || resendError) && !showResendVerification && (
+          <Alert
+            variant="destructive"
+            className="mb-6 border-red-500/20 bg-red-500/10"
+          >
             <AlertDescription className="text-red-400">
-              {error}
+              {resendError || error}
             </AlertDescription>
           </Alert>
         )}
@@ -247,6 +374,7 @@ export function LoginForm() {
             <Link
               href="/auth/register"
               className="text-primary-cta hover:text-cta-hover font-medium transition-colors duration-200"
+              onClick={() => setError(null)}
             >
               Create account
             </Link>

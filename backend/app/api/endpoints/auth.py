@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, Field
 import requests
 from urllib.parse import urlencode
 
@@ -47,6 +47,13 @@ class UserResponse(BaseModel):
 
 class ResendRequest(BaseModel):
     email: EmailStr
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8, description="New password (minimum 8 characters)")
 
 def set_auth_cookie(response: Response, token: str) -> None:
     """Helper function to set authentication cookie"""
@@ -246,6 +253,84 @@ def resend_verification_email(request: ResendRequest):
     EmailService.send_verification_email(user.email, token)
     
     return {"message": "Verification email sent"}
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """
+    Send password reset email
+    """
+    try:
+        # Find user by email
+        user = User.objects(email=request.email).first()
+        
+        # Always return success message for security (don't reveal if email exists)
+        success_message = "If your email exists in our system, you will receive a password reset link shortly."
+        
+        if not user:
+            return {"message": success_message}
+        
+        # Don't send reset email to OAuth users (they don't have passwords)
+        if user.oauth_provider:
+            return {"message": success_message}
+        
+        # Generate reset token
+        token = user.generate_reset_password_token()
+        
+        # Send reset email
+        EmailService.send_password_reset_email(user.email, token)
+        
+        return {"message": success_message}
+        
+    except Exception as e:
+        print(f"Error in forgot password: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process password reset request"
+        )
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """
+    Reset password using reset token
+    """
+    try:
+        # Find user with this reset token
+        user = User.objects(reset_password_token=request.token).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+        
+        # Check if token has expired
+        current_time = datetime.now(tz=timezone.utc)
+        expiration_time = user.reset_password_token_expires
+        
+        # Ensure both datetimes are timezone-aware for comparison
+        if expiration_time.tzinfo is None:
+            expiration_time = expiration_time.replace(tzinfo=timezone.utc)
+        
+        if current_time > expiration_time:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Reset token has expired"
+            )
+        
+        # Reset the password
+        user.reset_password(request.new_password)
+        
+        return {"message": "Password reset successfully"}
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        print(f"Unexpected error in reset password: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to reset password: {str(e)}"
+        )
 
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)) -> Any:

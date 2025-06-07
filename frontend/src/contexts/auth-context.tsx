@@ -45,6 +45,7 @@ interface AuthContextType {
   verifyEmail: (token: string) => Promise<EmailVerificationResponse>; // Updated return type
   resendVerification: (email: string) => Promise<void>;
   error: string | null;
+  setError: (error: string | null) => void;
   setUser: (user: User | null) => void;
   setIsAuthenticated: (authenticated: boolean) => void;
 }
@@ -320,6 +321,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     verifyEmail,
     resendVerification,
     error,
+    setError,
     setUser,
     setIsAuthenticated,
   };
