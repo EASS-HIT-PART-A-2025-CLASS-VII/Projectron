@@ -147,7 +147,7 @@ Projectron is a comprehensive project planning platform that leverages multiple 
 - **Pytest** - Python testing framework
 - **ESLint & Prettier** - Code quality
 
-## Project Structure (backend)
+## Project Structure
 
 ```
 Projectron/
@@ -256,7 +256,7 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/Eden-Cohen1/projectron.git
+git clone https://github.com/EASS-HIT-PART-A-2025-CLASS-VII/Projectron.git
 cd projectron
 ```
 
