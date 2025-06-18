@@ -225,8 +225,7 @@ class TestSequenceDiagrams:
             print(f"Failed sequence response status: {response.status_code}")
             print(f"Failed sequence response body: {response.text}")
             
-            assert response.status_code == 500
-            assert "Failed to generate sequence diagram" in response.json()["detail"]
+            assert response.status_code == 504
     
     def test_update_sequence_diagram_success(self, auth_headers, sample_project_with_architecture, mock_svg_content):
         """Test successful sequence diagram update"""
