@@ -266,8 +266,6 @@ cd projectron
 # Create backend environment file
 cp backend/.env.example backend/.env
 
-# Create frontend environment file
-cp frontend/.env.local.example frontend/.env.local
 ```
 
 ### Environment Setup
@@ -277,36 +275,18 @@ cp frontend/.env.local.example frontend/.env.local
 ```bash
 # Database Configuration
 MONGODB_URI="mongodb+srv://username:password@cluster.mongodb.net/projectron?retryWrites=true&w=majority"
-MONGODB_DB_NAME="projectron"
 
 # Security Configuration
 SECRET_KEY="your-super-secret-key-here-make-it-long-and-random"  # Generate: openssl rand -hex 32
-ALGORITHM="HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES=2880  # 48 hours
-
-# Cookie Settings
-COOKIE_NAME="access_token"
-COOKIE_HTTPONLY=true
-COOKIE_SECURE=true  # Set to true in production with HTTPS
-COOKIE_SAMESITE="none"
-COOKIE_MAX_AGE=172800  # 48 hours in seconds
 
 # AI Services (Required)
-openai_api_key="sk-your-openai-api-key-here"
+OPENAI_API_KEY="sk-your-openai-api-key-here"
 GEMINI_API_KEY="your-gemini-api-key-here"
-GEMINI_MODEL="gemini-2.5-flash-preview-05-20"
 
 # Diagram Generation
 SELENIUM_URL="http://selenium:4444"  # Use http://localhost:4444 for local dev
-SEQUENCE_DIAGRAM_SITE_URL="https://sequencediagram.org"
-SELENIUM_TIMEOUT=30
-MAX_DIAGRAM_ITERATIONS=3
-ENABLE_MERMAID_CLI_VALIDATION=true
-DIAGRAM_TEMPERATURE=0.2
 
 # Email Configuration (Optional)
-SMTP_SERVER="smtp.gmail.com"
-SMTP_PORT=587
 SMTP_USER="your-email@gmail.com"
 SMTP_PASSWORD="your-gmail-app-password"
 CONTACT_EMAIL="your-contact-email@gmail.com"
@@ -321,15 +301,12 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 GITHUB_REDIRECT_URI="http://localhost:8000/api/endpoints/auth/github/callback"
 
 # Application URLs
-FRONTEND_URL="http://localhost:3000"
 FRONT_AUTH_REDIRECT_SUCCESS="http://localhost:3000/auth/oauth-success"
 FRONT_AUTH_REDIRECT_FAILURE="http://localhost:3000/auth/oauth-error"
 
 # Environment
 ENVIRONMENT="development"
 
-# CORS Origins
-CORS_ORIGINS=["http://localhost:3000", "http://localhost:8000", "https://projectron-production.up.railway.app"]
 ```
 
 #### Frontend Environment (`frontend/.env.local`)

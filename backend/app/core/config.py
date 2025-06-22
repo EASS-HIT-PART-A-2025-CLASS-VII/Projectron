@@ -75,7 +75,7 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str
     GITHUB_REDIRECT_URI: str
 
-    CONTACT_EMAIL: str = "edencohen.dev@gmail.com"
+    CONTACT_EMAIL: str
     
     model_config = {
         "env_file": ".env",
