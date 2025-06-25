@@ -103,14 +103,9 @@ class QueryParam(BaseModel):
     class Config:
         extra = "forbid"
 
-class JSONSchemaObject(BaseModel):
-    """Holds an arbitrary JSON schema definition."""
-    class Config:
-        extra = "forbid"
-
 class RequestBody(BaseModel):
     type: str
-    schema_data: JSONSchemaObject
+    schema_data: str
 
 
 class Request(BaseModel):
@@ -131,7 +126,7 @@ class ResponseError(BaseModel):
 class ResponseSuccess(BaseModel):
     status: int
     content_type: str
-    schema_data: JSONSchemaObject     
+    schema_data: str     
 
 
 class Response(BaseModel):

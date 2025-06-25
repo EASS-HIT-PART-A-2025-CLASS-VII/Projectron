@@ -19,8 +19,25 @@ export function JsonDisplay({
   onEdit,
 }: JsonDisplayProps) {
   const [editing, setEditing] = useState(false);
-  const [jsonStr, setJsonStr] = useState(JSON.stringify(data, null, 2));
   const [error, setError] = useState("");
+
+  // 🔧 Safe function to parse data
+  const safeParseData = (data: any) => {
+    if (typeof data === "string") {
+      try {
+        return JSON.parse(data);
+      } catch {
+        return data; // Return as-is if parsing fails
+      }
+    }
+    return data; // Already an object
+  };
+
+  // 🔧 Initialize with safe parsing
+  const [jsonStr, setJsonStr] = useState(() => {
+    const parsed = safeParseData(data);
+    return JSON.stringify(parsed, null, 2);
+  });
 
   // Save JSON changes
   const saveChanges = () => {
@@ -34,6 +51,12 @@ export function JsonDisplay({
     }
   };
 
+  // 🔧 Get formatted JSON safely
+  const getFormattedJson = () => {
+    const parsed = safeParseData(data);
+    return JSON.stringify(parsed, null, 2);
+  };
+
   if (!editable) {
     return (
       <div
@@ -42,9 +65,7 @@ export function JsonDisplay({
         }`}
       >
         <pre className="p-4 text-sm whitespace-pre-wrap">
-          <code className="text-primary-text">
-            {JSON.stringify(data, null, 2)}
-          </code>
+          <code className="text-primary-text">{getFormattedJson()}</code>
         </pre>
       </div>
     );
@@ -70,7 +91,7 @@ export function JsonDisplay({
               variant="outline"
               size="sm"
               onClick={() => {
-                setJsonStr(JSON.stringify(data, null, 2));
+                setJsonStr(getFormattedJson());
                 setEditing(false);
                 setError("");
               }}
@@ -86,7 +107,7 @@ export function JsonDisplay({
         <div className="relative">
           <pre className="p-4 text-sm whitespace-pre-wrap">
             <code className="text-primary-text">
-              {JSON.stringify(data, null, 2)}
+              {getFormattedJson()} {/* 🔧 Use safe function */}
             </code>
           </pre>
           <Button

@@ -261,44 +261,81 @@ async def generate_api_endpoints(state: PlanState):
     
     # Extract high-level plan information
     high_level_plan = state["high_level_plan"]
-    core_features = ", ".join(high_level_plan.core_features)
+    try:
+        core_features = ", ".join(high_level_plan.core_features)
+    except (AttributeError, TypeError):
+        core_features = "No core features defined"
     
     # Format target users
     target_users = []
-    for user in high_level_plan.target_users:
-        user_str = f"{user.type} (Needs: {', '.join(user.needs)}; Pain points: {', '.join(user.pain_points)})"
-        target_users.append(user_str)
-    target_users_str = "; ".join(target_users)
+    try:
+        for user in high_level_plan.target_users:
+            try:
+                user_str = f"{user.type} (Needs: {', '.join(user.needs)}; Pain points: {', '.join(user.pain_points)})"
+                target_users.append(user_str)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    target_users_str = "; ".join(target_users) if target_users else "No specific target users defined"
     
-    business_objectives = ", ".join(high_level_plan.business_objectives)
-    scope_in = ", ".join(high_level_plan.scope.in_scope)
-    scope_out = ", ".join(high_level_plan.scope.out_of_scope)
-    scope = f"In scope: {scope_in}. Out of scope: {scope_out}"
+    try:
+        business_objectives = ", ".join(high_level_plan.business_objectives)
+    except (AttributeError, TypeError):
+        business_objectives = "No business objectives defined"
+    
+    try:
+        scope_in = ", ".join(high_level_plan.scope.in_scope)
+        scope_out = ", ".join(high_level_plan.scope.out_of_scope)
+        scope = f"In scope: {scope_in}. Out of scope: {scope_out}"
+    except (AttributeError, TypeError):
+        scope = "Scope not defined"
     
     # Extract technical architecture information
     tech_arch = state["technical_architecture"]
-    architecture_overview = tech_arch.architecture_overview
+    try:
+        architecture_overview = tech_arch.architecture_overview
+    except (AttributeError, TypeError):
+        architecture_overview = "No architecture overview defined"
     
     # Format system components
     system_components = []
-    for comp in tech_arch.system_components:
-        comp_str = f"{comp.name} ({comp.type}): {comp.description}"
-        system_components.append(comp_str)
-    system_components_str = "; ".join(system_components)
+    try:
+        for comp in tech_arch.system_components:
+            try:
+                comp_str = f"{comp.name} ({comp.type}): {comp.description}"
+                system_components.append(comp_str)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    system_components_str = "; ".join(system_components) if system_components else "No system components defined"
     
     # Format communication patterns
     comm_patterns = []
-    for pattern in tech_arch.communication_patterns:
-        pattern_str = f"{pattern.source} to {pattern.target} via {pattern.protocol} ({pattern.pattern})"
-        comm_patterns.append(pattern_str)
-    comm_patterns_str = "; ".join(comm_patterns)
+    try:
+        for pattern in tech_arch.communication_patterns:
+            try:
+                pattern_str = f"{pattern.source} to {pattern.target} via {pattern.protocol} ({pattern.pattern})"
+                comm_patterns.append(pattern_str)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    comm_patterns_str = "; ".join(comm_patterns) if comm_patterns else "No communication patterns defined"
     
     # Format architecture patterns
     arch_patterns = []
-    for pattern in tech_arch.architecture_patterns:
-        pattern_str = f"{pattern.name}: {pattern.description}"
-        arch_patterns.append(pattern_str)
-    arch_patterns_str = "; ".join(arch_patterns)
+    try:
+        for pattern in tech_arch.architecture_patterns:
+            try:
+                pattern_str = f"{pattern.name}: {pattern.description}"
+                arch_patterns.append(pattern_str)
+            except (AttributeError, TypeError):
+                continue
+    except (AttributeError, TypeError):
+        pass
+    arch_patterns_str = "; ".join(arch_patterns) if arch_patterns else "No architecture patterns defined"
     
     prompt = API_ENDPOINTS_PROMPT.format(
         project_name=state["name"],
@@ -573,3 +610,5 @@ async def execute_with_fallbacks(primary_llm, fallback_llms, structured_output_t
         
         # We should never reach here but just in case
         raise RuntimeError("All models failed")
+
+
