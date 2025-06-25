@@ -11,6 +11,7 @@ import uuid
 from fastapi import BackgroundTasks
 from app.db.models.plan_progress import PlanProgress
 
+
 router = APIRouter()
 
 
@@ -30,7 +31,6 @@ async def generate_clarification_questions(
         )
 
 
-# Add this new endpoint to your existing router
 @router.get("/status/{task_id}")
 async def get_plan_status(
     task_id: str,
@@ -68,6 +68,7 @@ async def get_plan_status(
             detail=f"Failed to get status: {str(e)}"
         )
 
+
 @router.post("/generate-plan", response_model=dict)
 async def generate_project_plan(
     background_tasks: BackgroundTasks,
@@ -77,6 +78,16 @@ async def generate_project_plan(
 ):
     """Generate a complete project plan based on description and answers to clarification questions"""
     try:
+
+        can_generate, error_message = current_user.can_generate_plan()
+        if not can_generate:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=error_message
+            )   
+        
+        current_user.record_plan_generation()
+
         # Generate unique task ID
         task_id = str(uuid.uuid4())
         
@@ -109,8 +120,8 @@ async def generate_project_plan(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to start plan generation: {str(e)}"
         )
+    
 
-# New background task function
 async def generate_plan_background(
     task_id: str,
     clarification_qa: ClarificationQA,
