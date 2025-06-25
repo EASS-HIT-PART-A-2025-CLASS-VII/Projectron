@@ -200,6 +200,7 @@ Token Target: Keep entire response under 14,000 tokens through strategic focus o
 """
 
 # Prompt for generating data models
+# Prompt for generating comprehensive data models
 DATA_MODELS_PROMPT = """
 You are an experienced database designer and data architect.
 Your task is to create detailed data models for a software project.
@@ -215,21 +216,38 @@ Resources: {resources}
 Authentication: {authentication}
 
 # Instructions
-Design data models that will efficiently support the APIs and features defined. Create:
-1. Entities - for each entity in the system:
-   - Name and description
-   - Properties with types, descriptions, and required status
-2. Relationships - connections between entities:
-   - Source and target entities
-   - Relationship type (one-to-one, one-to-many, many-to-many)
-   - Description of the relationship
 
-Ensure your data models:
-- Support all API resources and endpoints defined in the previous step
-- Follow database best practices for the technologies in the tech stack
+Create a COMPREHENSIVE data model that covers all logical aspects of the system. Be generous - it's better to include more entities than miss critical ones.
+
+**Make sure to include at least 5-10 data entities as long as its relevant to the project.**
+**Dont make more than 12 Datamodels**
+
+**Think systematically about these entity categories:**
+1. **Core Business Entities** - Main objects users interact with
+2. **User & Identity** - Users, roles, permissions, profiles, sessions
+3. **Content & Media** - Documents, files, comments, reviews, media
+4. **Workflow & Process** - Tasks, workflows, notifications, events, status tracking
+5. **System & Configuration** - Settings, categories, tags, logs, analytics
+6. **Relationships** - Many-to-many association entities (user-project, role-permission, etc.)
+
+**For each entity provide:**
+- Name and clear description
+- Properties with types, descriptions, and required status
+- Include standard fields: id, created_at, updated_at, status where applicable
+
+**For relationships define:**
+- Source and target entities
+- Relationship type (one-to-one, one-to-many, many-to-many)
+- Clear description of the relationship
+
+**Requirements:**
+- Support all API resources and endpoints
 - Enable efficient querying for common operations
+- Follow database best practices for the tech stack
+- Consider audit trails, user activity tracking, and system logs
+- Include entities for file uploads, notifications, and user preferences
 
-IMPORTANT: Create efficient, well-structured data models. Assume the developers are highly capable and can accomplish more than initially estimated. Design for what could be accomplished in approximately {extended_hours} hours.
+IMPORTANT: Design for what could be accomplished in approximately {extended_hours} hours. Be comprehensive and think about ALL the data the system would logically need to store and manage.
 """
 
 # Prompt for generating UI components
