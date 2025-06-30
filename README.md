@@ -6,7 +6,7 @@ Transform project descriptions into comprehensive development plans with AI-gene
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![React](https://img.shields.io/badge/React-18-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green) ![Python](https://img.shields.io/badge/Python-3.12-blue) ![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green) ![Docker](https://img.shields.io/badge/Docker-24.0-blue)
 
-[Live Demo](https://projectron-production.up.railway.app) • [Report Bug](https://github.com/Eden-Cohen1/projectron/issues)
+[Live Demo](https://projectron-production.up.railway.app) • [Video](https://www.youtube.com/watch?v=04oZWm43IpE&t=226s) • [Report Bug](https://github.com/Eden-Cohen1/projectron/issues) 
 
 ---
 
